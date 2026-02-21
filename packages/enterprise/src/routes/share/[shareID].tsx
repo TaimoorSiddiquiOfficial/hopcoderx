@@ -1,37 +1,37 @@
-import { FileDiff, Message, Model, Part, Session, SessionStatus, UserMessage } from "@opencode-ai/sdk/v2"
-import { SessionTurn } from "@opencode-ai/ui/session-turn"
-import { SessionReview } from "@opencode-ai/ui/session-review"
-import { DataProvider } from "@opencode-ai/ui/context"
-import { DiffComponentProvider } from "@opencode-ai/ui/context/diff"
-import { CodeComponentProvider } from "@opencode-ai/ui/context/code"
-import { WorkerPoolProvider } from "@opencode-ai/ui/context/worker-pool"
+import { FileDiff, Message, Model, Part, Session, SessionStatus, UserMessage } from "@hopcoderx/sdk/v2"
+import { SessionTurn } from "@hopcoderx/ui/session-turn"
+import { SessionReview } from "@hopcoderx/ui/session-review"
+import { DataProvider } from "@hopcoderx/ui/context"
+import { DiffComponentProvider } from "@hopcoderx/ui/context/diff"
+import { CodeComponentProvider } from "@hopcoderx/ui/context/code"
+import { WorkerPoolProvider } from "@hopcoderx/ui/context/worker-pool"
 import { createAsync, query, useParams } from "@solidjs/router"
 import { createEffect, createMemo, ErrorBoundary, For, Match, Show, Switch } from "solid-js"
 import { Share } from "~/core/share"
-import { Logo, Mark } from "@opencode-ai/ui/logo"
-import { IconButton } from "@opencode-ai/ui/icon-button"
-import { ProviderIcon } from "@opencode-ai/ui/provider-icon"
-import { createDefaultOptions } from "@opencode-ai/ui/pierre"
-import { iife } from "@opencode-ai/util/iife"
-import { Binary } from "@opencode-ai/util/binary"
-import { NamedError } from "@opencode-ai/util/error"
+import { Logo, Mark } from "@hopcoderx/ui/logo"
+import { IconButton } from "@hopcoderx/ui/icon-button"
+import { ProviderIcon } from "@hopcoderx/ui/provider-icon"
+import { createDefaultOptions } from "@hopcoderx/ui/pierre"
+import { iife } from "@hopcoderx/util/iife"
+import { Binary } from "@hopcoderx/util/binary"
+import { NamedError } from "@hopcoderx/util/error"
 import { DateTime } from "luxon"
 import { createStore } from "solid-js/store"
 import z from "zod"
 import NotFound from "../[...404]"
-import { Tabs } from "@opencode-ai/ui/tabs"
-import { MessageNav } from "@opencode-ai/ui/message-nav"
+import { Tabs } from "@hopcoderx/ui/tabs"
+import { MessageNav } from "@hopcoderx/ui/message-nav"
 import { preloadMultiFileDiff, PreloadMultiFileDiffResult } from "@pierre/diffs/ssr"
-import { Diff as SSRDiff } from "@opencode-ai/ui/diff-ssr"
+import { Diff as SSRDiff } from "@hopcoderx/ui/diff-ssr"
 import { clientOnly } from "@solidjs/start"
-import { type IconName } from "@opencode-ai/ui/icons/provider"
+import { type IconName } from "@hopcoderx/ui/icons/provider"
 import { Meta, Title } from "@solidjs/meta"
 import { Base64 } from "js-base64"
 
-const ClientOnlyDiff = clientOnly(() => import("@opencode-ai/ui/diff").then((m) => ({ default: m.Diff })))
-const ClientOnlyCode = clientOnly(() => import("@opencode-ai/ui/code").then((m) => ({ default: m.Code })))
+const ClientOnlyDiff = clientOnly(() => import("@hopcoderx/ui/diff").then((m) => ({ default: m.Diff })))
+const ClientOnlyCode = clientOnly(() => import("@hopcoderx/ui/code").then((m) => ({ default: m.Code })))
 const ClientOnlyWorkerPoolProvider = clientOnly(() =>
-  import("@opencode-ai/ui/pierre/worker").then((m) => ({
+  import("@hopcoderx/ui/pierre/worker").then((m) => ({
     default: (props: { children: any }) => (
       <WorkerPoolProvider pools={m.getWorkerPools()}>{props.children}</WorkerPoolProvider>
     ),
