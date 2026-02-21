@@ -1,0 +1,364 @@
+name: Build & Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: false
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      version:
+        description: "Explicit version (overrides bump)"
+        required: false
+        type: string
+      channel:
+        description: "npm dist-tag / release channel"
+        required: false
+        type: choice
+        options:
+          - latest
+          - beta
+        default: latest
+      skip_cli:
+        description: "Skip CLI build + publish"
+        required: false
+        type: boolean
+        default: false
+      skip_sdk:
+        description: "Skip SDK publish"
+        required: false
+        type: boolean
+        default: false
+      skip_plugin:
+        description: "Skip Plugin publish"
+        required: false
+        type: boolean
+        default: false
+      skip_release:
+        description: "Skip GitHub Release creation"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: build-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+env:
+  HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+  HOPCODERX_BUMP: ${{ inputs.bump || 'patch' }}
+
+jobs:
+  # ─── Resolve Version ────────────────────────────────────────────────
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      release: ${{ steps.release.outputs.release_id }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Resolve version
+        id: resolve
+        run: |
+          VERSION=$(bun -e "
+            import { Script } from '@hopcoderx/script'
+            console.log(Script.version)
+          ")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $VERSION"
+        env:
+          HOPCODERX_VERSION: ${{ inputs.version }}
+          HOPCODERX_BUMP: ${{ inputs.bump || 'patch' }}
+          HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+
+      - name: Create GitHub Release
+        id: release
+        if: ${{ !inputs.skip_release && (inputs.channel == 'latest' || inputs.channel == '') }}
+        run: |
+          bun run ./script/version.ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOPCODERX_VERSION: ${{ steps.resolve.outputs.version }}
+          HOPCODERX_BUMP: ${{ inputs.bump || 'patch' }}
+          HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+
+  # ─── Bump all package.json versions + build SDK ─────────────────────
+  prepare:
+    needs: version
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.version.outputs.version }}
+      HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun
+
+      - name: Bump versions in all package.json files
+        run: |
+          bun -e "
+            const version = process.env.HOPCODERX_VERSION
+            const files = await Array.fromAsync(
+              new Bun.Glob('**/package.json').scan({ absolute: true })
+            ).then(arr => arr.filter(x => !x.includes('node_modules') && !x.includes('dist')))
+            for (const file of files) {
+              let pkg = await Bun.file(file).text()
+              pkg = pkg.replaceAll(/\"version\": \"[^\"]+\"/g, \`\"version\": \"\${version}\"\`)
+              await Bun.file(file).write(pkg)
+              console.log('bumped:', file)
+            }
+          "
+
+      - name: Build SDK
+        run: bun run packages/sdk/js/script/build.ts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prepared-repo
+          path: .
+          retention-days: 1
+
+  # ─── Build CLI Binaries (cross-platform matrix) ────────────────────
+  build-cli:
+    if: ${{ !inputs.skip_cli }}
+    needs: [version, prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: hopcoderx-linux-x64
+          - os: ubuntu-latest
+            name: hopcoderx-linux-arm64
+          - os: macos-13
+            name: hopcoderx-darwin-x64
+          - os: macos-14
+            name: hopcoderx-darwin-arm64
+          - os: windows-latest
+            name: hopcoderx-windows-x64
+    runs-on: ${{ matrix.os }}
+    env:
+      HOPCODERX_VERSION: ${{ needs.version.outputs.version }}
+      HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-repo
+          path: .
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+
+      - run: bun install
+
+      - name: Build CLI (${{ matrix.name }})
+        working-directory: packages/hopcoderx
+        run: |
+          bun run script/build.ts -- --single --skip-install
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.name }}
+          path: packages/hopcoderx/dist/
+          retention-days: 3
+
+  # ─── Publish CLI to npm + upload to GitHub Release ──────────────────
+  publish-cli:
+    if: ${{ !inputs.skip_cli }}
+    needs: [version, build-cli]
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.version.outputs.version }}
+      HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+      HOPCODERX_RELEASE: ${{ needs.version.outputs.release }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-repo
+          path: .
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+
+      - run: bun install
+
+      - name: Download all CLI build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: cli-*
+          path: packages/hopcoderx/dist/
+          merge-multiple: true
+
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Publish platform binaries to npm
+        working-directory: packages/hopcoderx
+        run: |
+          for dir in dist/hopcoderx-*/; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Publishing $dir..."
+              cd "$dir"
+              chmod -R 755 . 2>/dev/null || true
+              bun pm pack
+              npm publish *.tgz --access public --tag ${{ inputs.channel || 'latest' }} || echo "⚠️ Failed: $dir"
+              cd - > /dev/null
+            fi
+          done
+
+      - name: Build and publish wrapper package (hopcoderx-ai)
+        working-directory: packages/hopcoderx
+        run: |
+          bun -e "
+            import pkg from './package.json'
+            import { Script } from '@hopcoderx/script'
+
+            const binaries = {}
+            for (const filepath of new Bun.Glob('*/package.json').scanSync({ cwd: './dist' })) {
+              const p = await Bun.file('./dist/' + filepath).json()
+              binaries[p.name] = p.version
+            }
+            console.log('Platform binaries:', Object.keys(binaries))
+            const version = Object.values(binaries)[0] || Script.version
+
+            const fs = await import('fs/promises')
+            await fs.mkdir('./dist/' + pkg.name, { recursive: true })
+            await Bun.write('./dist/' + pkg.name + '/package.json', JSON.stringify({
+              name: pkg.name + '-ai',
+              bin: { [pkg.name]: './bin/' + pkg.name },
+              scripts: { postinstall: 'bun ./postinstall.mjs || node ./postinstall.mjs' },
+              version,
+              license: pkg.license,
+              optionalDependencies: binaries,
+            }, null, 2))
+            await fs.cp('./bin', './dist/' + pkg.name + '/bin', { recursive: true })
+            await fs.copyFile('./script/postinstall.mjs', './dist/' + pkg.name + '/postinstall.mjs')
+            await fs.copyFile('../../LICENSE', './dist/' + pkg.name + '/LICENSE')
+          "
+          cd dist/hopcoderx
+          bun pm pack
+          npm publish *.tgz --access public --tag ${{ inputs.channel || 'latest' }} || echo "⚠️ Failed: wrapper package"
+
+      - name: Upload release assets
+        if: ${{ needs.version.outputs.release && !inputs.skip_release }}
+        working-directory: packages/hopcoderx
+        run: |
+          for dir in dist/hopcoderx-linux-*/; do
+            name=$(basename "$dir")
+            tar -czf "dist/${name}.tar.gz" -C "$dir/bin" .
+          done
+          for dir in dist/hopcoderx-darwin-* dist/hopcoderx-windows-*/; do
+            name=$(basename "$dir")
+            (cd "$dir/bin" && zip -r "../../${name}.zip" .)
+          done
+          gh release upload "v${{ needs.version.outputs.version }}" dist/*.tar.gz dist/*.zip --clobber || echo "⚠️ Failed to upload release assets"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # ─── Publish SDK (@hopcoderx/sdk) ──────────────────────────────────
+  publish-sdk:
+    if: ${{ !inputs.skip_sdk }}
+    needs: [version, prepare]
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.version.outputs.version }}
+      HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-repo
+          path: .
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+
+      - run: bun install
+
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Publish @hopcoderx/sdk
+        working-directory: packages/sdk/js
+        run: bun run script/publish.ts
+
+  # ─── Publish Plugin (@hopcoderx/plugin) ────────────────────────────
+  publish-plugin:
+    if: ${{ !inputs.skip_plugin }}
+    needs: [version, prepare]
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.version.outputs.version }}
+      HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-repo
+          path: .
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+
+      - run: bun install
+
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Publish @hopcoderx/plugin
+        working-directory: packages/plugin
+        run: bun run script/publish.ts
+
+  # ─── Finalize: tag + mark release as published ─────────────────────
+  finalize:
+    needs: [version, publish-cli, publish-sdk, publish-plugin]
+    if: ${{ always() && !cancelled() && (inputs.channel == 'latest' || inputs.channel == '') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag release
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "v${VERSION}"
+          git push origin "v${VERSION}" --force || echo "Tag already exists"
+
+      - name: Publish GitHub Release
+        if: ${{ needs.version.outputs.release }}
+        run: |
+          gh release edit "v${{ needs.version.outputs.version }}" --draft=false || echo "Release not found or already published"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Summary
+        run: |
+          echo "## Build & Publish Complete 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | \`${{ needs.version.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Channel** | \`${{ inputs.channel || 'latest' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **CLI (hopcoderx-ai)** | ${{ needs.publish-cli.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **SDK (@hopcoderx/sdk)** | ${{ needs.publish-sdk.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Plugin (@hopcoderx/plugin)** | ${{ needs.publish-plugin.result }} |" >> $GITHUB_STEP_SUMMARY
