@@ -1,0 +1,603 @@
+---
+title: CLI
+description: Opciones y comandos de la CLI de HopCoderX.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components"
+
+La CLI de HopCoderX de forma predeterminada inicia el [TUI](/docs/tui) cuando se ejecuta sin ningún argumento.
+
+```bash
+HopCoderX
+```
+
+Pero también acepta comandos como se documenta en esta página. Esto le permite interactuar con HopCoderX mediante programación.
+
+```bash
+HopCoderX run "Explain how closures work in JavaScript"
+```
+
+---
+
+### tui
+
+Inicie la interfaz de usuario del terminal HopCoderX.
+
+```bash
+HopCoderX [project]
+```
+
+#### Opciones
+
+| Opción       | Corta | Descripción                                                           |
+| ------------ | ----- | --------------------------------------------------------------------- |
+| `--continue` | `-c`  | Continuar la última sesión                                            |
+| `--session`  | `-s`  | ID de sesión para continuar                                           |
+| `--fork`     |       | Bifurcar la sesión al continuar (usar con `--continue` o `--session`) |
+| `--prompt`   |       | Aviso de uso                                                          |
+| `--model`    | `-m`  | Modelo a utilizar en forma de proveedor/modelo                        |
+| `--agent`    |       | Agente a utilizar                                                     |
+| `--port`     |       | Puerto para escuchar                                                  |
+| `--hostname` |       | Nombre de host para escuchar                                          |
+
+---
+
+## Comandos
+
+La CLI de HopCoderX también tiene los siguientes comandos.
+
+---
+
+### agent
+
+Administrar agentes para HopCoderX.
+
+```bash
+HopCoderX agent [command]
+```
+
+---
+
+### attach
+
+Conecte una terminal a un servidor backend HopCoderX que ya se esté ejecutando y iniciado mediante los comandos `serve` o `web`.
+
+```bash
+HopCoderX attach [url]
+```
+
+Esto permite usar TUI con un backend remoto HopCoderX. Por ejemplo:
+
+```bash
+# Start the backend server for web/mobile access
+HopCoderX web --port 4096 --hostname 0.0.0.0
+
+# In another terminal, attach the TUI to the running backend
+HopCoderX attach http://10.20.30.40:4096
+```
+
+#### Opciones
+
+| Opción      | Corta | Descripción                               |
+| ----------- | ----- | ----------------------------------------- |
+| `--dir`     |       | Directorio de trabajo para iniciar TUI en |
+| `--session` | `-s`  | ID de sesión para continuar               |
+
+---
+
+#### create
+
+Cree un nuevo agente con configuración personalizada.
+
+```bash
+HopCoderX agent create
+```
+
+Este comando lo guiará en la creación de un nuevo agente con un mensaje del sistema personalizado y una configuración de herramientas.
+
+---
+
+#### list
+
+Enumere todos los agentes disponibles.
+
+```bash
+HopCoderX agent list
+```
+
+---
+
+### auth
+
+Comando para administrar credenciales e iniciar sesión para proveedores.
+
+```bash
+HopCoderX auth [command]
+```
+
+---
+
+#### login
+
+HopCoderX funciona con la lista de proveedores en [Models.dev](https://models.dev), por lo que puede usar `HopCoderX auth login` para configurar las claves API para cualquier proveedor que desee utilizar. Esto se almacena en `~/.local/share/HopCoderX/auth.json`.
+
+```bash
+HopCoderX auth login
+```
+
+Cuando se inicia HopCoderX, carga los proveedores desde el archivo de credenciales. Y si hay claves definidas en sus entornos o un archivo `.env` en su proyecto.
+
+---
+
+#### list
+
+Enumera todos los proveedores autenticados tal como están almacenados en el archivo de credenciales.
+
+```bash
+HopCoderX auth list
+```
+
+O la versión corta.
+
+```bash
+HopCoderX auth ls
+```
+
+---
+
+#### logout
+
+Cierra tu sesión de un proveedor eliminándolo del archivo de credenciales.
+
+```bash
+HopCoderX auth logout
+```
+
+---
+
+### github
+
+Administre el agente GitHub para la automatización del repositorio.
+
+```bash
+HopCoderX github [command]
+```
+
+---
+
+#### install
+
+Instale el agente GitHub en su repositorio.
+
+```bash
+HopCoderX github install
+```
+
+Esto configura el flujo de trabajo de acciones GitHub necesario y lo guía a través del proceso de configuración. [Más información](/docs/github).
+
+---
+
+#### run
+
+Ejecute el agente GitHub. Esto se usa normalmente en acciones GitHub.
+
+```bash
+HopCoderX github run
+```
+
+##### Opciones
+
+| Opción    | Descripción                                    |
+| --------- | ---------------------------------------------- |
+| `--event` | GitHub evento simulado para ejecutar el agente |
+| `--token` | GitHub token de acceso personal                |
+
+---
+
+### mcp
+
+Administrar servidores de protocolo de contexto modelo.
+
+```bash
+HopCoderX mcp [command]
+```
+
+---
+
+#### add
+
+Agregue un servidor MCP a su configuración.
+
+```bash
+HopCoderX mcp add
+```
+
+Este comando lo guiará para agregar un servidor MCP local o remoto.
+
+---
+
+#### list
+
+Enumere todos los servidores MCP configurados y su estado de conexión.
+
+```bash
+HopCoderX mcp list
+```
+
+O utilice la versión corta.
+
+```bash
+HopCoderX mcp ls
+```
+
+---
+
+#### auth
+
+Autentíquese con un servidor MCP habilitado para OAuth.
+
+```bash
+HopCoderX mcp auth [name]
+```
+
+Si no proporciona un nombre de servidor, se le pedirá que seleccione entre los servidores compatibles con OAuth disponibles.
+
+También puede enumerar los servidores compatibles con OAuth y su estado de autenticación.
+
+```bash
+HopCoderX mcp auth list
+```
+
+O utilice la versión corta.
+
+```bash
+HopCoderX mcp auth ls
+```
+
+---
+
+#### logout
+
+Elimine las credenciales OAuth para un servidor MCP.
+
+```bash
+HopCoderX mcp logout [name]
+```
+
+---
+
+#### debug
+
+Depurar problemas de conexión OAuth para un servidor MCP.
+
+```bash
+HopCoderX mcp debug <name>
+```
+
+---
+
+### models
+
+Enumere todos los modelos disponibles de los proveedores configurados.
+
+```bash
+HopCoderX models [provider]
+```
+
+Este comando muestra todos los modelos disponibles en sus proveedores configurados en el formato `provider/model`.
+
+Esto es útil para determinar el nombre exacto del modelo que se usará en [su configuración](/docs/config/).
+
+Opcionalmente, puede pasar un ID de proveedor para filtrar modelos por ese proveedor.
+
+```bash
+HopCoderX models anthropic
+```
+
+#### Opciones
+
+| Opción      | Descripción                                                                 |
+| ----------- | --------------------------------------------------------------------------- |
+| `--refresh` | Actualizar la caché de modelos desde models.dev                             |
+| `--verbose` | Utilice una salida del modelo más detallada (incluye metadatos como costos) |
+
+Utilice el indicador `--refresh` para actualizar la lista de modelos almacenados en caché. Esto es útil cuando se han agregado nuevos modelos a un proveedor y desea verlos en HopCoderX.
+
+```bash
+HopCoderX models --refresh
+```
+
+---
+
+### run
+
+Ejecute HopCoderX en modo no interactivo pasando un mensaje directamente.
+
+```bash
+HopCoderX run [message..]
+```
+
+Esto es útil para secuencias de comandos, automatización o cuando desea una respuesta rápida sin iniciar el TUI completo. Por ejemplo.
+
+```bash "HopCoderX run"
+HopCoderX run Explain the use of context in Go
+```
+
+También puede conectarse a una instancia `HopCoderX serve` en ejecución para evitar tiempos de arranque en frío del servidor MCP en cada ejecución:
+
+```bash
+# Start a headless server in one terminal
+HopCoderX serve
+
+# In another terminal, run commands that attach to it
+HopCoderX run --attach http://localhost:4096 "Explain async/await in JavaScript"
+```
+
+#### Opciones
+
+| Opción       | Corta | Descripción                                                                         |
+| ------------ | ----- | ----------------------------------------------------------------------------------- |
+| `--command`  |       | El comando a ejecutar, use mensaje para args                                        |
+| `--continue` | `-c`  | Continuar la última sesión                                                          |
+| `--session`  | `-s`  | ID de sesión para continuar                                                         |
+| `--fork`     |       | Bifurcar la sesión al continuar (usar con `--continue` o `--session`)               |
+| `--share`    |       | Comparte la sesión                                                                  |
+| `--model`    | `-m`  | Modelo a utilizar en forma de proveedor/modelo                                      |
+| `--agent`    |       | Agente a utilizar                                                                   |
+| `--file`     | `-f`  | Archivo(s) para adjuntar al mensaje                                                 |
+| `--format`   |       | Formato: predeterminado (formateado) o json (eventos JSON sin formato)              |
+| `--title`    |       | Título de la sesión (utiliza un mensaje truncado si no se proporciona ningún valor) |
+| `--attach`   |       | Adjuntar a un servidor HopCoderX en ejecución (por ejemplo, http://localhost:4096)   |
+| `--port`     |       | Puerto para el servidor local (el puerto predeterminado es aleatorio)               |
+
+---
+
+### serve
+
+Inicie un servidor HopCoderX sin cabeza para acceso API. Consulte los [documentos del servidor](/docs/server) para conocer la interfaz HTTP completa.
+
+```bash
+HopCoderX serve
+```
+
+Esto inicia un servidor HTTP que proporciona acceso API a la funcionalidad HopCoderX sin la interfaz TUI. Configure `HOPCODERX_SERVER_PASSWORD` para habilitar la autenticación básica HTTP (el nombre de usuario predeterminado es `HopCoderX`).
+
+#### Opciones
+
+| Opción       | Descripción                                          |
+| ------------ | ---------------------------------------------------- |
+| `--port`     | Puerto para escuchar                                 |
+| `--hostname` | Nombre de host para escuchar                         |
+| `--mdns`     | Habilitar el descubrimiento de mDNS                  |
+| `--cors`     | Orígenes de navegador adicionales para permitir CORS |
+
+---
+
+### session
+
+Administrar HopCoderX sesiones.
+
+```bash
+HopCoderX session [command]
+```
+
+---
+
+#### list
+
+Enumere todas las sesiones HopCoderX.
+
+```bash
+HopCoderX session list
+```
+
+##### Opciones
+
+| Opción        | Corta | Descripción                             |
+| ------------- | ----- | --------------------------------------- |
+| `--max-count` | `-n`  | Limitar a N sesiones más recientes      |
+| `--format`    |       | Formato de salida: tabla o json (tabla) |
+
+---
+
+### stats
+
+Muestre el uso de tokens y las estadísticas de costos para sus sesiones HopCoderX.
+
+```bash
+HopCoderX stats
+```
+
+#### Opciones
+
+| Opción      | Descripción                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--days`    | Mostrar estadísticas de los últimos N días (todo el tiempo)                                                              |
+| `--tools`   | Número de herramientas para mostrar (todas)                                                                              |
+| `--models`  | Mostrar el desglose del uso del modelo (oculto de forma predeterminada). Pase un número para mostrar la parte superior N |
+| `--project` | Filtrar por proyecto (todos los proyectos, cadena vacía: proyecto actual)                                                |
+
+---
+
+### export
+
+Exportar datos de la sesión como JSON.
+
+```bash
+HopCoderX export [sessionID]
+```
+
+Si no proporciona una ID de sesión, se le pedirá que seleccione entre las sesiones disponibles.
+
+---
+
+### import
+
+Importe datos de sesión desde un archivo JSON o una URL compartida HopCoderX.
+
+```bash
+HopCoderX import <file>
+```
+
+Puede importar desde un archivo local o una URL compartida HopCoderX.
+
+```bash
+HopCoderX import session.json
+HopCoderX import https://opncd.ai/s/abc123
+```
+
+---
+
+### web
+
+Inicie un servidor HopCoderX sin cabeza con una interfaz web.
+
+```bash
+HopCoderX web
+```
+
+Esto inicia un servidor HTTP y abre un navegador web para acceder a HopCoderX a través de una interfaz web. Configure `HOPCODERX_SERVER_PASSWORD` para habilitar la autenticación básica HTTP (el nombre de usuario predeterminado es `HopCoderX`).
+
+#### Opciones
+
+| Opción       | Descripción                                          |
+| ------------ | ---------------------------------------------------- |
+| `--port`     | Puerto para escuchar                                 |
+| `--hostname` | Nombre de host para escuchar                         |
+| `--mdns`     | Habilitar el descubrimiento de mDNS                  |
+| `--cors`     | Orígenes de navegador adicionales para permitir CORS |
+
+---
+
+### acp
+
+Inicie un servidor ACP (Agent Client Protocol).
+
+```bash
+HopCoderX acp
+```
+
+Este comando inicia un servidor ACP que se comunica a través de stdin/stdout usando nd-JSON.
+
+#### Opciones
+
+| Opción       | Descripción                  |
+| ------------ | ---------------------------- |
+| `--cwd`      | Directorio de trabajo        |
+| `--port`     | Puerto para escuchar         |
+| `--hostname` | Nombre de host para escuchar |
+
+---
+
+### uninstall
+
+Desinstale HopCoderX y elimine todos los archivos relacionados.
+
+```bash
+HopCoderX uninstall
+```
+
+#### Opciones
+
+| Opción          | Corta | Descripción                               |
+| --------------- | ----- | ----------------------------------------- |
+| `--keep-config` | `-c`  | Mantener archivos de configuración        |
+| `--keep-data`   | `-d`  | Conservar datos de sesión e instantáneas  |
+| `--dry-run`     |       | Mostrar lo que se eliminaría sin eliminar |
+| `--force`       | `-f`  | Saltar mensajes de confirmación           |
+
+---
+
+### upgrade
+
+Actualiza HopCoderX a la última versión o a una versión específica.
+
+```bash
+HopCoderX upgrade [target]
+```
+
+Para actualizar a la última versión.
+
+```bash
+HopCoderX upgrade
+```
+
+Para actualizar a una versión específica.
+
+```bash
+HopCoderX upgrade v0.1.48
+```
+
+#### Opciones
+
+| Opción     | Corta | Descripción                                                         |
+| ---------- | ----- | ------------------------------------------------------------------- |
+| `--method` | `-m`  | El método de instalación que se utilizó; curl, npm, pnpm, bun, brew |
+
+---
+
+## Opciones globales
+
+La CLI de HopCoderX toma las siguientes banderas globales.
+
+| Opción         | Corta | Descripción                                  |
+| -------------- | ----- | -------------------------------------------- |
+| `--help`       | `-h`  | Mostrar ayuda                                |
+| `--version`    | `-v`  | Número de versión de impresión               |
+| `--print-logs` |       | Imprimir registros en stderr                 |
+| `--log-level`  |       | Nivel de registro (DEBUG, INFO, WARN, ERROR) |
+
+---
+
+## Variables de entorno
+
+HopCoderX se puede configurar mediante variables de entorno.
+
+| Variable                              | Type     | Description                                                                     |
+| ------------------------------------- | -------- | ------------------------------------------------------------------------------- |
+| `HOPCODERX_AUTO_SHARE`                 | booleano | Compartir sesiones automáticamente                                              |
+| `HOPCODERX_GIT_BASH_PATH`              | cadena   | Ruta al ejecutable de Git Bash en Windows                                       |
+| `HOPCODERX_CONFIG`                     | cadena   | Ruta al archivo de configuración                                                |
+| `HOPCODERX_CONFIG_DIR`                 | cadena   | Ruta al directorio de configuración                                             |
+| `HOPCODERX_CONFIG_CONTENT`             | cadena   | Contenido de configuración json en línea                                        |
+| `HOPCODERX_DISABLE_AUTOUPDATE`         | booleano | Deshabilitar las comprobaciones automáticas de actualizaciones                  |
+| `HOPCODERX_DISABLE_PRUNE`              | booleano | Deshabilitar la poda de datos antiguos                                          |
+| `HOPCODERX_DISABLE_TERMINAL_TITLE`     | booleano | Deshabilitar las actualizaciones automáticas de títulos de terminal             |
+| `HOPCODERX_PERMISSION`                 | cadena   | Configuración de permisos json incorporados                                     |
+| `HOPCODERX_DISABLE_DEFAULT_PLUGINS`    | booleano | Deshabilitar complementos predeterminados                                       |
+| `HOPCODERX_DISABLE_LSP_DOWNLOAD`       | booleano | Deshabilitar las descargas automáticas del servidor LSP                         |
+| `HOPCODERX_ENABLE_EXPERIMENTAL_MODELS` | booleano | Habilitar modelos experimentales                                                |
+| `HOPCODERX_DISABLE_AUTOCOMPACT`        | booleano | Deshabilitar la compactación automática de contexto                             |
+| `HOPCODERX_DISABLE_CLAUDE_CODE`        | booleano | Deshabilitar la lectura desde `.claude` (mensaje + habilidades)                 |
+| `HOPCODERX_DISABLE_CLAUDE_CODE_PROMPT` | booleano | Desactivar lectura `~/.claude/CLAUDE.md`                                        |
+| `HOPCODERX_DISABLE_CLAUDE_CODE_SKILLS` | booleano | Deshabilitar la carga `.claude/skills`                                          |
+| `HOPCODERX_DISABLE_MODELS_FETCH`       | booleano | Deshabilitar la recuperación de modelos desde fuentes remotas                   |
+| `HOPCODERX_FAKE_VCS`                   | cadena   | Proveedor de VCS falso para fines de prueba                                     |
+| `HOPCODERX_DISABLE_FILETIME_CHECK`     | booleano | Deshabilite la verificación del tiempo del archivo para optimizarlo             |
+| `HOPCODERX_CLIENT`                     | cadena   | Identificador de cliente (por defecto `cli`)                                    |
+| `HOPCODERX_ENABLE_EXA`                 | booleano | Habilitar las herramientas de búsqueda web de Exa                               |
+| `HOPCODERX_SERVER_PASSWORD`            | cadena   | Habilite la autenticación básica para `serve`/`web`                             |
+| `HOPCODERX_SERVER_USERNAME`            | cadena   | Anular el nombre de usuario de autenticación básica (predeterminado `HopCoderX`) |
+| `HOPCODERX_MODELS_URL`                 | cadena   | URL personalizada para buscar la configuración de modelos                       |
+
+---
+
+### Experimental
+
+Estas variables de entorno habilitan funciones experimentales que pueden cambiar o eliminarse.
+
+| Variable                                        | Type     | Description                                                |
+| ----------------------------------------------- | -------- | ---------------------------------------------------------- |
+| `HOPCODERX_EXPERIMENTAL`                         | booleano | Habilitar todas las funciones experimentales               |
+| `HOPCODERX_EXPERIMENTAL_ICON_DISCOVERY`          | booleano | Habilitar descubrimiento de íconos                         |
+| `HOPCODERX_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | booleano | Deshabilitar copia al seleccionar en TUI                   |
+| `HOPCODERX_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | número   | Tiempo de espera predeterminado para comandos bash en ms   |
+| `HOPCODERX_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | número   | Tokens de salida máximos para respuestas LLM               |
+| `HOPCODERX_EXPERIMENTAL_FILEWATCHER`             | booleano | Habilite el observador de archivos para todo el directorio |
+| `HOPCODERX_EXPERIMENTAL_OXFMT`                   | booleano | Habilitar el formateador oxfmt                             |
+| `HOPCODERX_EXPERIMENTAL_LSP_TOOL`                | booleano | Habilitar herramienta experimental LSP                     |
+| `HOPCODERX_EXPERIMENTAL_DISABLE_FILEWATCHER`     | booleano | Deshabilitar el observador de archivos                     |
+| `HOPCODERX_EXPERIMENTAL_EXA`                     | booleano | Habilitar funciones experimentales de Exa                  |
+| `HOPCODERX_EXPERIMENTAL_LSP_TY`                  | booleano | Habilitar la verificación de tipo experimental LSP         |
+| `HOPCODERX_EXPERIMENTAL_MARKDOWN`                | booleano | Habilitar funciones de Markdown experimentales             |
+| `HOPCODERX_EXPERIMENTAL_PLAN_MODE`               | booleano | Habilitar modo de plan                                     |

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "globalEnv": ["CI", "HOPCODERX_DISABLE_SHARE"],
+  "globalPassThroughEnv": ["CI", "HOPCODERX_DISABLE_SHARE"],
+  "tasks": {
+    "typecheck": {},
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "hopcoderx#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@hopcoderx/app#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    }
+  }
+}

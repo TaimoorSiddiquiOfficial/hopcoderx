@@ -1,0 +1,13 @@
+{
+  "$schema": "./config.json",
+  "provider": {
+    "hopcoderx": {
+      "options": {},
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}

@@ -1,0 +1,36 @@
+id = "HopCoderX"
+name = "HopCoderX"
+description = "The open source coding agent."
+version = "1.2.10"
+schema_version = 1
+authors = ["Anomaly"]
+repository = "https://github.com/TaimoorSiddiquiOfficial/hopcoderx"
+
+[agent_servers.HopCoderX]
+name = "HopCoderX"
+icon = "./icons/HopCoderX.svg"
+
+[agent_servers.HopCoderX.targets.darwin-aarch64]
+archive = "https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases/download/v1.2.10/HopCoderX-darwin-arm64.zip"
+cmd = "./HopCoderX"
+args = ["acp"]
+
+[agent_servers.HopCoderX.targets.darwin-x86_64]
+archive = "https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases/download/v1.2.10/HopCoderX-darwin-x64.zip"
+cmd = "./HopCoderX"
+args = ["acp"]
+
+[agent_servers.HopCoderX.targets.linux-aarch64]
+archive = "https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases/download/v1.2.10/HopCoderX-linux-arm64.tar.gz"
+cmd = "./HopCoderX"
+args = ["acp"]
+
+[agent_servers.HopCoderX.targets.linux-x86_64]
+archive = "https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases/download/v1.2.10/HopCoderX-linux-x64.tar.gz"
+cmd = "./HopCoderX"
+args = ["acp"]
+
+[agent_servers.HopCoderX.targets.windows-x86_64]
+archive = "https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases/download/v1.2.10/HopCoderX-windows-x64.zip"
+cmd = "./HopCoderX.exe"
+args = ["acp"]
