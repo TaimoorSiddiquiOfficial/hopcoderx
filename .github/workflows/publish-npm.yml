@@ -50,7 +50,7 @@ env:
 
 jobs:
   resolve-version:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -76,7 +76,7 @@ jobs:
 
   bump-versions:
     needs: resolve-version
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -129,7 +129,7 @@ jobs:
           - os: macos-14
             target_os: darwin
             target_arch: arm64
-            name: hopcoderx-darwin-arm64
+            name: blacksmith-4vcpu-ubuntu-2404-arm
           - os: windows-latest
             target_os: win32
             target_arch: x64
@@ -158,7 +158,7 @@ jobs:
   publish-cli:
     if: ${{ !inputs.skip_cli }}
     needs: [resolve-version, build-cli]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -233,7 +233,7 @@ jobs:
   publish-sdk:
     if: ${{ !inputs.skip_sdk }}
     needs: [resolve-version, bump-versions]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -255,7 +255,7 @@ jobs:
   publish-plugin:
     if: ${{ !inputs.skip_plugin }}
     needs: [resolve-version, bump-versions]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -277,7 +277,7 @@ jobs:
   tag-release:
     needs: [resolve-version, publish-cli, publish-sdk, publish-plugin]
     if: ${{ always() && !cancelled() && inputs.channel == 'latest' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
