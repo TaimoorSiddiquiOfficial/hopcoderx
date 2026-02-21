@@ -50,12 +50,12 @@ env:
 
 jobs:
   resolve-version:
-    runs-on: blacksmith-4
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: useblacksmith/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
       - run: bun install --frozen-lockfile
@@ -76,12 +76,12 @@ jobs:
 
   bump-versions:
     needs: resolve-version
-    runs-on: blacksmith-4
+    runs-on: ubuntu-latest
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: useblacksmith/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
       - run: bun install --frozen-lockfile
@@ -114,11 +114,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: blacksmith-4
+          - os: ubuntu-latest
             target_os: linux
             target_arch: x64
             name: hopcoderx-linux-x64
-          - os: blacksmith-4
+          - os: ubuntu-latest
             target_os: linux
             target_arch: arm64
             name: hopcoderx-linux-arm64
@@ -142,7 +142,7 @@ jobs:
         with:
           name: bumped-repo
           path: .
-      - uses: useblacksmith/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
       - run: bun install --frozen-lockfile
@@ -158,7 +158,7 @@ jobs:
   publish-cli:
     if: ${{ !inputs.skip_cli }}
     needs: [resolve-version, build-cli]
-    runs-on: blacksmith-4
+    runs-on: ubuntu-latest
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -166,7 +166,7 @@ jobs:
         with:
           name: bumped-repo
           path: .
-      - uses: useblacksmith/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
       - run: bun install --frozen-lockfile
@@ -233,7 +233,7 @@ jobs:
   publish-sdk:
     if: ${{ !inputs.skip_sdk }}
     needs: [resolve-version, bump-versions]
-    runs-on: blacksmith-4
+    runs-on: ubuntu-latest
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -241,7 +241,7 @@ jobs:
         with:
           name: bumped-repo
           path: .
-      - uses: useblacksmith/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
       - run: bun install --frozen-lockfile
@@ -255,7 +255,7 @@ jobs:
   publish-plugin:
     if: ${{ !inputs.skip_plugin }}
     needs: [resolve-version, bump-versions]
-    runs-on: blacksmith-4
+    runs-on: ubuntu-latest
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
@@ -263,7 +263,7 @@ jobs:
         with:
           name: bumped-repo
           path: .
-      - uses: useblacksmith/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
       - run: bun install --frozen-lockfile
@@ -277,7 +277,7 @@ jobs:
   tag-release:
     needs: [resolve-version, publish-cli, publish-sdk, publish-plugin]
     if: ${{ always() && !cancelled() && inputs.channel == 'latest' }}
-    runs-on: blacksmith-4
+    runs-on: ubuntu-latest
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
