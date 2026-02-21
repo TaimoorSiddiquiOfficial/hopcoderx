@@ -1,0 +1,293 @@
+name: Publish to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      version:
+        description: "Explicit version (overrides bump, e.g. 1.3.0)"
+        required: false
+        type: string
+      channel:
+        description: "npm dist-tag"
+        required: false
+        type: choice
+        options:
+          - latest
+          - beta
+        default: latest
+      skip_cli:
+        description: "Skip CLI binary publish"
+        required: false
+        type: boolean
+        default: false
+      skip_sdk:
+        description: "Skip SDK publish"
+        required: false
+        type: boolean
+        default: false
+      skip_plugin:
+        description: "Skip Plugin publish"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  HOPCODERX_CHANNEL: ${{ inputs.channel }}
+  HOPCODERX_BUMP: ${{ inputs.bump }}
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+      - run: bun install --frozen-lockfile
+      - name: Resolve version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            VERSION=$(bun -e "
+              import { Script } from '@hopcoderx/script'
+              console.log(Script.version)
+            ")
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          HOPCODERX_VERSION: ${{ inputs.version }}
+
+  bump-versions:
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+      - run: bun install --frozen-lockfile
+      - name: Bump all package.json versions
+        run: |
+          bun -e "
+            import { Glob } from 'bun'
+            const version = process.env.HOPCODERX_VERSION
+            const files = await Array.fromAsync(
+              new Glob('**/package.json').scan({ absolute: true })
+            ).then(arr => arr.filter(x => !x.includes('node_modules') && !x.includes('dist')))
+            for (const file of files) {
+              let pkg = await Bun.file(file).text()
+              pkg = pkg.replaceAll(/\"version\": \"[^\"]+\"/g, \`\"version\": \"\${version}\"\`)
+              await Bun.file(file).write(pkg)
+              console.log('updated:', file)
+            }
+          "
+      - name: Build SDK
+        run: bun run packages/sdk/js/script/build.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bumped-repo
+          path: .
+          retention-days: 1
+
+  build-cli:
+    if: ${{ !inputs.skip_cli }}
+    needs: [resolve-version, bump-versions]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target_os: linux
+            target_arch: x64
+            name: hopcoderx-linux-x64
+          - os: ubuntu-latest
+            target_os: linux
+            target_arch: arm64
+            name: hopcoderx-linux-arm64
+          - os: macos-13
+            target_os: darwin
+            target_arch: x64
+            name: hopcoderx-darwin-x64
+          - os: macos-14
+            target_os: darwin
+            target_arch: arm64
+            name: hopcoderx-darwin-arm64
+          - os: windows-latest
+            target_os: win32
+            target_arch: x64
+            name: hopcoderx-windows-x64
+    runs-on: ${{ matrix.os }}
+    env:
+      HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bumped-repo
+          path: .
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+      - run: bun install --frozen-lockfile
+      - name: Build CLI binary
+        working-directory: packages/hopcoderx
+        run: bun run build -- --single --skip-install
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.name }}
+          path: packages/hopcoderx/dist/
+          retention-days: 1
+
+  publish-cli:
+    if: ${{ !inputs.skip_cli }}
+    needs: [resolve-version, build-cli]
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bumped-repo
+          path: .
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+      - run: bun install --frozen-lockfile
+
+      - name: Download all CLI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: cli-*
+          path: packages/hopcoderx/dist/
+          merge-multiple: true
+
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Publish platform binaries
+        working-directory: packages/hopcoderx
+        run: |
+          for dir in dist/hopcoderx-*/; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Publishing $dir..."
+              cd "$dir"
+              chmod -R 755 . 2>/dev/null || true
+              bun pm pack
+              npm publish *.tgz --access public --tag ${{ inputs.channel }} || echo "Failed to publish $dir, continuing..."
+              cd -
+            fi
+          done
+
+      - name: Build and publish wrapper package
+        working-directory: packages/hopcoderx
+        run: |
+          bun -e "
+            import pkg from './package.json'
+            import { Script } from '@hopcoderx/script'
+            import { Glob } from 'bun'
+            import path from 'path'
+
+            const binaries = {}
+            for (const filepath of new Glob('*/package.json').scanSync({ cwd: './dist' })) {
+              const p = await Bun.file('./dist/' + filepath).json()
+              binaries[p.name] = p.version
+            }
+            console.log('binaries', binaries)
+            const version = Object.values(binaries)[0] || Script.version
+
+            await Bun.write('./dist/' + pkg.name + '/package.json', JSON.stringify({
+              name: pkg.name + '-ai',
+              bin: { [pkg.name]: './bin/' + pkg.name },
+              scripts: { postinstall: 'bun ./postinstall.mjs || node ./postinstall.mjs' },
+              version,
+              license: pkg.license,
+              optionalDependencies: binaries,
+            }, null, 2))
+
+            const fs = await import('fs/promises')
+            await fs.cp('./bin', './dist/' + pkg.name + '/bin', { recursive: true })
+            await fs.copyFile('./script/postinstall.mjs', './dist/' + pkg.name + '/postinstall.mjs')
+            await fs.copyFile('../../LICENSE', './dist/' + pkg.name + '/LICENSE')
+          "
+          cd dist/hopcoderx
+          bun pm pack
+          npm publish *.tgz --access public --tag ${{ inputs.channel }} || echo "Failed to publish wrapper, continuing..."
+
+  publish-sdk:
+    if: ${{ !inputs.skip_sdk }}
+    needs: [resolve-version, bump-versions]
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bumped-repo
+          path: .
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+      - run: bun install --frozen-lockfile
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Publish SDK
+        working-directory: packages/sdk/js
+        run: |
+          bun run script/publish.ts
+
+  publish-plugin:
+    if: ${{ !inputs.skip_plugin }}
+    needs: [resolve-version, bump-versions]
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bumped-repo
+          path: .
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.9"
+      - run: bun install --frozen-lockfile
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Publish Plugin
+        working-directory: packages/plugin
+        run: |
+          bun run script/publish.ts
+
+  tag-release:
+    needs: [resolve-version, publish-cli, publish-sdk, publish-plugin]
+    if: ${{ always() && !cancelled() && inputs.channel == 'latest' }}
+    runs-on: ubuntu-latest
+    env:
+      HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bumped-repo
+          path: .
+      - name: Create git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ needs.resolve-version.outputs.version }}"
+          git push origin "v${{ needs.resolve-version.outputs.version }}"

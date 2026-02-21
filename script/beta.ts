@@ -43,11 +43,11 @@ async function main() {
     return
   }
 
-  console.log("Fetching latest dev branch...")
-  await $`git fetch origin dev`
+  console.log("Fetching latest main branch...")
+  await $`git fetch origin main`
 
   console.log("Checking out beta branch...")
-  await $`git checkout -B beta origin/dev`
+  await $`git checkout -B beta origin/main`
 
   const applied: number[] = []
   const failed: FailedPR[] = []
@@ -80,7 +80,7 @@ async function main() {
         await $`git clean -fd`
       } catch {}
       failed.push({ number: pr.number, title: pr.title, reason: "Merge conflicts" })
-      await commentOnPR(pr.number, "Merge conflicts with dev branch")
+      await commentOnPR(pr.number, "Merge conflicts with main branch")
       continue
     }
 
@@ -128,7 +128,7 @@ async function main() {
   await $`git fetch origin beta`
 
   const localTree = await $`git rev-parse beta^{tree}`.text()
-  const remoteTrees = (await $`git log origin/dev..origin/beta --format=%T`.text()).split("\n")
+  const remoteTrees = (await $`git log origin/main..origin/beta --format=%T`.text()).split("\n")
 
   const matchIdx = remoteTrees.indexOf(localTree.trim())
   if (matchIdx !== -1) {
