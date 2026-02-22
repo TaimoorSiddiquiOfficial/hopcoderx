@@ -814,6 +814,7 @@ export type KeybindsConfig = {
    * List all sessions
    */
   session_list?: string
+  worktree_list?: string
   /**
    * Show session timeline
    */
