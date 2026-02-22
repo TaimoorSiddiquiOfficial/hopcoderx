@@ -1,0 +1,15 @@
+{
+  "name": "hopcoderx-wakatime",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "WakaTime plugin for HopCoderX – track AI coding activity",
+  "license": "MIT",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "keywords": ["hopcoderx", "wakatime", "time-tracking", "ai", "coding", "productivity"],
+  "peerDependencies": {
+    "@hopcoderx/plugin": "*"
+  }
+}

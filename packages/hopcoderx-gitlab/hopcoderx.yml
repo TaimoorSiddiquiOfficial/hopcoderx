@@ -1,0 +1,48 @@
+---
+# HopCoderX GitLab CI Component
+# Include this component in your .gitlab-ci.yml to enable AI-powered
+# code changes via Merge Request comment triggers.
+#
+# Usage:
+#   include:
+#     - component: $CI_SERVER_FQDN/your-org/hopcoderx-gitlab/hopcoderx@~latest
+#
+# Required CI/CD variables (Settings → CI/CD → Variables):
+#   HOPCODERX_PROVIDER   – LLM provider (e.g. "anthropic")
+#   HOPCODERX_MODEL      – Model ID (e.g. "claude-opus-4-5")
+#   ANTHROPIC_API_KEY    – Provider API key (masked)
+#   GITLAB_TOKEN         – Token with api + write_repository scope (masked)
+
+spec:
+  inputs:
+    stage:
+      default: ai
+      description: CI stage to run the job in
+    runner_tags:
+      default: []
+      description: Runner tags array
+    timeout:
+      default: "15 minutes"
+      description: Job timeout
+
+---
+
+.hopcoderx_job: &hopcoderx_job
+  stage: $[[ inputs.stage ]]
+  image: node:22-alpine
+  tags: $[[ inputs.runner_tags ]]
+  timeout: $[[ inputs.timeout ]]
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+      when: always
+  before_script:
+    - apk add --no-cache git
+    - npm install -g hopcoderx hopcoderx-gitlab
+  script:
+    - hopcoderx-gitlab
+  variables:
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
+
+hopcoderx:
+  <<: *hopcoderx_job

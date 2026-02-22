@@ -1,0 +1,21 @@
+{
+  "name": "hopcoderx-gitlab",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "GitLab CI/CD action for HopCoderX – run the AI agent via merge request comments",
+  "license": "MIT",
+  "main": "./index.ts",
+  "bin": {
+    "hopcoderx-gitlab": "./bin/cli.ts"
+  },
+  "exports": {
+    ".": "./index.ts"
+  },
+  "keywords": ["hopcoderx", "gitlab", "ci", "automation", "ai"],
+  "dependencies": {
+    "@gitbeaker/rest": "^40.0.0"
+  },
+  "peerDependencies": {
+    "@hopcoderx/plugin": "*"
+  }
+}
