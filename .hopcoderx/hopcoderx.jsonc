@@ -11,7 +11,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "env": [],
       "options": {
-        "baseURL": "http://localhost:1234/v1",
+        "baseURL": "http://127.0.0.1:1234/v1",
       },
       "models": {
         // Model IDs must match what LM Studio returns from GET /v1/models
@@ -74,6 +74,31 @@
           "attachment": true,
           "modalities": { "input": ["text", "image"], "output": ["text"] },
           "limit": { "context": 256000, "output": 8192 },
+        },
+        // --- Upstream registry models (from models-api.json) ---
+        "openai/gpt-oss-20b": {
+          "name": "GPT OSS 20B",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": true,
+          "attachment": false,
+          "limit": { "context": 131072, "output": 32768 },
+        },
+        "qwen/qwen3-30b-a3b-2507": {
+          "name": "Qwen3 30B A3B 2507",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": false,
+          "attachment": false,
+          "limit": { "context": 262144, "output": 16384 },
+        },
+        "qwen/qwen3-coder-30b": {
+          "name": "Qwen3 Coder 30B",
+          "tool_call": true,
+          "temperature": true,
+          "reasoning": false,
+          "attachment": false,
+          "limit": { "context": 262144, "output": 65536 },
         },
       },
     },
