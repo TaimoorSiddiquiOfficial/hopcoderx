@@ -7,7 +7,7 @@ import { fn } from "./util/fn"
 import { Actor } from "./actor"
 import { Resource } from "@hopcoderx/console-resource"
 
-export namespace ZenData {
+export namespace BdrData {
   const FormatSchema = z.enum(["anthropic", "google", "openai", "oa-compat"])
   const TrialSchema = z.object({
     provider: z.string(),
@@ -83,36 +83,36 @@ export namespace ZenData {
 
   export const list = fn(z.void(), () => {
     const json = JSON.parse(
-      Resource.ZEN_MODELS1.value +
-        Resource.ZEN_MODELS2.value +
-        Resource.ZEN_MODELS3.value +
-        Resource.ZEN_MODELS4.value +
-        Resource.ZEN_MODELS5.value +
-        Resource.ZEN_MODELS6.value +
-        Resource.ZEN_MODELS7.value +
-        Resource.ZEN_MODELS8.value +
-        Resource.ZEN_MODELS9.value +
-        Resource.ZEN_MODELS10.value +
-        Resource.ZEN_MODELS11.value +
-        Resource.ZEN_MODELS12.value +
-        Resource.ZEN_MODELS13.value +
-        Resource.ZEN_MODELS14.value +
-        Resource.ZEN_MODELS15.value +
-        Resource.ZEN_MODELS16.value +
-        Resource.ZEN_MODELS17.value +
-        Resource.ZEN_MODELS18.value +
-        Resource.ZEN_MODELS19.value +
-        Resource.ZEN_MODELS20.value +
-        Resource.ZEN_MODELS21.value +
-        Resource.ZEN_MODELS22.value +
-        Resource.ZEN_MODELS23.value +
-        Resource.ZEN_MODELS24.value +
-        Resource.ZEN_MODELS25.value +
-        Resource.ZEN_MODELS26.value +
-        Resource.ZEN_MODELS27.value +
-        Resource.ZEN_MODELS28.value +
-        Resource.ZEN_MODELS29.value +
-        Resource.ZEN_MODELS30.value,
+      Resource.BDR_MODELS1.value +
+        Resource.BDR_MODELS2.value +
+        Resource.BDR_MODELS3.value +
+        Resource.BDR_MODELS4.value +
+        Resource.BDR_MODELS5.value +
+        Resource.BDR_MODELS6.value +
+        Resource.BDR_MODELS7.value +
+        Resource.BDR_MODELS8.value +
+        Resource.BDR_MODELS9.value +
+        Resource.BDR_MODELS10.value +
+        Resource.BDR_MODELS11.value +
+        Resource.BDR_MODELS12.value +
+        Resource.BDR_MODELS13.value +
+        Resource.BDR_MODELS14.value +
+        Resource.BDR_MODELS15.value +
+        Resource.BDR_MODELS16.value +
+        Resource.BDR_MODELS17.value +
+        Resource.BDR_MODELS18.value +
+        Resource.BDR_MODELS19.value +
+        Resource.BDR_MODELS20.value +
+        Resource.BDR_MODELS21.value +
+        Resource.BDR_MODELS22.value +
+        Resource.BDR_MODELS23.value +
+        Resource.BDR_MODELS24.value +
+        Resource.BDR_MODELS25.value +
+        Resource.BDR_MODELS26.value +
+        Resource.BDR_MODELS27.value +
+        Resource.BDR_MODELS28.value +
+        Resource.BDR_MODELS29.value +
+        Resource.BDR_MODELS30.value,
     )
     const { models, providers, providerFamilies } = ModelsSchema.parse(json)
     return {

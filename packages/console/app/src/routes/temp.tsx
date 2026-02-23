@@ -51,7 +51,7 @@ export default function Home() {
           <img data-slot="logo dark" src={logoDark} alt="HopCoderX logo dark" />
           <h1 data-slot="title">{i18n.t("temp.hero.title")}</h1>
           <div data-slot="login">
-            <a href="/auth">{i18n.t("temp.zen")}</a>
+            <a href="/auth">{i18n.t("temp.bdr")}</a>
           </div>
         </section>
 
@@ -60,7 +60,7 @@ export default function Home() {
             <a href={language.route("/docs")}>{i18n.t("temp.getStarted")}</a>
           </div>
           <div data-slot="center">
-            <a href="/auth">{i18n.t("temp.zen")}</a>
+            <a href="/auth">{i18n.t("temp.bdr")}</a>
           </div>
           <div data-slot="right">
             <button data-copy data-slot="command">
@@ -84,9 +84,9 @@ export default function Home() {
               <strong>{i18n.t("home.what.lsp.title")}</strong> {i18n.t("home.what.lsp.body")}
             </li>
             <li>
-              <strong>{i18n.t("temp.zen")}</strong> {i18n.t("temp.feature.zen.beforeLink")}{" "}
-              <a href={language.route("/docs/zen")}>{i18n.t("temp.feature.zen.link")}</a>{" "}
-              {i18n.t("temp.feature.zen.afterLink")} <label>{i18n.t("home.banner.badge")}</label>
+              <strong>{i18n.t("temp.bdr")}</strong> {i18n.t("temp.feature.bdr.beforeLink")}{" "}
+              <a href={language.route("/docs/bdr")}>{i18n.t("temp.feature.bdr.link")}</a>{" "}
+              {i18n.t("temp.feature.bdr.afterLink")} <label>{i18n.t("home.banner.badge")}</label>
             </li>
             <li>
               <strong>{i18n.t("home.what.multiSession.title")}</strong> {i18n.t("home.what.multiSession.body")}

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { getRetryAfterDay, getRetryAfterHour } from "../src/routes/zen/util/rateLimiter"
+import { getRetryAfterDay, getRetryAfterHour } from "../src/routes/bdr/util/rateLimiter"
 
 describe("getRetryAfterDay", () => {
   test("returns full day at midnight UTC", () => {

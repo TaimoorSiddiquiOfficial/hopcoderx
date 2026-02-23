@@ -5,7 +5,7 @@ import { $ } from "bun"
 
 export const PrCommand = cmd({
   command: "pr <number>",
-  describe: "fetch and checkout a GitHub PR branch, then run HopCoderX",
+  describe: "fetch and checkout a GitHub PR branch, then run opencode",
   builder: (yargs) =>
     yargs.positional("number", {
       type: "number",
@@ -63,15 +63,15 @@ export const PrCommand = cmd({
               await $`git branch --set-upstream-to=${remoteName}/${headRefName} ${localBranchName}`.nothrow()
             }
 
-            // Check for HopCoderX session link in PR body
+            // Check for opencode session link in PR body
             if (prInfo && prInfo.body) {
               const sessionMatch = prInfo.body.match(/https:\/\/opncd\.ai\/s\/([a-zA-Z0-9_-]+)/)
               if (sessionMatch) {
                 const sessionUrl = sessionMatch[0]
-                UI.println(`Found HopCoderX session: ${sessionUrl}`)
+                UI.println(`Found opencode session: ${sessionUrl}`)
                 UI.println(`Importing session...`)
 
-                const importResult = await $`HopCoderX import ${sessionUrl}`.nothrow()
+                const importResult = await $`opencode import ${sessionUrl}`.nothrow()
                 if (importResult.exitCode === 0) {
                   const importOutput = importResult.text().trim()
                   // Extract session ID from the output (format: "Imported session: <session-id>")
@@ -88,23 +88,23 @@ export const PrCommand = cmd({
 
         UI.println(`Successfully checked out PR #${prNumber} as branch '${localBranchName}'`)
         UI.println()
-        UI.println("Starting HopCoderX...")
+        UI.println("Starting opencode...")
         UI.println()
 
-        // Launch HopCoderX TUI with session ID if available
+        // Launch opencode TUI with session ID if available
         const { spawn } = await import("child_process")
-        const HopCoderXArgs = sessionId ? ["-s", sessionId] : []
-        const HopCoderXProcess = spawn("HopCoderX", HopCoderXArgs, {
+        const opencodeArgs = sessionId ? ["-s", sessionId] : []
+        const opencodeProcess = spawn("opencode", opencodeArgs, {
           stdio: "inherit",
           cwd: process.cwd(),
         })
 
         await new Promise<void>((resolve, reject) => {
-          HopCoderXProcess.on("exit", (code) => {
+          opencodeProcess.on("exit", (code) => {
             if (code === 0) resolve()
-            else reject(new Error(`HopCoderX exited with code ${code}`))
+            else reject(new Error(`opencode exited with code ${code}`))
           })
-          HopCoderXProcess.on("error", reject)
+          opencodeProcess.on("error", reject)
         })
       },
     })

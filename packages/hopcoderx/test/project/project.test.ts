@@ -78,8 +78,8 @@ describe("Project.fromDirectory", () => {
     expect(project.vcs).toBe("git")
     expect(project.worktree).toBe(tmp.path)
 
-    const HopCoderXFile = path.join(tmp.path, ".git", "HopCoderX")
-    const fileExists = await Filesystem.exists(HopCoderXFile)
+    const opencodeFile = path.join(tmp.path, ".git", "opencode")
+    const fileExists = await Filesystem.exists(opencodeFile)
     expect(fileExists).toBe(false)
   })
 
@@ -94,8 +94,8 @@ describe("Project.fromDirectory", () => {
     expect(project.vcs).toBe("git")
     expect(project.worktree).toBe(tmp.path)
 
-    const HopCoderXFile = path.join(tmp.path, ".git", "HopCoderX")
-    const fileExists = await Filesystem.exists(HopCoderXFile)
+    const opencodeFile = path.join(tmp.path, ".git", "opencode")
+    const fileExists = await Filesystem.exists(opencodeFile)
     expect(fileExists).toBe(true)
   })
 

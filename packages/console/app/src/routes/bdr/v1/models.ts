@@ -1,9 +1,9 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { and, Database, eq, isNull } from "@hopcoderx/console-core/drizzle/index.js"
-import { KeyTable } from "@hopcoderx/console-core/schema/key.sql.js"
-import { WorkspaceTable } from "@hopcoderx/console-core/schema/workspace.sql.js"
-import { ModelTable } from "@hopcoderx/console-core/schema/model.sql.js"
-import { ZenData } from "@hopcoderx/console-core/model.js"
+import { and, Database, eq, isNull } from "@opencode-ai/console-core/drizzle/index.js"
+import { KeyTable } from "@opencode-ai/console-core/schema/key.sql.js"
+import { WorkspaceTable } from "@opencode-ai/console-core/schema/workspace.sql.js"
+import { ModelTable } from "@opencode-ai/console-core/schema/model.sql.js"
+import { BdrData } from "@opencode-ai/console-core/model.js"
 
 export async function OPTIONS(input: APIEvent) {
   return new Response(null, {
@@ -17,19 +17,19 @@ export async function OPTIONS(input: APIEvent) {
 }
 
 export async function GET(input: APIEvent) {
-  const zenData = ZenData.list()
+  const bdrData = BdrData.list("full")
   const disabledModels = await authenticate()
 
   return new Response(
     JSON.stringify({
       object: "list",
-      data: Object.entries(zenData.models)
+      data: Object.entries(bdrData.models)
         .filter(([id]) => !disabledModels.includes(id))
         .map(([id, _model]) => ({
           id,
           object: "model",
           created: Math.floor(Date.now() / 1000),
-          owned_by: "HopCoderX",
+          owned_by: "opencode",
         })),
     }),
     {

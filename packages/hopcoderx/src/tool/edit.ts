@@ -17,71 +17,11 @@ import { Filesystem } from "../util/filesystem"
 import { Instance } from "../project/instance"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectory } from "./external-directory"
-import { Log } from "../util/log"
 
 const MAX_DIAGNOSTICS_PER_FILE = 20
-const morphLog = Log.create({ service: "morph-apply" })
 
 function normalizeLineEndings(text: string): string {
   return text.replaceAll("\r\n", "\n")
-}
-
-/**
- * B8 – Morph Fast Apply
- *
- * When MORPH_API_KEY is set, delegates the search-replace edit to the Morph
- * LLM API (https://api.morphllm.com). Morph is specialised for applying code
- * changes and produces far fewer off-by-one / whitespace errors than string
- * matching. Falls back to the built-in replacer on any API failure.
- */
-async function morphApply(
-  originalContent: string,
-  oldString: string,
-  newString: string,
-): Promise<string | undefined> {
-  const apiKey = process.env.MORPH_API_KEY
-  if (!apiKey) return undefined
-
-  const prompt = [
-    "<code>",
-    originalContent,
-    "</code>",
-    "<update>",
-    "<<<<<<< SEARCH",
-    oldString,
-    "=======",
-    newString,
-    ">>>>>>> REPLACE",
-    "</update>",
-  ].join("\n")
-
-  try {
-    const res = await fetch("https://api.morphllm.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "morph-v3-fast",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0,
-      }),
-    })
-
-    if (!res.ok) {
-      morphLog.warn("morph apply failed", { status: res.status })
-      return undefined
-    }
-
-    const data: any = await res.json()
-    const result: string = data?.choices?.[0]?.message?.content ?? ""
-    if (!result || result.length < 2) return undefined
-    return result
-  } catch (err) {
-    morphLog.warn("morph apply error", { err: err instanceof Error ? err.message : String(err) })
-    return undefined
-  }
 }
 
 export const EditTool = Tool.define("edit", {
@@ -138,9 +78,7 @@ export const EditTool = Tool.define("edit", {
       if (stats.isDirectory()) throw new Error(`Path is a directory, not a file: ${filePath}`)
       await FileTime.assert(ctx.sessionID, filePath)
       contentOld = await Filesystem.readText(filePath)
-      // B8: try Morph fast-apply first when MORPH_API_KEY is configured
-      const morphResult = await morphApply(contentOld, params.oldString, params.newString)
-      contentNew = morphResult ?? replace(contentOld, params.oldString, params.newString, params.replaceAll)
+      contentNew = replace(contentOld, params.oldString, params.newString, params.replaceAll)
 
       diff = trimDiff(
         createTwoFilesPatch(filePath, filePath, normalizeLineEndings(contentOld), normalizeLineEndings(contentNew)),

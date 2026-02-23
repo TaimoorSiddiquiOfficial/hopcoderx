@@ -5,6 +5,6 @@ export default defineConfig({
   schema: "./src/**/*.sql.ts",
   out: "./migration",
   dbCredentials: {
-    url: "/home/thdxr/.local/share/HopCoderX/HopCoderX.db",
+    url: "/home/thdxr/.local/share/opencode/opencode.db",
   },
 })

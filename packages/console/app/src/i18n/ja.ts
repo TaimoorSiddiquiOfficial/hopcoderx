@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "エンタープライズ",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "ログイン",
   "nav.free": "無料",
   "nav.home": "ホーム",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | ターミナル向けに構築されたAIコーディングエージェント",
   "temp.hero.title": "ターミナル向けに構築されたAIコーディングエージェント",
-  "temp.zen": "HopCoderX Zen",
+  "temp.bdr": "HopCoderX Bdr",
   "temp.getStarted": "はじめる",
   "temp.feature.native.title": "ネイティブ TUI",
   "temp.feature.native.body": "レスポンシブでネイティブ、テーマ変更可能なターミナルUI",
-  "temp.feature.zen.beforeLink": "HopCoderXが提供する",
-  "temp.feature.zen.link": "厳選されたモデルリスト",
-  "temp.feature.zen.afterLink": "",
+  "temp.feature.bdr.beforeLink": "HopCoderXが提供する",
+  "temp.feature.bdr.link": "厳選されたモデルリスト",
+  "temp.feature.bdr.afterLink": "",
   "temp.feature.models.beforeLink": "ローカルモデルを含む、",
   "temp.feature.models.afterLink": "を通じて75以上のLLMプロバイダーをサポート",
   "temp.screenshot.caption": "tokyonight テーマを使用した HopCoderX TUI",
@@ -144,10 +144,10 @@ export const dict = {
   "home.faq.a2.link": "イントロを読む",
   "home.faq.q3": "HopCoderXには追加のAIサブスクリプションが必要ですか？",
   "home.faq.a3.p1": "必ずしも必要ではありません。HopCoderXには、アカウント不要で使える無料モデルが含まれています。",
-  "home.faq.a3.p2.beforeZen": "これらに加えて、",
-  "home.faq.a3.p2.afterZen": " アカウントを作成することで、人気のコーディングモデルを利用できます。",
+  "home.faq.a3.p2.beforeBdr": "これらに加えて、",
+  "home.faq.a3.p2.afterBdr": " アカウントを作成することで、人気のコーディングモデルを利用できます。",
   "home.faq.a3.p3":
-    "Zenの利用を推奨していますが、HopCoderXはOpenAI、Anthropic、xAIなどの主要プロバイダーにも対応しています。",
+    "Bdrの利用を推奨していますが、HopCoderXはOpenAI、Anthropic、xAIなどの主要プロバイダーにも対応しています。",
   "home.faq.a3.p4.beforeLocal": "さらに、",
   "home.faq.a3.p4.localLink": "ローカルモデル",
   "home.faq.q4": "既存のAIサブスクリプションをHopCoderXで使えますか？",
@@ -174,70 +174,70 @@ export const dict = {
   "home.faq.a8.p3":
     "のもとで公開されており、誰でも使用、変更、開発への参加ができます。コミュニティの誰でもissueを起こしたり、pull requestを送ったり、機能を拡張できます。",
 
-  "home.zenCta.title": "コーディングエージェント向けの信頼できる最適化モデル",
-  "home.zenCta.body":
-    "Zenは、HopCoderXがコーディングエージェント向けにテスト・ベンチマーク済みのAIモデルを厳選して提供します。プロバイダー間の性能・品質のブレを気にせず、検証済みのモデルを利用できます。",
-  "home.zenCta.link": "Zenについて知る",
+  "home.bdrCta.title": "コーディングエージェント向けの信頼できる最適化モデル",
+  "home.bdrCta.body":
+    "Bdrは、HopCoderXがコーディングエージェント向けにテスト・ベンチマーク済みのAIモデルを厳選して提供します。プロバイダー間の性能・品質のブレを気にせず、検証済みのモデルを利用できます。",
+  "home.bdrCta.link": "Bdrについて知る",
 
-  "zen.title": "HopCoderX Zen | コーディングエージェント向けの信頼できる最適化モデル",
-  "zen.hero.title": "コーディングエージェント向けの信頼できる最適化モデル",
-  "zen.hero.body":
-    "Zenは、HopCoderXがコーディングエージェント向けにテスト・ベンチマーク済みのAIモデルを厳選して提供します。プロバイダー間の性能・品質のブレを気にせず、検証済みのモデルを利用できます。",
+  "bdr.title": "HopCoderX Bdr | コーディングエージェント向けの信頼できる最適化モデル",
+  "bdr.hero.title": "コーディングエージェント向けの信頼できる最適化モデル",
+  "bdr.hero.body":
+    "Bdrは、HopCoderXがコーディングエージェント向けにテスト・ベンチマーク済みのAIモデルを厳選して提供します。プロバイダー間の性能・品質のブレを気にせず、検証済みのモデルを利用できます。",
 
-  "zen.faq.q1": "HopCoderX Zenとは？",
-  "zen.faq.a1":
-    "Zenは、HopCoderXのチームが作成した、コーディングエージェント向けにテスト・ベンチマークされたAIモデルの厳選セットです。",
-  "zen.faq.q2": "Zenはなぜ精度が高いのですか？",
-  "zen.faq.a2":
-    "Zenはコーディングエージェント向けにテスト・ベンチマークされたモデルだけを提供します。ステーキを切るのにバターナイフを使わないように、コーディングには品質の低いモデルを使わないでください。",
-  "zen.faq.q3": "Zenは安いですか？",
-  "zen.faq.a3":
-    "Zenは営利目的ではありません。Zenはモデル提供元のコストをそのままあなたに渡します。Zenの利用が増えるほど、HopCoderXはより良いレートを交渉し、その分をあなたに還元できます。",
-  "zen.faq.q4": "Zenの料金は？",
-  "zen.faq.a4.p1.beforePricing": "Zenは",
-  "zen.faq.a4.p1.pricingLink": "リクエスト単位で課金",
-  "zen.faq.a4.p1.afterPricing": "し、マークアップはありません。つまり、モデル提供元の請求額をそのまま支払います。",
-  "zen.faq.a4.p2.beforeAccount": "総コストは利用量に依存し、月次の支出上限を",
-  "zen.faq.a4.p2.accountLink": "アカウント",
-  "zen.faq.a4.p3": "コストを賄うために、HopCoderXは$20の残高チャージあたり$1.23の小さな決済手数料のみを追加します。",
-  "zen.faq.q5": "データとプライバシーは？",
-  "zen.faq.a5.beforeExceptions":
-    "Zenのモデルはすべて米国でホストされています。プロバイダーはゼロ保持ポリシーを守り、データをモデル学習に使用しません（",
-  "zen.faq.a5.exceptionsLink": "以下の例外",
-  "zen.faq.q6": "支出上限を設定できますか？",
-  "zen.faq.a6": "はい、アカウントで月次の支出上限を設定できます。",
-  "zen.faq.q7": "キャンセルできますか？",
-  "zen.faq.a7": "はい、いつでも請求を無効化し、残りの残高を利用できます。",
-  "zen.faq.q8": "他のコーディングエージェントでもZenを使えますか？",
-  "zen.faq.a8":
-    "ZenはHopCoderXとの相性が良いですが、どのエージェントでもZenを利用できます。お使いのコーディングエージェントのセットアップ手順に従ってください。",
+  "bdr.faq.q1": "HopCoderX Bdrとは？",
+  "bdr.faq.a1":
+    "Bdrは、HopCoderXのチームが作成した、コーディングエージェント向けにテスト・ベンチマークされたAIモデルの厳選セットです。",
+  "bdr.faq.q2": "Bdrはなぜ精度が高いのですか？",
+  "bdr.faq.a2":
+    "Bdrはコーディングエージェント向けにテスト・ベンチマークされたモデルだけを提供します。ステーキを切るのにバターナイフを使わないように、コーディングには品質の低いモデルを使わないでください。",
+  "bdr.faq.q3": "Bdrは安いですか？",
+  "bdr.faq.a3":
+    "Bdrは営利目的ではありません。Bdrはモデル提供元のコストをそのままあなたに渡します。Bdrの利用が増えるほど、HopCoderXはより良いレートを交渉し、その分をあなたに還元できます。",
+  "bdr.faq.q4": "Bdrの料金は？",
+  "bdr.faq.a4.p1.beforePricing": "Bdrは",
+  "bdr.faq.a4.p1.pricingLink": "リクエスト単位で課金",
+  "bdr.faq.a4.p1.afterPricing": "し、マークアップはありません。つまり、モデル提供元の請求額をそのまま支払います。",
+  "bdr.faq.a4.p2.beforeAccount": "総コストは利用量に依存し、月次の支出上限を",
+  "bdr.faq.a4.p2.accountLink": "アカウント",
+  "bdr.faq.a4.p3": "コストを賄うために、HopCoderXは$20の残高チャージあたり$1.23の小さな決済手数料のみを追加します。",
+  "bdr.faq.q5": "データとプライバシーは？",
+  "bdr.faq.a5.beforeExceptions":
+    "Bdrのモデルはすべて米国でホストされています。プロバイダーはゼロ保持ポリシーを守り、データをモデル学習に使用しません（",
+  "bdr.faq.a5.exceptionsLink": "以下の例外",
+  "bdr.faq.q6": "支出上限を設定できますか？",
+  "bdr.faq.a6": "はい、アカウントで月次の支出上限を設定できます。",
+  "bdr.faq.q7": "キャンセルできますか？",
+  "bdr.faq.a7": "はい、いつでも請求を無効化し、残りの残高を利用できます。",
+  "bdr.faq.q8": "他のコーディングエージェントでもBdrを使えますか？",
+  "bdr.faq.a8":
+    "BdrはHopCoderXとの相性が良いですが、どのエージェントでもBdrを利用できます。お使いのコーディングエージェントのセットアップ手順に従ってください。",
 
-  "zen.cta.start": "Zenをはじめる",
-  "zen.pricing.title": "$20の従量課金制残高を追加",
-  "zen.pricing.fee": "(+$1.23 カード処理手数料)",
-  "zen.pricing.body":
+  "bdr.cta.start": "Bdrをはじめる",
+  "bdr.pricing.title": "$20の従量課金制残高を追加",
+  "bdr.pricing.fee": "(+$1.23 カード処理手数料)",
+  "bdr.pricing.body":
     "任意のエージェントと一緒に使用できます。毎月の支出制限を設定できます。いつでもキャンセルできます。",
-  "zen.problem.title": "Zenはどのような問題を解決していますか？",
-  "zen.problem.body":
+  "bdr.problem.title": "Bdrはどのような問題を解決していますか？",
+  "bdr.problem.body":
     "利用可能なモデルは非常に多くありますが、コーディングエージェントで適切に機能するモデルはほんのわずかです。ほとんどのプロバイダーは、それらを異なる設定で提供し、結果も異なります。",
-  "zen.problem.subtitle": "HopCoderXユーザーだけでなく、すべての人を対象にこの問題を修正しています。",
-  "zen.problem.item1": "選択したモデルをテストし、チームに相談する",
-  "zen.problem.item2": "プロバイダーと連携して適切に提供されるようにする",
-  "zen.problem.item3": "私たちが推奨するすべてのモデルとプロバイダーの組み合わせをベンチマークする",
-  "zen.how.title": "Zenの仕組み",
-  "zen.how.body": "ZenをHopCoderXとともに使用することをお勧めしますが、Zenはどのエージェントでも使用できます。",
-  "zen.how.step1.title": "サインアップして$20の残高を追加",
-  "zen.how.step1.beforeLink": "",
-  "zen.how.step1.link": "セットアップ手順",
-  "zen.how.step2.title": "透明性のある価格設定でZenを使用する",
-  "zen.how.step2.link": "リクエストごとに支払う",
-  "zen.how.step2.afterLink": "（マークアップなし）",
-  "zen.how.step3.title": "自動チャージ",
-  "zen.how.step3.body": "残高が$5に達すると、自動的に$20が追加されます",
-  "zen.privacy.title": "あなたのプライバシーは私たちにとって重要です",
-  "zen.privacy.beforeExceptions":
-    "すべてのZenモデルは米国でホストされています。プロバイダーはゼロ保持ポリシーに従い、モデルのトレーニングにデータを使用しません（",
-  "zen.privacy.exceptionsLink": "以下の例外",
+  "bdr.problem.subtitle": "HopCoderXユーザーだけでなく、すべての人を対象にこの問題を修正しています。",
+  "bdr.problem.item1": "選択したモデルをテストし、チームに相談する",
+  "bdr.problem.item2": "プロバイダーと連携して適切に提供されるようにする",
+  "bdr.problem.item3": "私たちが推奨するすべてのモデルとプロバイダーの組み合わせをベンチマークする",
+  "bdr.how.title": "Bdrの仕組み",
+  "bdr.how.body": "BdrをHopCoderXとともに使用することをお勧めしますが、Bdrはどのエージェントでも使用できます。",
+  "bdr.how.step1.title": "サインアップして$20の残高を追加",
+  "bdr.how.step1.beforeLink": "",
+  "bdr.how.step1.link": "セットアップ手順",
+  "bdr.how.step2.title": "透明性のある価格設定でBdrを使用する",
+  "bdr.how.step2.link": "リクエストごとに支払う",
+  "bdr.how.step2.afterLink": "（マークアップなし）",
+  "bdr.how.step3.title": "自動チャージ",
+  "bdr.how.step3.body": "残高が$5に達すると、自動的に$20が追加されます",
+  "bdr.privacy.title": "あなたのプライバシーは私たちにとって重要です",
+  "bdr.privacy.beforeExceptions":
+    "すべてのBdrモデルは米国でホストされています。プロバイダーはゼロ保持ポリシーに従い、モデルのトレーニングにデータを使用しません（",
+  "bdr.privacy.exceptionsLink": "以下の例外",
 
   "black.meta.title": "HopCoderX Black | 世界最高峰のコーディングモデルすべてにアクセス",
   "black.meta.description": "HopCoderX Black サブスクリプションプランで、Claude、GPT、Gemini などにアクセス。",
@@ -285,7 +285,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "登録日",
   "black.subscribe.success.chargeNotice": "サブスクリプションが有効化された時点でカードに請求されます",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "APIキー",
   "workspace.nav.members": "メンバー",
   "workspace.nav.billing": "請求",
@@ -304,7 +304,7 @@ export const dict = {
     "最適なパフォーマンスを実現するように構成されたモデルにアクセスします。ダウングレードや安価なプロバイダーへのルーティングはありません。",
   "workspace.newUser.feature.lockin.title": "ロックインなし",
   "workspace.newUser.feature.lockin.body":
-    "任意のコーディングエージェントでZenを使用でき、必要に応じていつでもHopCoderXを備えた他のプロバイダーを使用し続けることができます。",
+    "任意のコーディングエージェントでBdrを使用でき、必要に応じていつでもHopCoderXを備えた他のプロバイダーを使用し続けることができます。",
   "workspace.newUser.copyApiKey": "APIキーをコピー",
   "workspace.newUser.copyKey": "キーをコピー",
   "workspace.newUser.copied": "コピーしました！",
@@ -503,14 +503,14 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "必ずしもそうではありませんが、おそらく必要です。HopCoderXを有料プロバイダーに接続したい場合はAIサブスクリプションが必要ですが、",
   "download.faq.a3.localLink": "ローカルモデル",
-  "download.faq.a3.afterLocal.beforeZen": "であれば無料で利用できます。ユーザーには",
-  "download.faq.a3.afterZen":
+  "download.faq.a3.afterLocal.beforeBdr": "であれば無料で利用できます。ユーザーには",
+  "download.faq.a3.afterBdr":
     "の利用をお勧めしていますが、HopCoderXはOpenAI、Anthropic、xAIなどの主要なプロバイダーに対応しています。",
 
   "download.faq.a5.p1": "HopCoderXは100%無料で利用できます。",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "追加コストはモデルプロバイダーのサブスクリプションから発生します。HopCoderXはどのモデルプロバイダーでも利用できますが、",
-  "download.faq.a5.p2.afterZen": "の利用をおすすめします。",
+  "download.faq.a5.p2.afterBdr": "の利用をおすすめします。",
 
   "download.faq.a6.p1": "あなたのデータと情報は、HopCoderXで共有リンクを作成したときにのみ保存されます。",
   "download.faq.a6.p2.beforeShare": "詳しくは",

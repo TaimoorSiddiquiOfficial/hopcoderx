@@ -28,7 +28,6 @@ import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
-import { WorktreeCommand } from "./cli/cmd/worktree"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -48,7 +47,7 @@ process.on("uncaughtException", (e) => {
 
 const cli = yargs(hideBin(process.argv))
   .parserConfiguration({ "populate--": true })
-  .scriptName("hopcoderx")
+  .scriptName("opencode")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -75,14 +74,14 @@ const cli = yargs(hideBin(process.argv))
     })
 
     process.env.AGENT = "1"
-    process.env.hopcoderx = "1"
+    process.env.HOPCODERX = "1"
 
-    Log.Default.info("hopcoderx", {
+    Log.Default.info("opencode", {
       version: Installation.VERSION,
       args: process.argv.slice(2),
     })
 
-    const marker = path.join(Global.Path.data, "hopcoderx.db")
+    const marker = path.join(Global.Path.data, "opencode.db")
     if (!(await Filesystem.exists(marker))) {
       const tty = process.stderr.isTTY
       process.stderr.write("Performing one time database migration, may take a few minutes..." + EOL)
@@ -142,7 +141,6 @@ const cli = yargs(hideBin(process.argv))
   .command(PrCommand)
   .command(SessionCommand)
   .command(DbCommand)
-  .command(WorktreeCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||

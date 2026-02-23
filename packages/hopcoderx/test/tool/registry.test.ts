@@ -6,13 +6,13 @@ import { Instance } from "../../src/project/instance"
 import { ToolRegistry } from "../../src/tool/registry"
 
 describe("tool.registry", () => {
-  test("loads tools from .HopCoderX/tool (singular)", async () => {
+  test("loads tools from .opencode/tool (singular)", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        const HopCoderXDir = path.join(dir, ".HopCoderX")
-        await fs.mkdir(HopCoderXDir, { recursive: true })
+        const opencodeDir = path.join(dir, ".opencode")
+        await fs.mkdir(opencodeDir, { recursive: true })
 
-        const toolDir = path.join(HopCoderXDir, "tool")
+        const toolDir = path.join(opencodeDir, "tool")
         await fs.mkdir(toolDir, { recursive: true })
 
         await Bun.write(
@@ -40,13 +40,13 @@ describe("tool.registry", () => {
     })
   })
 
-  test("loads tools from .HopCoderX/tools (plural)", async () => {
+  test("loads tools from .opencode/tools (plural)", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        const HopCoderXDir = path.join(dir, ".HopCoderX")
-        await fs.mkdir(HopCoderXDir, { recursive: true })
+        const opencodeDir = path.join(dir, ".opencode")
+        await fs.mkdir(opencodeDir, { recursive: true })
 
-        const toolsDir = path.join(HopCoderXDir, "tools")
+        const toolsDir = path.join(opencodeDir, "tools")
         await fs.mkdir(toolsDir, { recursive: true })
 
         await Bun.write(
@@ -77,18 +77,18 @@ describe("tool.registry", () => {
   test("loads tools with external dependencies without crashing", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        const HopCoderXDir = path.join(dir, ".HopCoderX")
-        await fs.mkdir(HopCoderXDir, { recursive: true })
+        const opencodeDir = path.join(dir, ".opencode")
+        await fs.mkdir(opencodeDir, { recursive: true })
 
-        const toolsDir = path.join(HopCoderXDir, "tools")
+        const toolsDir = path.join(opencodeDir, "tools")
         await fs.mkdir(toolsDir, { recursive: true })
 
         await Bun.write(
-          path.join(HopCoderXDir, "package.json"),
+          path.join(opencodeDir, "package.json"),
           JSON.stringify({
             name: "custom-tools",
             dependencies: {
-              "@hopcoderx/plugin": "^0.0.0",
+              "@opencode-ai/plugin": "^0.0.0",
               cowsay: "^1.6.0",
             },
           }),

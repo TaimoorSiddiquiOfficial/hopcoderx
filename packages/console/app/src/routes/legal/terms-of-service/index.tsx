@@ -72,8 +72,8 @@ export default function TermsOfService() {
               <p>
                 HopCoderX is an AI-powered coding agent that helps you write, understand, and modify code using large
                 language models. Certain of these large language models are provided by third parties ("Third Party
-                Models") and certain of these models are provided directly by us if you use the HopCoderX Zen paid
-                offering ("Zen"). Regardless of whether you use Third Party Models or Zen, HopCoderX enables you to
+                Models") and certain of these models are provided directly by us if you use the HopCoderX Bdr paid
+                offering ("Bdr"). Regardless of whether you use Third Party Models or Bdr, HopCoderX enables you to
                 access the functionality of models through a coding agent running within your terminal.
               </p>
 
@@ -260,9 +260,9 @@ export default function TermsOfService() {
 
               <h3>Paid Services</h3>
               <p>
-                Certain of our Services, including Zen, may be subject to payments now or in the future (the "Paid
+                Certain of our Services, including Bdr, may be subject to payments now or in the future (the "Paid
                 Services"). Please see our Paid Services page{" "}
-                <a href={language.route("/zen")}>https://HopCoderX.ai/zen</a> for a description of the current Paid
+                <a href={language.route("/bdr")}>https://HopCoderX.ai/bdr</a> for a description of the current Paid
                 Services. Please note that any payment terms presented to you in the process of using or signing up for
                 a Paid Service are deemed part of these Terms.
               </p>

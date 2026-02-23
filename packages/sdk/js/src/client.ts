@@ -21,7 +21,7 @@ export function createHopCoderXClient(config?: Config & { directory?: string }) 
   if (config?.directory) {
     config.headers = {
       ...config.headers,
-      "x-HopCoderX-directory": encodeURIComponent(config.directory),
+      "x-hopcoderx-directory": encodeURIComponent(config.directory),
     }
   }
 

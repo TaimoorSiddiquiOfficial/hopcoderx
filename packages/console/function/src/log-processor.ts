@@ -10,10 +10,10 @@ export default {
 
       const url = new URL(event.event.request.url)
       if (
-        url.pathname !== "/zen/v1/chat/completions" &&
-        url.pathname !== "/zen/v1/messages" &&
-        url.pathname !== "/zen/v1/responses" &&
-        !url.pathname.startsWith("/zen/v1/models/")
+        url.pathname !== "/bdr/v1/chat/completions" &&
+        url.pathname !== "/bdr/v1/messages" &&
+        url.pathname !== "/bdr/v1/responses" &&
+        !url.pathname.startsWith("/bdr/v1/models/")
       )
         return
 
@@ -45,7 +45,7 @@ export default {
       events.push({ time, data: { ...data, event_type: "completions" } })
       console.log(JSON.stringify(data, null, 2))
 
-      const ret = await fetch("https://api.honeycomb.io/1/batch/zen", {
+      const ret = await fetch("https://api.honeycomb.io/1/batch/bdr", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

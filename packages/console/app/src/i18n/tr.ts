@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "Kurumsal",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "Giriş",
   "nav.free": "Ücretsiz",
   "nav.home": "Ana sayfa",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | Terminal için geliştirilmiş yapay zeka kodlama ajanı",
   "temp.hero.title": "Terminal için geliştirilmiş yapay zeka kodlama ajanı",
-  "temp.zen": "HopCoderX zen",
+  "temp.bdr": "HopCoderX bdr",
   "temp.getStarted": "Başlayın",
   "temp.feature.native.title": "Yerel (Native) TUI",
   "temp.feature.native.body": "Duyarlı, yerel, temalandırılabilir bir terminal arayüzü",
-  "temp.feature.zen.beforeLink": "HopCoderX tarafından sağlanan ",
-  "temp.feature.zen.link": "seçkin modeller listesi",
-  "temp.feature.zen.afterLink": "",
+  "temp.feature.bdr.beforeLink": "HopCoderX tarafından sağlanan ",
+  "temp.feature.bdr.link": "seçkin modeller listesi",
+  "temp.feature.bdr.afterLink": "",
   "temp.feature.models.beforeLink": "Yerel modeller dahil 75+ LLM sağlayıcısını ",
   "temp.feature.models.afterLink": " üzerinden destekler",
   "temp.screenshot.caption": "HopCoderX TUI ve tokyonight teması",
@@ -144,9 +144,9 @@ export const dict = {
   "home.faq.a2.link": "girişi okumaktır",
   "home.faq.q3": "HopCoderX için ek AI aboneliklerine ihtiyacım var mı?",
   "home.faq.a3.p1": "Şart değil. HopCoderX, hesap açmadan kullanabileceğiniz ücretsiz modellerle gelir.",
-  "home.faq.a3.p2.beforeZen": "Bunun dışında, popüler kodlama modellerini kullanmak için bir",
-  "home.faq.a3.p2.afterZen": " hesabı oluşturabilirsiniz.",
-  "home.faq.a3.p3": "Zen'i öneriyoruz, ancak HopCoderX OpenAI, Anthropic, xAI gibi popüler sağlayıcılarla da çalışır.",
+  "home.faq.a3.p2.beforeBdr": "Bunun dışında, popüler kodlama modellerini kullanmak için bir",
+  "home.faq.a3.p2.afterBdr": " hesabı oluşturabilirsiniz.",
+  "home.faq.a3.p3": "Bdr'i öneriyoruz, ancak HopCoderX OpenAI, Anthropic, xAI gibi popüler sağlayıcılarla da çalışır.",
   "home.faq.a3.p4.beforeLocal": "Hatta",
   "home.faq.a3.p4.localLink": "yerel modellerinizi",
   "home.faq.q4": "Mevcut AI aboneliklerimi HopCoderX ile kullanabilir miyim?",
@@ -174,73 +174,73 @@ export const dict = {
   "home.faq.a8.p3":
     ", yani herkes kullanabilir, değiştirebilir veya geliştirmeye katkıda bulunabilir. Topluluktan herkes issue açabilir, pull request gönderebilir ve işlevselliği genişletebilir.",
 
-  "home.zenCta.title": "Kodlama ajanları için güvenilir, optimize modeller",
-  "home.zenCta.body":
-    "Zen, HopCoderX'un kodlama ajanları için özel olarak test edip benchmark ettiği seçilmiş AI modellerine erişim sağlar. Sağlayıcılar arasında tutarsız performans ve kalite konusunda endişelenmeyin; çalışan, doğrulanmış modelleri kullanın.",
-  "home.zenCta.link": "Zen hakkında",
+  "home.bdrCta.title": "Kodlama ajanları için güvenilir, optimize modeller",
+  "home.bdrCta.body":
+    "Bdr, HopCoderX'un kodlama ajanları için özel olarak test edip benchmark ettiği seçilmiş AI modellerine erişim sağlar. Sağlayıcılar arasında tutarsız performans ve kalite konusunda endişelenmeyin; çalışan, doğrulanmış modelleri kullanın.",
+  "home.bdrCta.link": "Bdr hakkında",
 
-  "zen.title": "HopCoderX Zen | Kodlama ajanları için güvenilir, optimize edilmiş modellerin seçilmiş seti",
-  "zen.hero.title": "Kodlama ajanları için güvenilir, optimize modeller",
-  "zen.hero.body":
-    "Zen, HopCoderX'un kodlama ajanları için özel olarak test edip benchmark ettiği seçilmiş AI modellerine erişim sağlar. Sağlayıcılar arasında tutarsız performans ve kalite konusunda endişelenmeyin; çalışan, doğrulanmış modelleri kullanın.",
+  "bdr.title": "HopCoderX Bdr | Kodlama ajanları için güvenilir, optimize edilmiş modellerin seçilmiş seti",
+  "bdr.hero.title": "Kodlama ajanları için güvenilir, optimize modeller",
+  "bdr.hero.body":
+    "Bdr, HopCoderX'un kodlama ajanları için özel olarak test edip benchmark ettiği seçilmiş AI modellerine erişim sağlar. Sağlayıcılar arasında tutarsız performans ve kalite konusunda endişelenmeyin; çalışan, doğrulanmış modelleri kullanın.",
 
-  "zen.faq.q1": "HopCoderX Zen nedir?",
-  "zen.faq.a1":
-    "Zen, HopCoderX ekibi tarafından oluşturulan ve kodlama ajanları için test edilip benchmark edilen seçilmiş bir AI model setidir.",
-  "zen.faq.q2": "Zen'i daha doğru yapan nedir?",
-  "zen.faq.a2":
-    "Zen yalnızca kodlama ajanları için özel olarak test edilip benchmark edilmiş modelleri sunar. Biftek kesmek için tereyağı bıçağı kullanmazsın; kodlama için kötü modeller kullanma.",
-  "zen.faq.q3": "Zen daha ucuz mu?",
-  "zen.faq.a3":
-    "Zen kâr amaçlı değildir. Zen, model sağlayıcılarının maliyetlerini size yansıtır. Zen'in kullanımı arttıkça HopCoderX daha iyi fiyatlar pazarlayabilir ve bunları size yansıtabilir.",
-  "zen.faq.q4": "Zen ne kadar?",
-  "zen.faq.a4.p1.beforePricing": "Zen",
-  "zen.faq.a4.p1.pricingLink": "istek başı ücret alır",
-  "zen.faq.a4.p1.afterPricing":
+  "bdr.faq.q1": "HopCoderX Bdr nedir?",
+  "bdr.faq.a1":
+    "Bdr, HopCoderX ekibi tarafından oluşturulan ve kodlama ajanları için test edilip benchmark edilen seçilmiş bir AI model setidir.",
+  "bdr.faq.q2": "Bdr'i daha doğru yapan nedir?",
+  "bdr.faq.a2":
+    "Bdr yalnızca kodlama ajanları için özel olarak test edilip benchmark edilmiş modelleri sunar. Biftek kesmek için tereyağı bıçağı kullanmazsın; kodlama için kötü modeller kullanma.",
+  "bdr.faq.q3": "Bdr daha ucuz mu?",
+  "bdr.faq.a3":
+    "Bdr kâr amaçlı değildir. Bdr, model sağlayıcılarının maliyetlerini size yansıtır. Bdr'in kullanımı arttıkça HopCoderX daha iyi fiyatlar pazarlayabilir ve bunları size yansıtabilir.",
+  "bdr.faq.q4": "Bdr ne kadar?",
+  "bdr.faq.a4.p1.beforePricing": "Bdr",
+  "bdr.faq.a4.p1.pricingLink": "istek başı ücret alır",
+  "bdr.faq.a4.p1.afterPricing":
     "ve hiçbir markup eklemez, yani model sağlayıcının ücretlendirdiği tutarı aynen ödersiniz.",
-  "zen.faq.a4.p2.beforeAccount": "Toplam maliyetiniz kullanım miktarına bağlıdır ve aylık harcama limitlerini",
-  "zen.faq.a4.p2.accountLink": "hesabınızda ayarlayabilirsiniz",
-  "zen.faq.a4.p3":
+  "bdr.faq.a4.p2.beforeAccount": "Toplam maliyetiniz kullanım miktarına bağlıdır ve aylık harcama limitlerini",
+  "bdr.faq.a4.p2.accountLink": "hesabınızda ayarlayabilirsiniz",
+  "bdr.faq.a4.p3":
     "Maliyetleri karşılamak için HopCoderX, $20 bakiye yüklemesi başına yalnızca $1.23 tutarında küçük bir ödeme işleme ücreti ekler.",
-  "zen.faq.q5": "Veri ve gizlilik ne olacak?",
-  "zen.faq.a5.beforeExceptions":
-    "Tüm Zen modelleri ABD'de barındırılır. Sağlayıcılar sıfır-retention politikasını uygular ve verilerinizi model eğitimi için kullanmaz; şu",
-  "zen.faq.a5.exceptionsLink": "istisnalarla",
-  "zen.faq.q6": "Harcama limitleri ayarlayabilir miyim?",
-  "zen.faq.a6": "Evet, hesabınızda aylık harcama limitleri ayarlayabilirsiniz.",
-  "zen.faq.q7": "İptal edebilir miyim?",
-  "zen.faq.a7":
+  "bdr.faq.q5": "Veri ve gizlilik ne olacak?",
+  "bdr.faq.a5.beforeExceptions":
+    "Tüm Bdr modelleri ABD'de barındırılır. Sağlayıcılar sıfır-retention politikasını uygular ve verilerinizi model eğitimi için kullanmaz; şu",
+  "bdr.faq.a5.exceptionsLink": "istisnalarla",
+  "bdr.faq.q6": "Harcama limitleri ayarlayabilir miyim?",
+  "bdr.faq.a6": "Evet, hesabınızda aylık harcama limitleri ayarlayabilirsiniz.",
+  "bdr.faq.q7": "İptal edebilir miyim?",
+  "bdr.faq.a7":
     "Evet, istediğiniz zaman faturalandırmayı devre dışı bırakabilir ve kalan bakiyenizi kullanabilirsiniz.",
-  "zen.faq.q8": "Zen'i diğer kodlama ajanlarıyla kullanabilir miyim?",
-  "zen.faq.a8":
-    "Zen HopCoderX ile harika çalışır, ama Zen'i herhangi bir ajan ile kullanabilirsiniz. Tercih ettiğiniz kodlama ajanında kurulum talimatlarını izleyin.",
+  "bdr.faq.q8": "Bdr'i diğer kodlama ajanlarıyla kullanabilir miyim?",
+  "bdr.faq.a8":
+    "Bdr HopCoderX ile harika çalışır, ama Bdr'i herhangi bir ajan ile kullanabilirsiniz. Tercih ettiğiniz kodlama ajanında kurulum talimatlarını izleyin.",
 
-  "zen.cta.start": "Zen'i kullanmaya başlayın",
-  "zen.pricing.title": "20$ Kullandıkça öde bakiyesi ekle",
-  "zen.pricing.fee": "(+1,23$ kart işlem ücreti)",
-  "zen.pricing.body":
+  "bdr.cta.start": "Bdr'i kullanmaya başlayın",
+  "bdr.pricing.title": "20$ Kullandıkça öde bakiyesi ekle",
+  "bdr.pricing.fee": "(+1,23$ kart işlem ücreti)",
+  "bdr.pricing.body":
     "Herhangi bir ajan ile kullanın. Aylık harcama limitlerini belirleyin. İstediğiniz zaman iptal edin.",
-  "zen.problem.title": "Zen hangi sorunu çözüyor?",
-  "zen.problem.body":
+  "bdr.problem.title": "Bdr hangi sorunu çözüyor?",
+  "bdr.problem.body":
     "Pek çok model mevcut ancak yalnızca birkaçı kodlama ajanlarıyla iyi çalışıyor. Çoğu sağlayıcı, bunları değişen sonuçlarla farklı şekilde yapılandırır.",
-  "zen.problem.subtitle": "Bu sorunu yalnızca HopCoderX kullanıcıları için değil, herkes için düzeltiyoruz.",
-  "zen.problem.item1": "Seçilen modelleri test etme ve ekiplerine danışmanlık yapma",
-  "zen.problem.item2": "Düzgün bir şekilde teslim edildiklerinden emin olmak için sağlayıcılarla çalışmak",
-  "zen.problem.item3": "Önerdiğimiz tüm model-sağlayıcı kombinasyonlarının karşılaştırılması",
-  "zen.how.title": "Zen nasıl çalışır?",
-  "zen.how.body": "Zen'i HopCoderX ile kullanmanızı önersek de, Zen'i herhangi bir ajan ile kullanabilirsiniz.",
-  "zen.how.step1.title": "Kaydolun ve 20$ bakiye ekleyin",
-  "zen.how.step1.beforeLink": "takip edin",
-  "zen.how.step1.link": "kurulum talimatları",
-  "zen.how.step2.title": "Şeffaf fiyatlandırmayla Zen kullanın",
-  "zen.how.step2.link": "istek başına ödeme",
-  "zen.how.step2.afterLink": "sıfır işaretlemeyle",
-  "zen.how.step3.title": "Otomatik yükleme",
-  "zen.how.step3.body": "bakiyeniz 5$'a ulaştığında otomatik olarak 20$ ekleyeceğiz",
-  "zen.privacy.title": "Gizliliğiniz bizim için önemlidir",
-  "zen.privacy.beforeExceptions":
-    "Tüm Zen modelleri ABD'de barındırılmaktadır. Sağlayıcılar sıfır saklama politikası izler ve verilerinizi model eğitimi için kullanmaz; şu",
-  "zen.privacy.exceptionsLink": "aşağıdaki istisnalar",
+  "bdr.problem.subtitle": "Bu sorunu yalnızca HopCoderX kullanıcıları için değil, herkes için düzeltiyoruz.",
+  "bdr.problem.item1": "Seçilen modelleri test etme ve ekiplerine danışmanlık yapma",
+  "bdr.problem.item2": "Düzgün bir şekilde teslim edildiklerinden emin olmak için sağlayıcılarla çalışmak",
+  "bdr.problem.item3": "Önerdiğimiz tüm model-sağlayıcı kombinasyonlarının karşılaştırılması",
+  "bdr.how.title": "Bdr nasıl çalışır?",
+  "bdr.how.body": "Bdr'i HopCoderX ile kullanmanızı önersek de, Bdr'i herhangi bir ajan ile kullanabilirsiniz.",
+  "bdr.how.step1.title": "Kaydolun ve 20$ bakiye ekleyin",
+  "bdr.how.step1.beforeLink": "takip edin",
+  "bdr.how.step1.link": "kurulum talimatları",
+  "bdr.how.step2.title": "Şeffaf fiyatlandırmayla Bdr kullanın",
+  "bdr.how.step2.link": "istek başına ödeme",
+  "bdr.how.step2.afterLink": "sıfır işaretlemeyle",
+  "bdr.how.step3.title": "Otomatik yükleme",
+  "bdr.how.step3.body": "bakiyeniz 5$'a ulaştığında otomatik olarak 20$ ekleyeceğiz",
+  "bdr.privacy.title": "Gizliliğiniz bizim için önemlidir",
+  "bdr.privacy.beforeExceptions":
+    "Tüm Bdr modelleri ABD'de barındırılmaktadır. Sağlayıcılar sıfır saklama politikası izler ve verilerinizi model eğitimi için kullanmaz; şu",
+  "bdr.privacy.exceptionsLink": "aşağıdaki istisnalar",
 
   "black.meta.title": "HopCoderX Black | Dünyanın en iyi kodlama modellerine erişin",
   "black.meta.description": "HopCoderX Black abonelik planlarıyla Claude, GPT, Gemini ve daha fazlasına erişin.",
@@ -288,7 +288,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "Katılma tarihi",
   "black.subscribe.success.chargeNotice": "Aboneliğiniz aktive edildiğinde kartınızdan ödeme alınacaktır",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "API Anahtarları",
   "workspace.nav.members": "Üyeler",
   "workspace.nav.billing": "Faturalandırma",
@@ -307,7 +307,7 @@ export const dict = {
     "Optimum performans için yapılandırılmış modellere erişin; sürüm düşürme veya daha ucuz sağlayıcılara yönlendirme yok.",
   "workspace.newUser.feature.lockin.title": "Kilitlenme Yok",
   "workspace.newUser.feature.lockin.body":
-    "Zen'i herhangi bir kodlama ajanıyla kullanın ve istediğiniz zaman HopCoderX ile diğer sağlayıcıları kullanmaya devam edin.",
+    "Bdr'i herhangi bir kodlama ajanıyla kullanın ve istediğiniz zaman HopCoderX ile diğer sağlayıcıları kullanmaya devam edin.",
   "workspace.newUser.copyApiKey": "API anahtarını kopyala",
   "workspace.newUser.copyKey": "Anahtarı Kopyala",
   "workspace.newUser.copied": "Kopyalandı!",
@@ -327,7 +327,7 @@ export const dict = {
   "workspace.providers.subtitle": "Yapay zeka sağlayıcılarından kendi API anahtarlarınızı yapılandırın.",
   "workspace.providers.placeholder": "{{provider}} API anahtarını girin ({{prefix}}...)",
   "workspace.providers.configure": "Yapılandır",
-  "workspace.providers.edit": "Düzenle",
+  "workspace.providers.edit": "Dübdrle",
   "workspace.providers.delete": "Sil",
   "workspace.providers.saving": "Kaydediliyor...",
   "workspace.providers.save": "Kaydet",
@@ -381,7 +381,7 @@ export const dict = {
   "workspace.members.noLimit": "Limit yok",
   "workspace.members.noLimitLowercase": "limit yok",
   "workspace.members.invited": "davet edildi",
-  "workspace.members.edit": "Düzenle",
+  "workspace.members.edit": "Dübdrle",
   "workspace.members.delete": "Sil",
   "workspace.members.saving": "Kaydediliyor...",
   "workspace.members.save": "Kaydet",
@@ -399,7 +399,7 @@ export const dict = {
   "workspace.settings.defaultName": "Varsayılan",
   "workspace.settings.updating": "Güncelleniyor...",
   "workspace.settings.save": "Kaydet",
-  "workspace.settings.edit": "Düzenle",
+  "workspace.settings.edit": "Dübdrle",
 
   "workspace.billing.title": "Faturalandırma",
   "workspace.billing.subtitle.beforeLink": "Ödeme yöntemlerini yönetin.",
@@ -420,7 +420,7 @@ export const dict = {
   "workspace.monthlyLimit.placeholder": "50",
   "workspace.monthlyLimit.setting": "Ayarlanıyor...",
   "workspace.monthlyLimit.set": "Ayarla",
-  "workspace.monthlyLimit.edit": "Limiti Düzenle",
+  "workspace.monthlyLimit.edit": "Limiti Dübdrle",
   "workspace.monthlyLimit.noLimit": "Kullanım limiti belirlenmedi.",
   "workspace.monthlyLimit.currentUsage.beforeMonth": "Şu anki kullanım",
   "workspace.monthlyLimit.currentUsage.beforeAmount": "$",
@@ -434,7 +434,7 @@ export const dict = {
   "workspace.reload.enabled.middle": "Yeniden yükleyeceğiz",
   "workspace.reload.processingFee": "işlem ücreti",
   "workspace.reload.enabled.after": "dengeye ulaşıldığında",
-  "workspace.reload.edit": "Düzenle",
+  "workspace.reload.edit": "Dübdrle",
   "workspace.reload.enable": "Etkinleştir",
   "workspace.reload.enableAutoReload": "Otomatik Yeniden Yüklemeyi Etkinleştir",
   "workspace.reload.reloadAmount": "Yükle $",
@@ -505,14 +505,14 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "Tam olarak değil, ama muhtemelen. HopCoderX'u ücretli bir sağlayıcıya bağlamak istiyorsanız bir AI aboneliği gerekir, ancak",
   "download.faq.a3.localLink": "yerel modeller",
-  "download.faq.a3.afterLocal.beforeZen": "ile ücretsiz çalışabilirsiniz. Kullanıcıları",
-  "download.faq.a3.afterZen":
+  "download.faq.a3.afterLocal.beforeBdr": "ile ücretsiz çalışabilirsiniz. Kullanıcıları",
+  "download.faq.a3.afterBdr":
     " kullanmaya teşvik ediyoruz, ancak HopCoderX OpenAI, Anthropic, xAI vb. gibi tüm popüler sağlayıcılarla çalışır.",
 
   "download.faq.a5.p1": "HopCoderX %100 ücretsizdir.",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "Ek maliyetler, bir model sağlayıcısına olan aboneliğinizden gelir. HopCoderX herhangi bir model sağlayıcısıyla çalışır, ancak",
-  "download.faq.a5.p2.afterZen": " kullanmanızı öneririz.",
+  "download.faq.a5.p2.afterBdr": " kullanmanızı öneririz.",
 
   "download.faq.a6.p1":
     "Verileriniz ve bilginiz yalnızca HopCoderX'da paylaşılabilir bağlantılar oluşturduğunuzda saklanır.",

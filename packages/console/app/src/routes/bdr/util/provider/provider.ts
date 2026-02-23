@@ -1,4 +1,4 @@
-import { ZenData } from "@hopcoderx/console-core/model.js"
+import { BdrData } from "@opencode-ai/console-core/model.js"
 import {
   fromAnthropicChunk,
   fromAnthropicRequest,
@@ -34,10 +34,10 @@ export type UsageInfo = {
 }
 
 export type ProviderHelper = (input: { reqModel: string; providerModel: string }) => {
-  format: ZenData.Format
+  format: BdrData.Format
   modifyUrl: (providerApi: string, isStream?: boolean) => string
   modifyHeaders: (headers: Headers, body: Record<string, any>, apiKey: string) => void
-  modifyBody: (body: Record<string, any>) => Record<string, any>
+  modifyBody: (body: Record<string, any>, workspaceID?: string) => Record<string, any>
   createBinaryStreamDecoder: () => ((chunk: Uint8Array) => Uint8Array | undefined) | undefined
   streamSeparator: string
   createUsageParser: () => {
@@ -162,7 +162,7 @@ export interface CommonChunk {
   }
 }
 
-export function createBodyConverter(from: ZenData.Format, to: ZenData.Format) {
+export function createBodyConverter(from: BdrData.Format, to: BdrData.Format) {
   return (body: any): any => {
     if (from === to) return body
 
@@ -177,7 +177,7 @@ export function createBodyConverter(from: ZenData.Format, to: ZenData.Format) {
   }
 }
 
-export function createStreamPartConverter(from: ZenData.Format, to: ZenData.Format) {
+export function createStreamPartConverter(from: BdrData.Format, to: BdrData.Format) {
   return (part: any): any => {
     if (from === to) return part
 
@@ -195,7 +195,7 @@ export function createStreamPartConverter(from: ZenData.Format, to: ZenData.Form
   }
 }
 
-export function createResponseConverter(from: ZenData.Format, to: ZenData.Format) {
+export function createResponseConverter(from: BdrData.Format, to: BdrData.Format) {
   return (response: any): any => {
     if (from === to) return response
 

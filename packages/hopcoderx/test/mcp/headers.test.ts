@@ -51,9 +51,9 @@ test("headers are passed to transports when oauth is enabled (default)", async (
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Bun.write(
-        `${dir}/HopCoderX.json`,
+        `${dir}/opencode.json`,
         JSON.stringify({
-          $schema: "https://HopCoderX.ai/config.json",
+          $schema: "https://opencode.ai/config.json",
           mcp: {
             "test-server": {
               type: "remote",

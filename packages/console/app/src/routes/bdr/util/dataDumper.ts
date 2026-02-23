@@ -1,4 +1,4 @@
-import { Resource, waitUntil } from "@hopcoderx/console-resource"
+import { Resource, waitUntil } from "@opencode-ai/console-resource"
 
 export function createDataDumper(sessionId: string, requestId: string, projectId: string) {
   if (Resource.App.stage !== "production") return
@@ -27,14 +27,14 @@ export function createDataDumper(sessionId: string, requestId: string, projectId
       const second = timestamp.substring(12, 14)
 
       waitUntil(
-        Resource.ZenDataNew.put(
+        Resource.BdrDataNew.put(
           `data/${data.modelName}/${year}/${month}/${day}/${hour}/${minute}/${second}/${requestId}.json`,
           JSON.stringify({ timestamp, ...data }),
         ),
       )
 
       waitUntil(
-        Resource.ZenDataNew.put(
+        Resource.BdrDataNew.put(
           `meta/${data.modelName}/${sessionId}/${requestId}.json`,
           JSON.stringify({ timestamp, ...metadata }),
         ),

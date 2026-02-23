@@ -437,9 +437,9 @@ export default function Download() {
                 <a href={language.route("/docs/providers/#lm-studio")} target="_blank">
                   {i18n.t("download.faq.a3.localLink")}
                 </a>{" "}
-                {i18n.t("download.faq.a3.afterLocal.beforeZen")}{" "}
-                <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
-                {i18n.t("download.faq.a3.afterZen")}
+                {i18n.t("download.faq.a3.afterLocal.beforeBdr")}{" "}
+                <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
+                {i18n.t("download.faq.a3.afterBdr")}
               </Faq>
             </li>
             <li>
@@ -451,9 +451,9 @@ export default function Download() {
             </li>
             <li>
               <Faq question={i18n.t("home.faq.q6")}>
-                {i18n.t("download.faq.a5.p1")} {i18n.t("download.faq.a5.p2.beforeZen")}{" "}
-                <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
-                {i18n.t("download.faq.a5.p2.afterZen")}
+                {i18n.t("download.faq.a5.p1")} {i18n.t("download.faq.a5.p2.beforeBdr")}{" "}
+                <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
+                {i18n.t("download.faq.a5.p2.afterBdr")}
               </Faq>
             </li>
             <li>

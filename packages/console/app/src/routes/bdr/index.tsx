@@ -2,10 +2,10 @@ import "./index.css"
 import { createAsync, query, redirect } from "@solidjs/router"
 import { Title, Meta } from "@solidjs/meta"
 //import { HttpHeader } from "@solidjs/start"
-import zenLogoLight from "../../asset/zen-ornate-light.svg"
-import zenLogoDark from "../../asset/zen-ornate-dark.svg"
-import compareVideo from "../../asset/lander/HopCoderX-comparison-min.mp4"
-import compareVideoPoster from "../../asset/lander/HopCoderX-comparison-poster.png"
+import bdrLogoLight from "../../asset/bdr-ornate-light.svg"
+import bdrLogoDark from "../../asset/bdr-ornate-dark.svg"
+import compareVideo from "../../asset/lander/opencode-comparison-min.mp4"
+import compareVideoPoster from "../../asset/lander/opencode-comparison-poster.png"
 import avatarDax from "../../asset/lander/avatar-dax.png"
 import avatarJay from "../../asset/lander/avatar-jay.png"
 import avatarFrank from "../../asset/lander/avatar-frank.png"
@@ -33,24 +33,24 @@ export default function Home() {
   const i18n = useI18n()
   const language = useLanguage()
   return (
-    <main data-page="zen">
+    <main data-page="bdr">
       {/*<HttpHeader name="Cache-Control" value="public, max-age=1, s-maxage=3600, stale-while-revalidate=86400" />*/}
-      <Title>{i18n.t("zen.title")}</Title>
-      <LocaleLinks path="/zen" />
-      <Meta property="og:image" content="/social-share-zen.png" />
-      <Meta name="twitter:image" content="/social-share-zen.png" />
-      <Meta name="HopCoderX:auth" content={loggedin() ? "true" : "false"} />
+      <Title>{i18n.t("bdr.title")}</Title>
+      <LocaleLinks path="/bdr" />
+      <Meta property="og:image" content="/social-share-bdr.png" />
+      <Meta name="twitter:image" content="/social-share-bdr.png" />
+      <Meta name="opencode:auth" content={loggedin() ? "true" : "false"} />
 
       <div data-component="container">
-        <Header zen hideGetStarted />
+        <Header bdr hideGetStarted />
 
         <div data-component="content">
           <section data-component="hero">
             <div data-slot="hero-copy">
-              <img data-slot="zen logo light" src={zenLogoLight} alt="" />
-              <img data-slot="zen logo dark" src={zenLogoDark} alt="" />
-              <h1>{i18n.t("zen.hero.title")}</h1>
-              <p>{i18n.t("zen.hero.body")}</p>
+              <img data-slot="bdr logo light" src={bdrLogoLight} alt="" />
+              <img data-slot="bdr logo dark" src={bdrLogoDark} alt="" />
+              <h1>{i18n.t("bdr.hero.title")}</h1>
+              <p>{i18n.t("bdr.hero.body")}</p>
               <div data-slot="model-logos">
                 <div>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -123,7 +123,7 @@ export default function Home() {
                 </div>
               </div>
               <a href="/auth">
-                <span>{i18n.t("zen.cta.start")}</span>
+                <span>{i18n.t("bdr.cta.start")}</span>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     d="M6.5 12L17 12M13 16.5L17.5 12L13 7.5"
@@ -136,9 +136,9 @@ export default function Home() {
             </div>
             <div data-slot="pricing-copy">
               <p>
-                <strong>{i18n.t("zen.pricing.title")}</strong> <span>{i18n.t("zen.pricing.fee")}</span>
+                <strong>{i18n.t("bdr.pricing.title")}</strong> <span>{i18n.t("bdr.pricing.fee")}</span>
               </p>
-              <p>{i18n.t("zen.pricing.body")}</p>
+              <p>{i18n.t("bdr.pricing.body")}</p>
             </div>
           </section>
 
@@ -150,50 +150,50 @@ export default function Home() {
 
           <section data-component="problem">
             <div data-slot="section-title">
-              <h3>{i18n.t("zen.problem.title")}</h3>
-              <p>{i18n.t("zen.problem.body")}</p>
+              <h3>{i18n.t("bdr.problem.title")}</h3>
+              <p>{i18n.t("bdr.problem.body")}</p>
             </div>
-            <p>{i18n.t("zen.problem.subtitle")}</p>
+            <p>{i18n.t("bdr.problem.subtitle")}</p>
             <ul>
               <li>
-                <span>[*]</span> {i18n.t("zen.problem.item1")}
+                <span>[*]</span> {i18n.t("bdr.problem.item1")}
               </li>
               <li>
-                <span>[*]</span> {i18n.t("zen.problem.item2")}
+                <span>[*]</span> {i18n.t("bdr.problem.item2")}
               </li>
               <li>
-                <span>[*]</span> {i18n.t("zen.problem.item3")}
+                <span>[*]</span> {i18n.t("bdr.problem.item3")}
               </li>
             </ul>
           </section>
 
           <section data-component="how">
             <div data-slot="section-title">
-              <h3>{i18n.t("zen.how.title")}</h3>
-              <p>{i18n.t("zen.how.body")}</p>
+              <h3>{i18n.t("bdr.how.title")}</h3>
+              <p>{i18n.t("bdr.how.body")}</p>
             </div>
             <ul>
               <li>
                 <span>[1]</span>
                 <div>
-                  <strong>{i18n.t("zen.how.step1.title")}</strong> - {i18n.t("zen.how.step1.beforeLink")}{" "}
-                  <a href={language.route("/docs/zen/#how-it-works")} title={i18n.t("zen.how.step1.link")}>
-                    {i18n.t("zen.how.step1.link")}
+                  <strong>{i18n.t("bdr.how.step1.title")}</strong> - {i18n.t("bdr.how.step1.beforeLink")}{" "}
+                  <a href={language.route("/docs/bdr/#how-it-works")} title={i18n.t("bdr.how.step1.link")}>
+                    {i18n.t("bdr.how.step1.link")}
                   </a>
                 </div>
               </li>
               <li>
                 <span>[2]</span>
                 <div>
-                  <strong>{i18n.t("zen.how.step2.title")}</strong> -{" "}
-                  <a href={language.route("/docs/zen/#pricing")}>{i18n.t("zen.how.step2.link")}</a>{" "}
-                  {i18n.t("zen.how.step2.afterLink")}
+                  <strong>{i18n.t("bdr.how.step2.title")}</strong> -{" "}
+                  <a href={language.route("/docs/bdr/#pricing")}>{i18n.t("bdr.how.step2.link")}</a>{" "}
+                  {i18n.t("bdr.how.step2.afterLink")}
                 </div>
               </li>
               <li>
                 <span>[3]</span>
                 <div>
-                  <strong>{i18n.t("zen.how.step3.title")}</strong> - {i18n.t("zen.how.step3.body")}
+                  <strong>{i18n.t("bdr.how.step3.title")}</strong> - {i18n.t("bdr.how.step3.body")}
                 </div>
               </li>
             </ul>
@@ -201,12 +201,12 @@ export default function Home() {
 
           <section data-component="privacy">
             <div data-slot="privacy-title">
-              <h3>{i18n.t("zen.privacy.title")}</h3>
+              <h3>{i18n.t("bdr.privacy.title")}</h3>
               <div>
                 <span>[*]</span>
                 <p>
-                  {i18n.t("zen.privacy.beforeExceptions")}{" "}
-                  <a href={language.route("/docs/zen/#privacy")}>{i18n.t("zen.privacy.exceptionsLink")}</a>.
+                  {i18n.t("bdr.privacy.beforeExceptions")}{" "}
+                  <a href={language.route("/docs/bdr/#privacy")}>{i18n.t("bdr.privacy.exceptionsLink")}</a>.
                 </p>
               </div>
             </div>
@@ -222,8 +222,8 @@ export default function Home() {
                   <span>ex-CEO, Terminal Products</span>
                 </div>
                 <div data-slot="quote">
-                  <span>@HopCoderX</span>
-                  {" Zen has been life changing, it's truly a no-brainer."}
+                  <span>@OpenCode</span>
+                  {" Bdr has been life changing, it's truly a no-brainer."}
                 </div>
               </div>
             </a>
@@ -237,8 +237,8 @@ export default function Home() {
                 </div>
                 <div data-slot="quote">
                   {"4 out of 5 people on our team love using "}
-                  <span>@HopCoderX</span>
-                  {" Zen."}
+                  <span>@OpenCode</span>
+                  {" Bdr."}
                 </div>
               </div>
             </a>
@@ -252,8 +252,8 @@ export default function Home() {
                 </div>
                 <div data-slot="quote">
                   {"I can't recommend "}
-                  <span>@HopCoderX</span>
-                  {" Zen enough. Seriously, it's really good."}
+                  <span>@OpenCode</span>
+                  {" Bdr enough. Seriously, it's really good."}
                 </div>
               </div>
             </a>
@@ -267,8 +267,8 @@ export default function Home() {
                 </div>
                 <div data-slot="quote">
                   {"With "}
-                  <span>@HopCoderX</span>
-                  {" Zen I know all the models are tested and perfect for coding agents."}
+                  <span>@OpenCode</span>
+                  {" Bdr I know all the models are tested and perfect for coding agents."}
                 </div>
               </div>
             </a>
@@ -291,36 +291,36 @@ export default function Home() {
             </div>
             <ul>
               <li>
-                <Faq question={i18n.t("zen.faq.q1")}>{i18n.t("zen.faq.a1")}</Faq>
+                <Faq question={i18n.t("bdr.faq.q1")}>{i18n.t("bdr.faq.a1")}</Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q2")}>{i18n.t("zen.faq.a2")}</Faq>
+                <Faq question={i18n.t("bdr.faq.q2")}>{i18n.t("bdr.faq.a2")}</Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q3")}>{i18n.t("zen.faq.a3")}</Faq>
+                <Faq question={i18n.t("bdr.faq.q3")}>{i18n.t("bdr.faq.a3")}</Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q4")}>
-                  {i18n.t("zen.faq.a4.p1.beforePricing")}{" "}
-                  <a href={language.route("/docs/zen/#pricing")}>{i18n.t("zen.faq.a4.p1.pricingLink")}</a>{" "}
-                  {i18n.t("zen.faq.a4.p1.afterPricing")} {i18n.t("zen.faq.a4.p2.beforeAccount")}{" "}
-                  <a href="/auth">{i18n.t("zen.faq.a4.p2.accountLink")}</a>. {i18n.t("zen.faq.a4.p3")}
+                <Faq question={i18n.t("bdr.faq.q4")}>
+                  {i18n.t("bdr.faq.a4.p1.beforePricing")}{" "}
+                  <a href={language.route("/docs/bdr/#pricing")}>{i18n.t("bdr.faq.a4.p1.pricingLink")}</a>{" "}
+                  {i18n.t("bdr.faq.a4.p1.afterPricing")} {i18n.t("bdr.faq.a4.p2.beforeAccount")}{" "}
+                  <a href="/auth">{i18n.t("bdr.faq.a4.p2.accountLink")}</a>. {i18n.t("bdr.faq.a4.p3")}
                 </Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q5")}>
-                  {i18n.t("zen.faq.a5.beforeExceptions")}{" "}
-                  <a href={language.route("/docs/zen/#privacy")}>{i18n.t("zen.faq.a5.exceptionsLink")}</a>.
+                <Faq question={i18n.t("bdr.faq.q5")}>
+                  {i18n.t("bdr.faq.a5.beforeExceptions")}{" "}
+                  <a href={language.route("/docs/bdr/#privacy")}>{i18n.t("bdr.faq.a5.exceptionsLink")}</a>.
                 </Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q6")}>{i18n.t("zen.faq.a6")}</Faq>
+                <Faq question={i18n.t("bdr.faq.q6")}>{i18n.t("bdr.faq.a6")}</Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q7")}>{i18n.t("zen.faq.a7")}</Faq>
+                <Faq question={i18n.t("bdr.faq.q7")}>{i18n.t("bdr.faq.a7")}</Faq>
               </li>
               <li>
-                <Faq question={i18n.t("zen.faq.q8")}>{i18n.t("zen.faq.a8")}</Faq>
+                <Faq question={i18n.t("bdr.faq.q8")}>{i18n.t("bdr.faq.a8")}</Faq>
               </li>
             </ul>
           </section>

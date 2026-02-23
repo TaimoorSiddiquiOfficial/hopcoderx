@@ -23,7 +23,7 @@ export function createHopCoderXClient(config?: Config & { directory?: string }) 
     const encodedDirectory = isNonASCII ? encodeURIComponent(config.directory) : config.directory
     config.headers = {
       ...config.headers,
-      "x-HopCoderX-directory": encodedDirectory,
+      "x-hopcoderx-directory": encodedDirectory,
     }
   }
 

@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "Enterprise",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "Logg inn",
   "nav.free": "Gratis",
   "nav.home": "Hjem",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | AI-kodingsagent bygget for terminalen",
   "temp.hero.title": "AI-kodingsagenten bygget for terminalen",
-  "temp.zen": "HopCoderX zen",
+  "temp.bdr": "HopCoderX bdr",
   "temp.getStarted": "Kom i gang",
   "temp.feature.native.title": "Native TUI",
   "temp.feature.native.body": "Et responsivt, native terminal-brukergrensesnitt som kan temes",
-  "temp.feature.zen.beforeLink": "En",
-  "temp.feature.zen.link": "kuratert liste over modeller",
-  "temp.feature.zen.afterLink": "levert av HopCoderX",
+  "temp.feature.bdr.beforeLink": "En",
+  "temp.feature.bdr.link": "kuratert liste over modeller",
+  "temp.feature.bdr.afterLink": "levert av HopCoderX",
   "temp.feature.models.beforeLink": "Støtter 75+ LLM-leverandører gjennom",
   "temp.feature.models.afterLink": ", inkludert lokale modeller",
   "temp.screenshot.caption": "HopCoderX TUI med tokyonight-tema",
@@ -145,10 +145,10 @@ export const dict = {
   "home.faq.q3": "Trenger jeg ekstra AI-abonnementer for å bruke HopCoderX?",
   "home.faq.a3.p1":
     "Ikke nødvendigvis. HopCoderX kommer med et sett gratis modeller du kan bruke uten å opprette en konto.",
-  "home.faq.a3.p2.beforeZen": "I tillegg kan du bruke populære kodemodeller ved å opprette en",
-  "home.faq.a3.p2.afterZen": " konto.",
+  "home.faq.a3.p2.beforeBdr": "I tillegg kan du bruke populære kodemodeller ved å opprette en",
+  "home.faq.a3.p2.afterBdr": " konto.",
   "home.faq.a3.p3":
-    "Vi oppfordrer til å bruke Zen, men HopCoderX fungerer også med populære leverandører som OpenAI, Anthropic, xAI osv.",
+    "Vi oppfordrer til å bruke Bdr, men HopCoderX fungerer også med populære leverandører som OpenAI, Anthropic, xAI osv.",
   "home.faq.a3.p4.beforeLocal": "Du kan til og med koble til dine",
   "home.faq.a3.p4.localLink": "lokale modeller",
   "home.faq.q4": "Kan jeg bruke mine eksisterende AI-abonnementer med HopCoderX?",
@@ -175,70 +175,70 @@ export const dict = {
   "home.faq.a8.p3":
     ", som betyr at hvem som helst kan bruke, endre eller bidra til utviklingen. Alle i communityet kan opprette issues, sende inn pull requests og utvide funksjonalitet.",
 
-  "home.zenCta.title": "Få tilgang til pålitelige, optimaliserte modeller for kodeagenter",
-  "home.zenCta.body":
-    "Zen gir deg tilgang til et håndplukket sett med AI-modeller som HopCoderX har testet og benchmarked spesielt for kodeagenter. Du slipper å bekymre deg for ujevn ytelse og kvalitet på tvers av leverandører; bruk validerte modeller som fungerer.",
-  "home.zenCta.link": "Les om Zen",
+  "home.bdrCta.title": "Få tilgang til pålitelige, optimaliserte modeller for kodeagenter",
+  "home.bdrCta.body":
+    "Bdr gir deg tilgang til et håndplukket sett med AI-modeller som HopCoderX har testet og benchmarked spesielt for kodeagenter. Du slipper å bekymre deg for ujevn ytelse og kvalitet på tvers av leverandører; bruk validerte modeller som fungerer.",
+  "home.bdrCta.link": "Les om Bdr",
 
-  "zen.title": "HopCoderX Zen | Et kuratert sett med pålitelige, optimaliserte modeller for kodeagenter",
-  "zen.hero.title": "Pålitelige optimaliserte modeller for kodeagenter",
-  "zen.hero.body":
-    "Zen gir deg tilgang til et kuratert sett med AI-modeller som HopCoderX har testet og benchmarked spesielt for kodeagenter. Du slipper å bekymre deg for ujevn ytelse og kvalitet; bruk validerte modeller som fungerer.",
+  "bdr.title": "HopCoderX Bdr | Et kuratert sett med pålitelige, optimaliserte modeller for kodeagenter",
+  "bdr.hero.title": "Pålitelige optimaliserte modeller for kodeagenter",
+  "bdr.hero.body":
+    "Bdr gir deg tilgang til et kuratert sett med AI-modeller som HopCoderX har testet og benchmarked spesielt for kodeagenter. Du slipper å bekymre deg for ujevn ytelse og kvalitet; bruk validerte modeller som fungerer.",
 
-  "zen.faq.q1": "Hva er HopCoderX Zen?",
-  "zen.faq.a1":
-    "Zen er et kuratert sett med AI-modeller testet og benchmarked for kodeagenter, laget av teamet bak HopCoderX.",
-  "zen.faq.q2": "Hva gjør Zen mer presis?",
-  "zen.faq.a2":
-    "Zen tilbyr bare modeller som er testet og benchmarked spesifikt for kodeagenter. Du ville ikke brukt en smørkniv til å skjære biff; ikke bruk dårlige modeller til koding.",
-  "zen.faq.q3": "Er Zen billigere?",
-  "zen.faq.a3":
-    "Zen er ikke for profitt. Zen videreformidler kostnadene fra modellleverandørene direkte til deg. Jo mer Zen brukes, desto bedre priser kan HopCoderX forhandle og gi videre til deg.",
-  "zen.faq.q4": "Hva koster Zen?",
-  "zen.faq.a4.p1.beforePricing": "Zen",
-  "zen.faq.a4.p1.pricingLink": "tar betalt per forespørsel",
-  "zen.faq.a4.p1.afterPricing": "uten påslag, så du betaler akkurat det modellleverandøren tar betalt.",
-  "zen.faq.a4.p2.beforeAccount": "Totalprisen avhenger av bruk, og du kan sette månedlige utgiftsgrenser i din",
-  "zen.faq.a4.p2.accountLink": "konto",
-  "zen.faq.a4.p3":
+  "bdr.faq.q1": "Hva er HopCoderX Bdr?",
+  "bdr.faq.a1":
+    "Bdr er et kuratert sett med AI-modeller testet og benchmarked for kodeagenter, laget av teamet bak HopCoderX.",
+  "bdr.faq.q2": "Hva gjør Bdr mer presis?",
+  "bdr.faq.a2":
+    "Bdr tilbyr bare modeller som er testet og benchmarked spesifikt for kodeagenter. Du ville ikke brukt en smørkniv til å skjære biff; ikke bruk dårlige modeller til koding.",
+  "bdr.faq.q3": "Er Bdr billigere?",
+  "bdr.faq.a3":
+    "Bdr er ikke for profitt. Bdr videreformidler kostnadene fra modellleverandørene direkte til deg. Jo mer Bdr brukes, desto bedre priser kan HopCoderX forhandle og gi videre til deg.",
+  "bdr.faq.q4": "Hva koster Bdr?",
+  "bdr.faq.a4.p1.beforePricing": "Bdr",
+  "bdr.faq.a4.p1.pricingLink": "tar betalt per forespørsel",
+  "bdr.faq.a4.p1.afterPricing": "uten påslag, så du betaler akkurat det modellleverandøren tar betalt.",
+  "bdr.faq.a4.p2.beforeAccount": "Totalprisen avhenger av bruk, og du kan sette månedlige utgiftsgrenser i din",
+  "bdr.faq.a4.p2.accountLink": "konto",
+  "bdr.faq.a4.p3":
     "For å dekke kostnader legger HopCoderX til bare et lite betalingsbehandlingsgebyr på $1.23 per $20 saldo-påfyll.",
-  "zen.faq.q5": "Hva med data og personvern?",
-  "zen.faq.a5.beforeExceptions":
-    "Alle Zen-modeller hostes i USA. Leverandører følger en policy om null oppbevaring og bruker ikke dataene dine til modelltrening, med de",
-  "zen.faq.a5.exceptionsLink": "følgende unntakene",
-  "zen.faq.q6": "Kan jeg sette utgiftsgrenser?",
-  "zen.faq.a6": "Ja, du kan sette månedlige utgiftsgrenser i kontoen din.",
-  "zen.faq.q7": "Kan jeg avslutte?",
-  "zen.faq.a7": "Ja, du kan deaktivere fakturering når som helst og bruke gjenværende saldo.",
-  "zen.faq.q8": "Kan jeg bruke Zen med andre kodeagenter?",
-  "zen.faq.a8":
-    "Selv om Zen fungerer veldig bra med HopCoderX, kan du bruke Zen med hvilken som helst agent. Følg oppsettinstruksjonene i din foretrukne kodeagent.",
+  "bdr.faq.q5": "Hva med data og personvern?",
+  "bdr.faq.a5.beforeExceptions":
+    "Alle Bdr-modeller hostes i USA. Leverandører følger en policy om null oppbevaring og bruker ikke dataene dine til modelltrening, med de",
+  "bdr.faq.a5.exceptionsLink": "følgende unntakene",
+  "bdr.faq.q6": "Kan jeg sette utgiftsgrenser?",
+  "bdr.faq.a6": "Ja, du kan sette månedlige utgiftsgrenser i kontoen din.",
+  "bdr.faq.q7": "Kan jeg avslutte?",
+  "bdr.faq.a7": "Ja, du kan deaktivere fakturering når som helst og bruke gjenværende saldo.",
+  "bdr.faq.q8": "Kan jeg bruke Bdr med andre kodeagenter?",
+  "bdr.faq.a8":
+    "Selv om Bdr fungerer veldig bra med HopCoderX, kan du bruke Bdr med hvilken som helst agent. Følg oppsettinstruksjonene i din foretrukne kodeagent.",
 
-  "zen.cta.start": "Kom i gang med Zen",
-  "zen.pricing.title": "Legg til $20 Pay as you go-saldo",
-  "zen.pricing.fee": "(+$1.23 kortbehandlingsgebyr)",
-  "zen.pricing.body": "Bruk med hvilken som helst agent. Angi månedlige forbruksgrenser. Avslutt når som helst.",
-  "zen.problem.title": "Hvilket problem løser Zen?",
-  "zen.problem.body":
+  "bdr.cta.start": "Kom i gang med Bdr",
+  "bdr.pricing.title": "Legg til $20 Pay as you go-saldo",
+  "bdr.pricing.fee": "(+$1.23 kortbehandlingsgebyr)",
+  "bdr.pricing.body": "Bruk med hvilken som helst agent. Angi månedlige forbruksgrenser. Avslutt når som helst.",
+  "bdr.problem.title": "Hvilket problem løser Bdr?",
+  "bdr.problem.body":
     "Det er så mange modeller tilgjengelig, men bare noen få fungerer bra med kodeagenter. De fleste leverandører konfigurerer dem annerledes med varierende resultater.",
-  "zen.problem.subtitle": "Vi fikser dette for alle, ikke bare HopCoderX-brukere.",
-  "zen.problem.item1": "Tester utvalgte modeller og konsulterer teamene deres",
-  "zen.problem.item2": "Samarbeider med leverandører for å sikre at de blir levert riktig",
-  "zen.problem.item3": "Benchmarker alle modell-leverandør-kombinasjoner vi anbefaler",
-  "zen.how.title": "Hvordan Zen fungerer",
-  "zen.how.body": "Selv om vi foreslår at du bruker Zen med HopCoderX, kan du bruke Zen med hvilken som helst agent.",
-  "zen.how.step1.title": "Registrer deg og legg til $20 saldo",
-  "zen.how.step1.beforeLink": "følg",
-  "zen.how.step1.link": "oppsettsinstruksjonene",
-  "zen.how.step2.title": "Bruk Zen med transparente priser",
-  "zen.how.step2.link": "betal per forespørsel",
-  "zen.how.step2.afterLink": "uten påslag",
-  "zen.how.step3.title": "Auto-påfyll",
-  "zen.how.step3.body": "når saldoen din når $5, fyller vi automatisk på $20",
-  "zen.privacy.title": "Personvernet ditt er viktig for oss",
-  "zen.privacy.beforeExceptions":
-    "Alle Zen-modeller hostes i USA. Leverandører følger en policy om null oppbevaring og bruker ikke dataene dine til modelltrening, med",
-  "zen.privacy.exceptionsLink": "følgende unntak",
+  "bdr.problem.subtitle": "Vi fikser dette for alle, ikke bare HopCoderX-brukere.",
+  "bdr.problem.item1": "Tester utvalgte modeller og konsulterer teamene deres",
+  "bdr.problem.item2": "Samarbeider med leverandører for å sikre at de blir levert riktig",
+  "bdr.problem.item3": "Benchmarker alle modell-leverandør-kombinasjoner vi anbefaler",
+  "bdr.how.title": "Hvordan Bdr fungerer",
+  "bdr.how.body": "Selv om vi foreslår at du bruker Bdr med HopCoderX, kan du bruke Bdr med hvilken som helst agent.",
+  "bdr.how.step1.title": "Registrer deg og legg til $20 saldo",
+  "bdr.how.step1.beforeLink": "følg",
+  "bdr.how.step1.link": "oppsettsinstruksjonene",
+  "bdr.how.step2.title": "Bruk Bdr med transparente priser",
+  "bdr.how.step2.link": "betal per forespørsel",
+  "bdr.how.step2.afterLink": "uten påslag",
+  "bdr.how.step3.title": "Auto-påfyll",
+  "bdr.how.step3.body": "når saldoen din når $5, fyller vi automatisk på $20",
+  "bdr.privacy.title": "Personvernet ditt er viktig for oss",
+  "bdr.privacy.beforeExceptions":
+    "Alle Bdr-modeller hostes i USA. Leverandører følger en policy om null oppbevaring og bruker ikke dataene dine til modelltrening, med",
+  "bdr.privacy.exceptionsLink": "følgende unntak",
 
   "black.meta.title": "HopCoderX Black | Få tilgang til verdens beste kodemodeller",
   "black.meta.description": "Få tilgang til Claude, GPT, Gemini og mer med HopCoderX Black-abonnementer.",
@@ -286,7 +286,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "Dato meldt på",
   "black.subscribe.success.chargeNotice": "Kortet ditt vil bli belastet når abonnementet aktiveres",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "API-nøkler",
   "workspace.nav.members": "Medlemmer",
   "workspace.nav.billing": "Fakturering",
@@ -305,7 +305,7 @@ export const dict = {
     "Få tilgang til modeller konfigurert for optimal ytelse – ingen nedgraderinger eller ruting til billigere leverandører.",
   "workspace.newUser.feature.lockin.title": "Ingen innlåsing",
   "workspace.newUser.feature.lockin.body":
-    "Bruk Zen med hvilken som helst kodeagent, og fortsett å bruke andre leverandører med HopCoderX når du vil.",
+    "Bruk Bdr med hvilken som helst kodeagent, og fortsett å bruke andre leverandører med HopCoderX når du vil.",
   "workspace.newUser.copyApiKey": "Kopier API-nøkkel",
   "workspace.newUser.copyKey": "Kopier nøkkel",
   "workspace.newUser.copied": "Kopiert!",
@@ -503,13 +503,13 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "Ikke nødvendigvis, men sannsynligvis. Du trenger et AI-abonnement hvis du vil koble HopCoderX til en betalt leverandør, selv om du kan jobbe med",
   "download.faq.a3.localLink": "lokale modeller",
-  "download.faq.a3.afterLocal.beforeZen": "gratis. Selv om vi oppfordrer brukere til å bruke",
-  "download.faq.a3.afterZen": ", fungerer HopCoderX med alle populære leverandører som OpenAI, Anthropic, xAI osv.",
+  "download.faq.a3.afterLocal.beforeBdr": "gratis. Selv om vi oppfordrer brukere til å bruke",
+  "download.faq.a3.afterBdr": ", fungerer HopCoderX med alle populære leverandører som OpenAI, Anthropic, xAI osv.",
 
   "download.faq.a5.p1": "HopCoderX er 100% gratis å bruke.",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "Eventuelle ekstra kostnader kommer fra abonnementet ditt hos en modellleverandør. Selv om HopCoderX fungerer med enhver modellleverandør, anbefaler vi å bruke",
-  "download.faq.a5.p2.afterZen": ".",
+  "download.faq.a5.p2.afterBdr": ".",
 
   "download.faq.a6.p1": "Dataene og informasjonen din lagres bare når du oppretter delbare lenker i HopCoderX.",
   "download.faq.a6.p2.beforeShare": "Les mer om",

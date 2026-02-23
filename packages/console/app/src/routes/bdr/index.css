@@ -8,7 +8,7 @@
   }
 }
 
-[data-page="zen"] {
+[data-page="bdr"] {
   --color-background: hsl(0, 20%, 99%);
   --color-background-weak: hsl(0, 8%, 97%);
   --color-background-strong: hsl(0, 5%, 12%);
@@ -28,7 +28,7 @@
   --color-icon: hsl(0, 1%, 55%);
 }
 
-[data-page="zen"] {
+[data-page="bdr"] {
   @media (prefers-color-scheme: dark) {
     --color-background: hsl(0, 9%, 7%);
     --color-background-weak: hsl(0, 6%, 10%);
@@ -55,12 +55,12 @@ body {
 }
 
 @supports (background: -webkit-named-image(i)) {
-  [data-page="HopCoderX"] {
+  [data-page="opencode"] {
     border-top: 1px solid var(--color-border-weak);
   }
 }
 
-[data-page="zen"] {
+[data-page="bdr"] {
   background: var(--color-background);
   --padding: 5rem;
   --vertical-padding: 4rem;
@@ -280,7 +280,7 @@ body {
     flex-direction: column;
     padding: calc(var(--vertical-padding) * 2) var(--padding);
 
-    [data-slot="zen logo dark"] {
+    [data-slot="bdr logo dark"] {
       display: none;
     }
 
@@ -289,10 +289,10 @@ body {
     }
 
     @media (prefers-color-scheme: dark) {
-      [data-slot="zen logo light"] {
+      [data-slot="bdr logo light"] {
         display: none;
       }
-      [data-slot="zen logo dark"] {
+      [data-slot="bdr logo dark"] {
         display: block;
       }
     }

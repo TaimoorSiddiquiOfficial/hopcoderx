@@ -2,7 +2,7 @@ import type { Hooks, PluginInput } from "@hopcoderx/plugin"
 import { Installation } from "@/installation"
 import { iife } from "@/util/iife"
 
-const CLIENT_ID = "Ov23liRLmeeUr4aUU5cq"
+const CLIENT_ID = "Ov23li8tweQw6odWQebz"
 // Add a small safety buffer when polling to avoid hitting the server
 // slightly too early due to clock skew / timer drift.
 const OAUTH_POLLING_SAFETY_MARGIN_MS = 3000 // 3 seconds
@@ -121,7 +121,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
             const headers: Record<string, string> = {
               "x-initiator": isAgent ? "agent" : "user",
               ...(init?.headers as Record<string, string>),
-              "User-Agent": `HopCoderX/${Installation.VERSION}`,
+              "User-Agent": `opencode/${Installation.VERSION}`,
               Authorization: `Bearer ${info.refresh}`,
               "Openai-Intent": "conversation-edits",
             }
@@ -199,7 +199,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
               headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "User-Agent": `HopCoderX/${Installation.VERSION}`,
+                "User-Agent": `opencode/${Installation.VERSION}`,
               },
               body: JSON.stringify({
                 client_id: CLIENT_ID,
@@ -229,7 +229,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                     headers: {
                       Accept: "application/json",
                       "Content-Type": "application/json",
-                      "User-Agent": `HopCoderX/${Installation.VERSION}`,
+                      "User-Agent": `opencode/${Installation.VERSION}`,
                     },
                     body: JSON.stringify({
                       client_id: CLIENT_ID,

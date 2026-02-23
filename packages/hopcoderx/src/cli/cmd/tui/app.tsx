@@ -20,7 +20,6 @@ import { DialogHelp } from "./ui/dialog-help"
 import { CommandProvider, useCommandDialog } from "@tui/component/dialog-command"
 import { DialogAgent } from "@tui/component/dialog-agent"
 import { DialogSessionList } from "@tui/component/dialog-session-list"
-import { DialogWorktree } from "@tui/component/dialog-worktree"
 import { KeybindProvider } from "@tui/context/keybind"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
@@ -213,7 +212,7 @@ function App() {
   const promptRef = usePromptRef()
 
   useKeyboard((evt) => {
-    if (!Flag.HOPCODERX_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+    if (!Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
     if (!renderer.getSelection()) return
 
     // Windows Terminal-like behavior:
@@ -259,17 +258,17 @@ function App() {
 
   // Update terminal window title based on current route and session
   createEffect(() => {
-    if (!terminalTitleEnabled() || Flag.HOPCODERX_DISABLE_TERMINAL_TITLE) return
+    if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("HopCoderX")
+      renderer.setTerminalTitle("OpenCode")
       return
     }
 
     if (route.data.type === "session") {
       const session = sync.session.get(route.data.sessionID)
       if (!session || SessionApi.isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle("HopCoderX")
+        renderer.setTerminalTitle("OpenCode")
         return
       }
 
@@ -367,19 +366,6 @@ function App() {
       },
       onSelect: () => {
         dialog.replace(() => <DialogSessionList />)
-      },
-    },
-    {
-      title: "Manage worktrees",
-      value: "worktree.list",
-      keybind: "worktree_list",
-      category: "Session",
-      slash: {
-        name: "worktrees",
-        aliases: ["worktree"],
-      },
-      onSelect: () => {
-        dialog.replace(() => <DialogWorktree />)
       },
     },
     {
@@ -524,7 +510,7 @@ function App() {
     {
       title: "View status",
       keybind: "status_view",
-      value: "HopCoderX.status",
+      value: "opencode.status",
       slash: {
         name: "status",
       },
@@ -569,7 +555,7 @@ function App() {
       title: "Open docs",
       value: "docs.open",
       onSelect: () => {
-        open("https://HopCoderX.ai/docs").catch(() => {})
+        open("https://opencode.ai/docs").catch(() => {})
         dialog.clear()
       },
       category: "System",
@@ -676,7 +662,7 @@ function App() {
         DialogAlert.show(
           dialog,
           "Warning",
-          "While openrouter is a convenient way to access LLMs your request will often be routed to subpar providers that do not work well in our testing.\n\nFor reliable access to models check out HopCoderX Zen\nhttps://HopCoderX.ai/zen",
+          "While openrouter is a convenient way to access LLMs your request will often be routed to subpar providers that do not work well in our testing.\n\nFor reliable access to models check out OpenCode Zen\nhttps://opencode.ai/zen",
         ).then(() => kv.set("openrouter_warning", true))
       })
     }
@@ -738,7 +724,7 @@ function App() {
     toast.show({
       variant: "info",
       title: "Update Available",
-      message: `HopCoderX v${evt.properties.version} is available. Run 'HopCoderX upgrade' to update manually.`,
+      message: `OpenCode v${evt.properties.version} is available. Run 'opencode upgrade' to update manually.`,
       duration: 10000,
     })
   })
@@ -749,14 +735,14 @@ function App() {
       height={dimensions().height}
       backgroundColor={theme.background}
       onMouseDown={(evt) => {
-        if (!Flag.HOPCODERX_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+        if (!Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
         if (evt.button !== MouseButton.RIGHT) return
 
         if (!Selection.copy(renderer, toast)) return
         evt.preventDefault()
         evt.stopPropagation()
       }}
-      onMouseUp={Flag.HOPCODERX_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)}
+      onMouseUp={Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)}
     >
       <Switch>
         <Match when={route.data.type === "home"}>
@@ -793,7 +779,7 @@ function ErrorComponent(props: {
   })
   const [copied, setCopied] = createSignal(false)
 
-  const issueURL = new URL("https://github.com/TaimoorSiddiquiOfficial/hopcoderx/issues/new?template=bug-report.yml")
+  const issueURL = new URL("https://github.com/anomalyco/opencode/issues/new?template=bug-report.yml")
 
   // Choose safe fallback colors per mode since theme context may not be available
   const isLight = props.mode === "light"
@@ -815,7 +801,7 @@ function ErrorComponent(props: {
     )
   }
 
-  issueURL.searchParams.set("HopCoderX-version", Installation.VERSION)
+  issueURL.searchParams.set("opencode-version", Installation.VERSION)
 
   const copyIssueURL = () => {
     Clipboard.copy(issueURL.toString()).then(() => {

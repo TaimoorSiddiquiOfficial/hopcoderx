@@ -11,7 +11,7 @@ import * as fuzzysort from "fuzzysort"
 export function useConnected() {
   const sync = useSync()
   return createMemo(() =>
-    sync.data.provider.some((x) => x.id !== "HopCoderX" || Object.values(x.models).some((y) => y.cost?.input !== 0)),
+    sync.data.provider.some((x) => x.id !== "opencode" || Object.values(x.models).some((y) => y.cost?.input !== 0)),
   )
 }
 
@@ -47,8 +47,8 @@ export function DialogModel(props: { providerID?: string }) {
             title: model.name ?? item.modelID,
             description: provider.name,
             category,
-            disabled: provider.id === "HopCoderX" && model.id.includes("-nano"),
-            footer: model.cost?.input === 0 && provider.id === "HopCoderX" ? "Free" : undefined,
+            disabled: provider.id === "opencode" && model.id.includes("-nano"),
+            footer: model.cost?.input === 0 && provider.id === "opencode" ? "Free" : undefined,
             onSelect: () => {
               dialog.clear()
               local.model.set({ providerID: provider.id, modelID: model.id }, { recent: true })
@@ -69,7 +69,7 @@ export function DialogModel(props: { providerID?: string }) {
     const providerOptions = pipe(
       sync.data.provider,
       sortBy(
-        (provider) => provider.id !== "HopCoderX",
+        (provider) => provider.id !== "opencode",
         (provider) => provider.name,
       ),
       flatMap((provider) =>
@@ -85,8 +85,8 @@ export function DialogModel(props: { providerID?: string }) {
               ? "(Favorite)"
               : undefined,
             category: connected() ? provider.name : undefined,
-            disabled: provider.id === "HopCoderX" && model.includes("-nano"),
-            footer: info.cost?.input === 0 && provider.id === "HopCoderX" ? "Free" : undefined,
+            disabled: provider.id === "opencode" && model.includes("-nano"),
+            footer: info.cost?.input === 0 && provider.id === "opencode" ? "Free" : undefined,
             onSelect() {
               dialog.clear()
               local.model.set({ providerID: provider.id, modelID: model }, { recent: true })

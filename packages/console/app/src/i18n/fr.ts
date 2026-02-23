@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "Entreprise",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "Se connecter",
   "nav.free": "Gratuit",
   "nav.home": "Accueil",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | Agent de code IA conçu pour le terminal",
   "temp.hero.title": "L'agent de code IA conçu pour le terminal",
-  "temp.zen": "HopCoderX Zen",
+  "temp.bdr": "HopCoderX Bdr",
   "temp.getStarted": "Commencer",
   "temp.feature.native.title": "TUI Native",
   "temp.feature.native.body": "Une interface terminal native, réactive et thémable",
-  "temp.feature.zen.beforeLink": "Une",
-  "temp.feature.zen.link": "liste organisée de modèles",
-  "temp.feature.zen.afterLink": "fournie par HopCoderX",
+  "temp.feature.bdr.beforeLink": "Une",
+  "temp.feature.bdr.link": "liste organisée de modèles",
+  "temp.feature.bdr.afterLink": "fournie par HopCoderX",
   "temp.feature.models.beforeLink": "Prend en charge plus de 75 fournisseurs LLM via",
   "temp.feature.models.afterLink": ", y compris les modèles locaux",
   "temp.screenshot.caption": "HopCoderX TUI avec le thème tokyonight",
@@ -146,10 +146,10 @@ export const dict = {
   "home.faq.q3": "Ai-je besoin d'abonnements IA supplémentaires pour utiliser HopCoderX ?",
   "home.faq.a3.p1":
     "Pas forcément : HopCoderX propose des modèles gratuits que vous pouvez utiliser sans créer de compte.",
-  "home.faq.a3.p2.beforeZen": "En plus, vous pouvez utiliser des modèles populaires pour le code en créant un compte",
-  "home.faq.a3.p2.afterZen": ".",
+  "home.faq.a3.p2.beforeBdr": "En plus, vous pouvez utiliser des modèles populaires pour le code en créant un compte",
+  "home.faq.a3.p2.afterBdr": ".",
   "home.faq.a3.p3":
-    "Nous encourageons l'utilisation de Zen, mais HopCoderX fonctionne aussi avec les fournisseurs populaires comme OpenAI, Anthropic, xAI, etc.",
+    "Nous encourageons l'utilisation de Bdr, mais HopCoderX fonctionne aussi avec les fournisseurs populaires comme OpenAI, Anthropic, xAI, etc.",
   "home.faq.a3.p4.beforeLocal": "Vous pouvez même connecter vos",
   "home.faq.a3.p4.localLink": "modèles locaux",
   "home.faq.q4": "Puis-je utiliser mes abonnements IA existants avec HopCoderX ?",
@@ -177,74 +177,74 @@ export const dict = {
   "home.faq.a8.p3":
     ", ce qui signifie que tout le monde peut l'utiliser, le modifier ou contribuer à son développement. Toute personne de la communauté peut ouvrir des tickets, soumettre des pull requests et étendre les fonctionnalités.",
 
-  "home.zenCta.title": "Accédez à des modèles fiables et optimisés pour les agents de code",
-  "home.zenCta.body":
-    "Zen vous donne accès à un ensemble sélectionné de modèles d'IA que HopCoderX a testés et benchmarkés spécifiquement pour les agents de code. Plus besoin de vous soucier des variations de performance et de qualité selon les fournisseurs : utilisez des modèles validés qui fonctionnent.",
-  "home.zenCta.link": "En savoir plus sur Zen",
+  "home.bdrCta.title": "Accédez à des modèles fiables et optimisés pour les agents de code",
+  "home.bdrCta.body":
+    "Bdr vous donne accès à un ensemble sélectionné de modèles d'IA que HopCoderX a testés et benchmarkés spécifiquement pour les agents de code. Plus besoin de vous soucier des variations de performance et de qualité selon les fournisseurs : utilisez des modèles validés qui fonctionnent.",
+  "home.bdrCta.link": "En savoir plus sur Bdr",
 
-  "zen.title": "HopCoderX Zen | Un ensemble sélectionné de modèles fiables et optimisés pour les agents de code",
-  "zen.hero.title": "Modèles fiables et optimisés pour les agents de code",
-  "zen.hero.body":
-    "Zen vous donne accès à un ensemble sélectionné de modèles d'IA que HopCoderX a testés et benchmarkés spécifiquement pour les agents de code. Plus besoin de vous soucier des variations de performance et de qualité selon les fournisseurs : utilisez des modèles validés qui fonctionnent.",
+  "bdr.title": "HopCoderX Bdr | Un ensemble sélectionné de modèles fiables et optimisés pour les agents de code",
+  "bdr.hero.title": "Modèles fiables et optimisés pour les agents de code",
+  "bdr.hero.body":
+    "Bdr vous donne accès à un ensemble sélectionné de modèles d'IA que HopCoderX a testés et benchmarkés spécifiquement pour les agents de code. Plus besoin de vous soucier des variations de performance et de qualité selon les fournisseurs : utilisez des modèles validés qui fonctionnent.",
 
-  "zen.faq.q1": "Qu'est-ce que HopCoderX Zen ?",
-  "zen.faq.a1":
-    "Zen est un ensemble sélectionné de modèles d'IA testés et benchmarkés pour les agents de code, créé par l'équipe derrière HopCoderX.",
-  "zen.faq.q2": "Qu'est-ce qui rend Zen plus précis ?",
-  "zen.faq.a2":
-    "Zen ne propose que des modèles testés et benchmarkés spécifiquement pour les agents de code. Vous n'utiliseriez pas un couteau à beurre pour couper un steak ; n'utilisez pas de mauvais modèles pour coder.",
-  "zen.faq.q3": "Zen est-il moins cher ?",
-  "zen.faq.a3":
-    "Zen n'est pas à but lucratif. Zen vous facture au prix coûtant des fournisseurs de modèles. Plus Zen est utilisé, plus HopCoderX peut négocier de meilleurs tarifs et vous les répercuter.",
-  "zen.faq.q4": "Combien coûte Zen ?",
-  "zen.faq.a4.p1.beforePricing": "Zen",
-  "zen.faq.a4.p1.pricingLink": "facture par requête",
-  "zen.faq.a4.p1.afterPricing": "sans marge, vous payez donc exactement ce que facture le fournisseur du modèle.",
-  "zen.faq.a4.p2.beforeAccount":
+  "bdr.faq.q1": "Qu'est-ce que HopCoderX Bdr ?",
+  "bdr.faq.a1":
+    "Bdr est un ensemble sélectionné de modèles d'IA testés et benchmarkés pour les agents de code, créé par l'équipe derrière HopCoderX.",
+  "bdr.faq.q2": "Qu'est-ce qui rend Bdr plus précis ?",
+  "bdr.faq.a2":
+    "Bdr ne propose que des modèles testés et benchmarkés spécifiquement pour les agents de code. Vous n'utiliseriez pas un couteau à beurre pour couper un steak ; n'utilisez pas de mauvais modèles pour coder.",
+  "bdr.faq.q3": "Bdr est-il moins cher ?",
+  "bdr.faq.a3":
+    "Bdr n'est pas à but lucratif. Bdr vous facture au prix coûtant des fournisseurs de modèles. Plus Bdr est utilisé, plus HopCoderX peut négocier de meilleurs tarifs et vous les répercuter.",
+  "bdr.faq.q4": "Combien coûte Bdr ?",
+  "bdr.faq.a4.p1.beforePricing": "Bdr",
+  "bdr.faq.a4.p1.pricingLink": "facture par requête",
+  "bdr.faq.a4.p1.afterPricing": "sans marge, vous payez donc exactement ce que facture le fournisseur du modèle.",
+  "bdr.faq.a4.p2.beforeAccount":
     "Votre coût total dépend de l'usage, et vous pouvez définir des limites de dépense mensuelles dans votre",
-  "zen.faq.a4.p2.accountLink": "compte",
-  "zen.faq.a4.p3":
+  "bdr.faq.a4.p2.accountLink": "compte",
+  "bdr.faq.a4.p3":
     "Pour couvrir les coûts, HopCoderX ajoute uniquement de petits frais de traitement de paiement de 1,23 $ par recharge de 20 $.",
-  "zen.faq.q5": "Et pour les données et la confidentialité ?",
-  "zen.faq.a5.beforeExceptions":
-    "Tous les modèles Zen sont hébergés aux États-Unis. Les fournisseurs appliquent une politique de rétention zéro et n'utilisent pas vos données pour l'entraînement des modèles, avec les",
-  "zen.faq.a5.exceptionsLink": "exceptions suivantes",
-  "zen.faq.q6": "Puis-je définir des limites de dépense ?",
-  "zen.faq.a6": "Oui, vous pouvez définir des limites de dépense mensuelles dans votre compte.",
-  "zen.faq.q7": "Puis-je annuler ?",
-  "zen.faq.a7": "Oui, vous pouvez désactiver la facturation à tout moment et utiliser votre solde restant.",
-  "zen.faq.q8": "Puis-je utiliser Zen avec d'autres agents de code ?",
-  "zen.faq.a8":
-    "Zen fonctionne très bien avec HopCoderX, mais vous pouvez utiliser Zen avec n'importe quel agent. Suivez les instructions de configuration dans votre agent préféré.",
+  "bdr.faq.q5": "Et pour les données et la confidentialité ?",
+  "bdr.faq.a5.beforeExceptions":
+    "Tous les modèles Bdr sont hébergés aux États-Unis. Les fournisseurs appliquent une politique de rétention zéro et n'utilisent pas vos données pour l'entraînement des modèles, avec les",
+  "bdr.faq.a5.exceptionsLink": "exceptions suivantes",
+  "bdr.faq.q6": "Puis-je définir des limites de dépense ?",
+  "bdr.faq.a6": "Oui, vous pouvez définir des limites de dépense mensuelles dans votre compte.",
+  "bdr.faq.q7": "Puis-je annuler ?",
+  "bdr.faq.a7": "Oui, vous pouvez désactiver la facturation à tout moment et utiliser votre solde restant.",
+  "bdr.faq.q8": "Puis-je utiliser Bdr avec d'autres agents de code ?",
+  "bdr.faq.a8":
+    "Bdr fonctionne très bien avec HopCoderX, mais vous pouvez utiliser Bdr avec n'importe quel agent. Suivez les instructions de configuration dans votre agent préféré.",
 
-  "zen.cta.start": "Commencez avec Zen",
-  "zen.pricing.title": "Ajoutez 20 $ de solde Pay as you go",
-  "zen.pricing.fee": "(+1,23 $ de frais de traitement de carte)",
-  "zen.pricing.body":
+  "bdr.cta.start": "Commencez avec Bdr",
+  "bdr.pricing.title": "Ajoutez 20 $ de solde Pay as you go",
+  "bdr.pricing.fee": "(+1,23 $ de frais de traitement de carte)",
+  "bdr.pricing.body":
     "Utilisez avec n'importe quel agent. Fixez des limites de dépenses mensuelles. Annulez à tout moment.",
-  "zen.problem.title": "Quel problème Zen résout-il ?",
-  "zen.problem.body":
+  "bdr.problem.title": "Quel problème Bdr résout-il ?",
+  "bdr.problem.body":
     "Il existe de nombreux modèles disponibles, mais seuls quelques-uns fonctionnent bien avec les agents de code. La plupart des fournisseurs les configurent différemment avec des résultats variables.",
-  "zen.problem.subtitle":
+  "bdr.problem.subtitle":
     "Nous résolvons ce problème pour tout le monde, pas seulement pour les utilisateurs de HopCoderX.",
-  "zen.problem.item1": "Test des modèles sélectionnés et consultation de leurs équipes",
-  "zen.problem.item2": "Collaboration avec les fournisseurs pour garantir une livraison correcte",
-  "zen.problem.item3": "Benchmark de toutes les combinaisons modèle-fournisseur que nous recommandons",
-  "zen.how.title": "Comment fonctionne Zen",
-  "zen.how.body":
-    "Bien que nous vous suggérions d'utiliser Zen avec HopCoderX, vous pouvez utiliser Zen avec n'importe quel agent.",
-  "zen.how.step1.title": "Inscrivez-vous et ajoutez un solde de 20 $",
-  "zen.how.step1.beforeLink": "suivez les",
-  "zen.how.step1.link": "instructions de configuration",
-  "zen.how.step2.title": "Utilisez Zen avec une tarification transparente",
-  "zen.how.step2.link": "payez par requête",
-  "zen.how.step2.afterLink": "sans marge",
-  "zen.how.step3.title": "Recharge automatique",
-  "zen.how.step3.body": "lorsque votre solde atteint 5 $, nous ajouterons automatiquement 20 $",
-  "zen.privacy.title": "Votre vie privée est importante pour nous",
-  "zen.privacy.beforeExceptions":
-    "Tous les modèles Zen sont hébergés aux États-Unis. Les fournisseurs suivent une politique de rétention zéro et n'utilisent pas vos données pour l'entraînement des modèles, avec les",
-  "zen.privacy.exceptionsLink": "exceptions suivantes",
+  "bdr.problem.item1": "Test des modèles sélectionnés et consultation de leurs équipes",
+  "bdr.problem.item2": "Collaboration avec les fournisseurs pour garantir une livraison correcte",
+  "bdr.problem.item3": "Benchmark de toutes les combinaisons modèle-fournisseur que nous recommandons",
+  "bdr.how.title": "Comment fonctionne Bdr",
+  "bdr.how.body":
+    "Bien que nous vous suggérions d'utiliser Bdr avec HopCoderX, vous pouvez utiliser Bdr avec n'importe quel agent.",
+  "bdr.how.step1.title": "Inscrivez-vous et ajoutez un solde de 20 $",
+  "bdr.how.step1.beforeLink": "suivez les",
+  "bdr.how.step1.link": "instructions de configuration",
+  "bdr.how.step2.title": "Utilisez Bdr avec une tarification transparente",
+  "bdr.how.step2.link": "payez par requête",
+  "bdr.how.step2.afterLink": "sans marge",
+  "bdr.how.step3.title": "Recharge automatique",
+  "bdr.how.step3.body": "lorsque votre solde atteint 5 $, nous ajouterons automatiquement 20 $",
+  "bdr.privacy.title": "Votre vie privée est importante pour nous",
+  "bdr.privacy.beforeExceptions":
+    "Tous les modèles Bdr sont hébergés aux États-Unis. Les fournisseurs suivent une politique de rétention zéro et n'utilisent pas vos données pour l'entraînement des modèles, avec les",
+  "bdr.privacy.exceptionsLink": "exceptions suivantes",
 
   "black.meta.title": "HopCoderX Black | Accédez aux meilleurs modèles de code au monde",
   "black.meta.description": "Accédez à Claude, GPT, Gemini et plus avec les forfaits d'abonnement HopCoderX Black.",
@@ -293,7 +293,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "Date d'inscription",
   "black.subscribe.success.chargeNotice": "Votre carte sera débitée lorsque votre abonnement sera activé",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "Clés API",
   "workspace.nav.members": "Membres",
   "workspace.nav.billing": "Facturation",
@@ -312,7 +312,7 @@ export const dict = {
     "Accédez à des modèles configurés pour des performances optimales - pas de rétrogradation ni de routage vers des fournisseurs moins chers.",
   "workspace.newUser.feature.lockin.title": "Pas de verrouillage",
   "workspace.newUser.feature.lockin.body":
-    "Utilisez Zen avec n'importe quel agent de code et continuez à utiliser d'autres fournisseurs avec HopCoderX quand vous le souhaitez.",
+    "Utilisez Bdr avec n'importe quel agent de code et continuez à utiliser d'autres fournisseurs avec HopCoderX quand vous le souhaitez.",
   "workspace.newUser.copyApiKey": "Copier la clé API",
   "workspace.newUser.copyKey": "Copier la clé",
   "workspace.newUser.copied": "Copié !",
@@ -514,14 +514,14 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "Pas forcément, mais probablement. Vous aurez besoin d'un abonnement IA si vous voulez connecter HopCoderX à un fournisseur payant, mais vous pouvez travailler avec des",
   "download.faq.a3.localLink": "modèles locaux",
-  "download.faq.a3.afterLocal.beforeZen": "gratuitement. Même si nous encourageons les utilisateurs à utiliser",
-  "download.faq.a3.afterZen":
+  "download.faq.a3.afterLocal.beforeBdr": "gratuitement. Même si nous encourageons les utilisateurs à utiliser",
+  "download.faq.a3.afterBdr":
     ", HopCoderX fonctionne avec tous les fournisseurs populaires comme OpenAI, Anthropic, xAI, etc.",
 
   "download.faq.a5.p1": "HopCoderX est 100% gratuit à utiliser.",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "Les coûts supplémentaires viendront de votre abonnement à un fournisseur de modèle. Même si HopCoderX fonctionne avec n'importe quel fournisseur, nous recommandons d'utiliser",
-  "download.faq.a5.p2.afterZen": ".",
+  "download.faq.a5.p2.afterBdr": ".",
 
   "download.faq.a6.p1":
     "Vos données et informations ne sont stockées que lorsque vous créez des liens partageables dans HopCoderX.",

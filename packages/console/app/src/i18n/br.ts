@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "Enterprise",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "Entrar",
   "nav.free": "Grátis",
   "nav.home": "Início",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | Agente de codificação com IA feito para o terminal",
   "temp.hero.title": "O agente de codificação com IA feito para o terminal",
-  "temp.zen": "HopCoderX zen",
+  "temp.bdr": "HopCoderX bdr",
   "temp.getStarted": "Começar",
   "temp.feature.native.title": "TUI Nativa",
   "temp.feature.native.body": "Uma interface de terminal responsiva, nativa e personalizável",
-  "temp.feature.zen.beforeLink": "Uma",
-  "temp.feature.zen.link": "lista selecionada de modelos",
-  "temp.feature.zen.afterLink": "fornecida pela HopCoderX",
+  "temp.feature.bdr.beforeLink": "Uma",
+  "temp.feature.bdr.link": "lista selecionada de modelos",
+  "temp.feature.bdr.afterLink": "fornecida pela HopCoderX",
   "temp.feature.models.beforeLink": "Suporta mais de 75 provedores de LLM através do",
   "temp.feature.models.afterLink": ", incluindo modelos locais",
   "temp.screenshot.caption": "HopCoderX TUI com o tema tokyonight",
@@ -132,7 +132,7 @@ export const dict = {
 
   "home.privacy.title": "Feito com privacidade em primeiro lugar",
   "home.privacy.body":
-    "HopCoderX não armazena nenhum código seu nem dados de contexto, para que possa operar em ambientes sensíveis à privacidade.",
+    "HopCoderX não armabdra nenhum código seu nem dados de contexto, para que possa operar em ambientes sensíveis à privacidade.",
   "home.privacy.learnMore": "Saiba mais sobre",
   "home.privacy.link": "privacidade",
 
@@ -145,11 +145,11 @@ export const dict = {
   "home.faq.q3": "Preciso de assinaturas extras de IA para usar o HopCoderX?",
   "home.faq.a3.p1":
     "Não necessariamente, HopCoderX vem com um conjunto de modelos grátis que você pode usar sem criar conta.",
-  "home.faq.a3.p2.beforeZen":
+  "home.faq.a3.p2.beforeBdr":
     "Além disso, você pode usar qualquer um dos modelos de codificação populares criando uma conta",
-  "home.faq.a3.p2.afterZen": ".",
+  "home.faq.a3.p2.afterBdr": ".",
   "home.faq.a3.p3":
-    "Embora incentivemos os usuários a usar o Zen, HopCoderX também funciona com todos os provedores populares, como OpenAI, Anthropic, xAI etc.",
+    "Embora incentivemos os usuários a usar o Bdr, HopCoderX também funciona com todos os provedores populares, como OpenAI, Anthropic, xAI etc.",
   "home.faq.a3.p4.beforeLocal": "Você pode até conectar seus",
   "home.faq.a3.p4.localLink": "modelos locais",
   "home.faq.q4": "Posso usar minhas assinaturas de IA existentes com o HopCoderX?",
@@ -165,7 +165,7 @@ export const dict = {
     "HopCoderX é 100% gratuito para usar. Ele também vem com um conjunto de modelos gratuitos. Pode haver custos adicionais se você conectar qualquer outro provedor.",
   "home.faq.q7": "E sobre dados e privacidade?",
   "home.faq.a7.p1":
-    "Seus dados e informações só são armazenados quando você usa nossos modelos gratuitos ou cria links compartilháveis.",
+    "Seus dados e informações só são armabdrados quando você usa nossos modelos gratuitos ou cria links compartilháveis.",
   "home.faq.a7.p2.beforeModels": "Saiba mais sobre",
   "home.faq.a7.p2.modelsLink": "nossos modelos",
   "home.faq.a7.p2.and": "e",
@@ -177,70 +177,70 @@ export const dict = {
   "home.faq.a8.p3":
     ", o que significa que qualquer pessoa pode usar, modificar ou contribuir para o seu desenvolvimento. Qualquer pessoa da comunidade pode abrir issues, enviar pull requests e estender a funcionalidade.",
 
-  "home.zenCta.title": "Acesse modelos confiáveis e otimizados para agentes de codificação",
-  "home.zenCta.body":
-    "O Zen dá acesso a um conjunto selecionado de modelos de IA que a HopCoderX testou e avaliou especificamente para agentes de codificação. Não precisa se preocupar com desempenho e qualidade inconsistentes entre provedores, use modelos validados que funcionam.",
-  "home.zenCta.link": "Saiba mais sobre o Zen",
+  "home.bdrCta.title": "Acesse modelos confiáveis e otimizados para agentes de codificação",
+  "home.bdrCta.body":
+    "O Bdr dá acesso a um conjunto selecionado de modelos de IA que a HopCoderX testou e avaliou especificamente para agentes de codificação. Não precisa se preocupar com desempenho e qualidade inconsistentes entre provedores, use modelos validados que funcionam.",
+  "home.bdrCta.link": "Saiba mais sobre o Bdr",
 
-  "zen.title": "HopCoderX Zen | Um conjunto selecionado de modelos confiáveis e otimizados para agentes de codificação",
-  "zen.hero.title": "Modelos confiáveis e otimizados para agentes de codificação",
-  "zen.hero.body":
-    "O Zen dá acesso a um conjunto selecionado de modelos de IA que a HopCoderX testou e avaliou especificamente para agentes de codificação. Não precisa se preocupar com desempenho e qualidade inconsistentes, use modelos validados que funcionam.",
+  "bdr.title": "HopCoderX Bdr | Um conjunto selecionado de modelos confiáveis e otimizados para agentes de codificação",
+  "bdr.hero.title": "Modelos confiáveis e otimizados para agentes de codificação",
+  "bdr.hero.body":
+    "O Bdr dá acesso a um conjunto selecionado de modelos de IA que a HopCoderX testou e avaliou especificamente para agentes de codificação. Não precisa se preocupar com desempenho e qualidade inconsistentes, use modelos validados que funcionam.",
 
-  "zen.faq.q1": "O que é HopCoderX Zen?",
-  "zen.faq.a1":
-    "Zen é um conjunto selecionado de modelos de IA testados e avaliados para agentes de codificação, criado pela equipe por trás do HopCoderX.",
-  "zen.faq.q2": "O que torna o Zen mais preciso?",
-  "zen.faq.a2":
-    "O Zen fornece apenas modelos que foram especificamente testados e avaliados para agentes de codificação. Você não usaria uma faca de manteiga para cortar um bife, não use modelos ruins para programar.",
-  "zen.faq.q3": "O Zen é mais barato?",
-  "zen.faq.a3":
-    "O Zen não tem fins lucrativos. O Zen repassa os custos dos provedores de modelos para você. Quanto maior o uso do Zen, mais a HopCoderX pode negociar melhores taxas e repassá-las para você.",
-  "zen.faq.q4": "Quanto custa o Zen?",
-  "zen.faq.a4.p1.beforePricing": "Zen",
-  "zen.faq.a4.p1.pricingLink": "cobra por requisição",
-  "zen.faq.a4.p1.afterPricing": "sem margens de lucro, então você paga exatamente o que o provedor do modelo cobra.",
-  "zen.faq.a4.p2.beforeAccount": "Seu custo total depende do uso, e você pode definir limites de gastos mensais em sua",
-  "zen.faq.a4.p2.accountLink": "conta",
-  "zen.faq.a4.p3":
+  "bdr.faq.q1": "O que é HopCoderX Bdr?",
+  "bdr.faq.a1":
+    "Bdr é um conjunto selecionado de modelos de IA testados e avaliados para agentes de codificação, criado pela equipe por trás do HopCoderX.",
+  "bdr.faq.q2": "O que torna o Bdr mais preciso?",
+  "bdr.faq.a2":
+    "O Bdr fornece apenas modelos que foram especificamente testados e avaliados para agentes de codificação. Você não usaria uma faca de manteiga para cortar um bife, não use modelos ruins para programar.",
+  "bdr.faq.q3": "O Bdr é mais barato?",
+  "bdr.faq.a3":
+    "O Bdr não tem fins lucrativos. O Bdr repassa os custos dos provedores de modelos para você. Quanto maior o uso do Bdr, mais a HopCoderX pode negociar melhores taxas e repassá-las para você.",
+  "bdr.faq.q4": "Quanto custa o Bdr?",
+  "bdr.faq.a4.p1.beforePricing": "Bdr",
+  "bdr.faq.a4.p1.pricingLink": "cobra por requisição",
+  "bdr.faq.a4.p1.afterPricing": "sem margens de lucro, então você paga exatamente o que o provedor do modelo cobra.",
+  "bdr.faq.a4.p2.beforeAccount": "Seu custo total depende do uso, e você pode definir limites de gastos mensais em sua",
+  "bdr.faq.a4.p2.accountLink": "conta",
+  "bdr.faq.a4.p3":
     "Para cobrir custos, a HopCoderX adiciona apenas uma pequena taxa de processamento de pagamento de $1,23 por recarga de $20.",
-  "zen.faq.q5": "E sobre dados e privacidade?",
-  "zen.faq.a5.beforeExceptions":
-    "Todos os modelos Zen são hospedados nos EUA. Os provedores seguem uma política de retenção zero e não usam seus dados para treinamento de modelos, com as",
-  "zen.faq.a5.exceptionsLink": "seguintes exceções",
-  "zen.faq.q6": "Posso definir limites de gastos?",
-  "zen.faq.a6": "Sim, você pode definir limites de gastos mensais em sua conta.",
-  "zen.faq.q7": "Posso cancelar?",
-  "zen.faq.a7": "Sim, você pode desativar o faturamento a qualquer momento e usar seu saldo restante.",
-  "zen.faq.q8": "Posso usar o Zen com outros agentes de codificação?",
-  "zen.faq.a8":
-    "Embora o Zen funcione muito bem com o HopCoderX, você pode usar o Zen com qualquer agente. Siga as instruções de configuração no seu agente de codificação preferido.",
+  "bdr.faq.q5": "E sobre dados e privacidade?",
+  "bdr.faq.a5.beforeExceptions":
+    "Todos os modelos Bdr são hospedados nos EUA. Os provedores seguem uma política de retenção zero e não usam seus dados para treinamento de modelos, com as",
+  "bdr.faq.a5.exceptionsLink": "seguintes exceções",
+  "bdr.faq.q6": "Posso definir limites de gastos?",
+  "bdr.faq.a6": "Sim, você pode definir limites de gastos mensais em sua conta.",
+  "bdr.faq.q7": "Posso cancelar?",
+  "bdr.faq.a7": "Sim, você pode desativar o faturamento a qualquer momento e usar seu saldo restante.",
+  "bdr.faq.q8": "Posso usar o Bdr com outros agentes de codificação?",
+  "bdr.faq.a8":
+    "Embora o Bdr funcione muito bem com o HopCoderX, você pode usar o Bdr com qualquer agente. Siga as instruções de configuração no seu agente de codificação preferido.",
 
-  "zen.cta.start": "Comece com o Zen",
-  "zen.pricing.title": "Adicionar $20 de saldo pré-pago",
-  "zen.pricing.fee": "(+$1,23 taxa de processamento do cartão)",
-  "zen.pricing.body": "Use com qualquer agente. Defina limites de gastos mensais. Cancele a qualquer momento.",
-  "zen.problem.title": "Que problema o Zen resolve?",
-  "zen.problem.body":
+  "bdr.cta.start": "Comece com o Bdr",
+  "bdr.pricing.title": "Adicionar $20 de saldo pré-pago",
+  "bdr.pricing.fee": "(+$1,23 taxa de processamento do cartão)",
+  "bdr.pricing.body": "Use com qualquer agente. Defina limites de gastos mensais. Cancele a qualquer momento.",
+  "bdr.problem.title": "Que problema o Bdr resolve?",
+  "bdr.problem.body":
     "Existem muitos modelos disponíveis, mas apenas alguns funcionam bem com agentes de codificação. A maioria dos provedores os configura de maneira diferente, com resultados variados.",
-  "zen.problem.subtitle": "Estamos corrigindo isso para todos, não apenas para os usuários do HopCoderX.",
-  "zen.problem.item1": "Testando modelos selecionados e consultando suas equipes",
-  "zen.problem.item2": "Trabalhando com provedores para garantir que sejam entregues corretamente",
-  "zen.problem.item3": "Avaliando todas as combinações de modelo-provedor que recomendamos",
-  "zen.how.title": "Como o Zen funciona",
-  "zen.how.body": "Embora sugerimos que você use o Zen com o HopCoderX, você pode usá-lo com qualquer agente.",
-  "zen.how.step1.title": "Cadastre-se e adicione $20 de saldo",
-  "zen.how.step1.beforeLink": "siga as",
-  "zen.how.step1.link": "instruções de configuração",
-  "zen.how.step2.title": "Use o Zen com preços transparentes",
-  "zen.how.step2.link": "pague por requisição",
-  "zen.how.step2.afterLink": "sem margens de lucro",
-  "zen.how.step3.title": "Recarga automática",
-  "zen.how.step3.body": "quando seu saldo atingir $5, adicionaremos automaticamente $20",
-  "zen.privacy.title": "Sua privacidade é importante para nós",
-  "zen.privacy.beforeExceptions":
-    "Todos os modelos Zen são hospedados nos EUA. Os provedores seguem uma política de retenção zero e não usam seus dados para treinamento de modelo, com as",
-  "zen.privacy.exceptionsLink": "seguintes exceções",
+  "bdr.problem.subtitle": "Estamos corrigindo isso para todos, não apenas para os usuários do HopCoderX.",
+  "bdr.problem.item1": "Testando modelos selecionados e consultando suas equipes",
+  "bdr.problem.item2": "Trabalhando com provedores para garantir que sejam entregues corretamente",
+  "bdr.problem.item3": "Avaliando todas as combinações de modelo-provedor que recomendamos",
+  "bdr.how.title": "Como o Bdr funciona",
+  "bdr.how.body": "Embora sugerimos que você use o Bdr com o HopCoderX, você pode usá-lo com qualquer agente.",
+  "bdr.how.step1.title": "Cadastre-se e adicione $20 de saldo",
+  "bdr.how.step1.beforeLink": "siga as",
+  "bdr.how.step1.link": "instruções de configuração",
+  "bdr.how.step2.title": "Use o Bdr com preços transparentes",
+  "bdr.how.step2.link": "pague por requisição",
+  "bdr.how.step2.afterLink": "sem margens de lucro",
+  "bdr.how.step3.title": "Recarga automática",
+  "bdr.how.step3.body": "quando seu saldo atingir $5, adicionaremos automaticamente $20",
+  "bdr.privacy.title": "Sua privacidade é importante para nós",
+  "bdr.privacy.beforeExceptions":
+    "Todos os modelos Bdr são hospedados nos EUA. Os provedores seguem uma política de retenção zero e não usam seus dados para treinamento de modelo, com as",
+  "bdr.privacy.exceptionsLink": "seguintes exceções",
 
   "black.meta.title": "HopCoderX Black | Acesse os melhores modelos de codificação do mundo",
   "black.meta.description": "Tenha acesso ao Claude, GPT, Gemini e mais com os planos de assinatura HopCoderX Black.",
@@ -288,7 +288,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "Data de entrada",
   "black.subscribe.success.chargeNotice": "Seu cartão será cobrado quando sua assinatura for ativada",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "Chaves de API",
   "workspace.nav.members": "Membros",
   "workspace.nav.billing": "Faturamento",
@@ -307,7 +307,7 @@ export const dict = {
     "Acesse modelos configurados para desempenho ideal - sem downgrades ou roteamento para provedores mais baratos.",
   "workspace.newUser.feature.lockin.title": "Sem Fidelidade",
   "workspace.newUser.feature.lockin.body":
-    "Use o Zen com qualquer agente de codificação e continue usando outros provedores com HopCoderX sempre que quiser.",
+    "Use o Bdr com qualquer agente de codificação e continue usando outros provedores com HopCoderX sempre que quiser.",
   "workspace.newUser.copyApiKey": "Copiar chave de API",
   "workspace.newUser.copyKey": "Copiar Chave",
   "workspace.newUser.copied": "Copiado!",
@@ -505,17 +505,17 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "Não necessariamente, mas provavelmente. Você precisará de uma assinatura de IA se quiser conectar o HopCoderX a um provedor pago, embora você possa trabalhar com",
   "download.faq.a3.localLink": "modelos locais",
-  "download.faq.a3.afterLocal.beforeZen": "de graça. Embora incentivemos os usuários a usar o",
-  "download.faq.a3.afterZen":
+  "download.faq.a3.afterLocal.beforeBdr": "de graça. Embora incentivemos os usuários a usar o",
+  "download.faq.a3.afterBdr":
     ", o HopCoderX funciona com todos os provedores populares, como OpenAI, Anthropic, xAI etc.",
 
   "download.faq.a5.p1": "O HopCoderX é 100% gratuito para usar.",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "Quaisquer custos adicionais virão da sua assinatura de um provedor de modelo. Embora o HopCoderX funcione com qualquer provedor de modelo, recomendamos o uso do",
-  "download.faq.a5.p2.afterZen": ".",
+  "download.faq.a5.p2.afterBdr": ".",
 
   "download.faq.a6.p1":
-    "Seus dados e informações só são armazenados quando você cria links compartilháveis no HopCoderX.",
+    "Seus dados e informações só são armabdrados quando você cria links compartilháveis no HopCoderX.",
   "download.faq.a6.p2.beforeShare": "Saiba mais sobre",
   "download.faq.a6.shareLink": "páginas de compartilhamento",
 
@@ -523,7 +523,7 @@ export const dict = {
   "enterprise.meta.description": "Contate a HopCoderX para soluções empresariais",
   "enterprise.hero.title": "Seu código é seu",
   "enterprise.hero.body1":
-    "O HopCoderX opera com segurança dentro da sua organização, sem dados ou contexto armazenados e sem restrições de licenciamento ou reivindicações de propriedade. Inicie um teste com sua equipe e, em seguida, implante em toda a organização integrando-o ao seu SSO e gateway de IA interno.",
+    "O HopCoderX opera com segurança dentro da sua organização, sem dados ou contexto armabdrados e sem restrições de licenciamento ou reivindicações de propriedade. Inicie um teste com sua equipe e, em seguida, implante em toda a organização integrando-o ao seu SSO e gateway de IA interno.",
   "enterprise.hero.body2": "Deixe-nos saber como podemos ajudar.",
   "enterprise.form.name.label": "Nome completo",
   "enterprise.form.name.placeholder": "Jeff Bezos",
@@ -542,13 +542,13 @@ export const dict = {
     "HopCoderX Enterprise é para organizações que desejam garantir que seu código e dados nunca saiam de sua infraestrutura. Isso pode ser feito usando uma configuração centralizada que se integra ao seu SSO e gateway de IA interno.",
   "enterprise.faq.q2": "Como faço para começar com o HopCoderX Enterprise?",
   "enterprise.faq.a2":
-    "Basta começar com um teste interno com sua equipe. O HopCoderX por padrão não armazena seu código ou dados de contexto, facilitando o início. Em seguida, entre em contato conosco para discutir opções de preços e implementação.",
+    "Basta começar com um teste interno com sua equipe. O HopCoderX por padrão não armabdra seu código ou dados de contexto, facilitando o início. Em seguida, entre em contato conosco para discutir opções de preços e implementação.",
   "enterprise.faq.q3": "Como funciona o preço empresarial?",
   "enterprise.faq.a3":
     "Oferecemos preços empresariais por assento. Se você tiver seu próprio gateway de LLM, não cobramos pelos tokens usados. Para mais detalhes, entre em contato conosco para um orçamento personalizado com base nas necessidades da sua organização.",
   "enterprise.faq.q4": "Meus dados estão seguros com o HopCoderX Enterprise?",
   "enterprise.faq.a4":
-    "Sim. O HopCoderX não armazena seu código ou dados de contexto. Todo o processamento acontece localmente ou por meio de chamadas de API diretas para seu provedor de IA. Com configuração centralizada e integração de SSO, seus dados permanecem seguros dentro da infraestrutura de sua organização.",
+    "Sim. O HopCoderX não armabdra seu código ou dados de contexto. Todo o processamento acontece localmente ou por meio de chamadas de API diretas para seu provedor de IA. Com configuração centralizada e integração de SSO, seus dados permanecem seguros dentro da infraestrutura de sua organização.",
 
   "brand.title": "HopCoderX | Marca",
   "brand.meta.description": "Diretrizes da marca HopCoderX",

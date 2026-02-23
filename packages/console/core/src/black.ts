@@ -33,7 +33,7 @@ export namespace BlackData {
       plan: z.enum(SubscriptionPlan),
     }),
     ({ plan }) => {
-      const json = JSON.parse(Resource.ZEN_BLACK_LIMITS.value)
+      const json = JSON.parse(Resource.BDR_BLACK_LIMITS.value)
       return Schema.parse(json)[plan]
     },
   )
@@ -43,9 +43,9 @@ export namespace BlackData {
       plan: z.enum(SubscriptionPlan),
     }),
     ({ plan }) => {
-      if (plan === "200") return Resource.ZEN_BLACK_PRICE.plan200
-      if (plan === "100") return Resource.ZEN_BLACK_PRICE.plan100
-      return Resource.ZEN_BLACK_PRICE.plan20
+      if (plan === "200") return Resource.BDR_BLACK_PRICE.plan200
+      if (plan === "100") return Resource.BDR_BLACK_PRICE.plan100
+      return Resource.BDR_BLACK_PRICE.plan20
     },
   )
 
@@ -54,8 +54,8 @@ export namespace BlackData {
       priceID: z.string(),
     }),
     ({ priceID }) => {
-      if (priceID === Resource.ZEN_BLACK_PRICE.plan200) return "200"
-      if (priceID === Resource.ZEN_BLACK_PRICE.plan100) return "100"
+      if (priceID === Resource.BDR_BLACK_PRICE.plan200) return "200"
+      if (priceID === Resource.BDR_BLACK_PRICE.plan100) return "100"
       return "20"
     },
   )

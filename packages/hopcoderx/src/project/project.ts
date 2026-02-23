@@ -17,6 +17,19 @@ import { Glob } from "../util/glob"
 
 export namespace Project {
   const log = Log.create({ service: "project" })
+
+  function gitpath(cwd: string, name: string) {
+    if (!name) return cwd
+    // git output includes trailing newlines; keep path whitespace intact.
+    name = name.replace(/[\r\n]+$/, "")
+    if (!name) return cwd
+
+    name = Filesystem.windowsPath(name)
+
+    if (path.isAbsolute(name)) return path.normalize(name)
+    return path.resolve(cwd, name)
+  }
+
   export const Info = z
     .object({
       id: z.string(),
@@ -87,7 +100,7 @@ export namespace Project {
         const gitBinary = Bun.which("git")
 
         // cached id calculation
-        let id = await Filesystem.readText(path.join(dotgit, "HopCoderX"))
+        let id = await Filesystem.readText(path.join(dotgit, "opencode"))
           .then((x) => x.trim())
           .catch(() => undefined)
 
@@ -96,7 +109,7 @@ export namespace Project {
             id: id ?? "global",
             worktree: sandbox,
             sandbox: sandbox,
-            vcs: Info.shape.vcs.parse(Flag.HOPCODERX_FAKE_VCS),
+            vcs: Info.shape.vcs.parse(Flag.OPENCODE_FAKE_VCS),
           }
         }
 
@@ -119,13 +132,13 @@ export namespace Project {
               id: "global",
               worktree: sandbox,
               sandbox: sandbox,
-              vcs: Info.shape.vcs.parse(Flag.HOPCODERX_FAKE_VCS),
+              vcs: Info.shape.vcs.parse(Flag.OPENCODE_FAKE_VCS),
             }
           }
 
           id = roots[0]
           if (id) {
-            void Filesystem.write(path.join(dotgit, "HopCoderX"), id).catch(() => undefined)
+            void Filesystem.write(path.join(dotgit, "opencode"), id).catch(() => undefined)
           }
         }
 
@@ -141,7 +154,7 @@ export namespace Project {
         const top = await git(["rev-parse", "--show-toplevel"], {
           cwd: sandbox,
         })
-          .then(async (result) => path.resolve(sandbox, (await result.text()).trim()))
+          .then(async (result) => gitpath(sandbox, await result.text()))
           .catch(() => undefined)
 
         if (!top) {
@@ -149,7 +162,7 @@ export namespace Project {
             id,
             sandbox,
             worktree: sandbox,
-            vcs: Info.shape.vcs.parse(Flag.HOPCODERX_FAKE_VCS),
+            vcs: Info.shape.vcs.parse(Flag.OPENCODE_FAKE_VCS),
           }
         }
 
@@ -159,9 +172,9 @@ export namespace Project {
           cwd: sandbox,
         })
           .then(async (result) => {
-            const dirname = path.dirname((await result.text()).trim())
-            if (dirname === ".") return sandbox
-            return dirname
+            const common = gitpath(sandbox, await result.text())
+            // Avoid going to parent of sandbox when git-common-dir is empty.
+            return common === sandbox ? sandbox : path.dirname(common)
           })
           .catch(() => undefined)
 
@@ -170,7 +183,7 @@ export namespace Project {
             id,
             sandbox,
             worktree: sandbox,
-            vcs: Info.shape.vcs.parse(Flag.HOPCODERX_FAKE_VCS),
+            vcs: Info.shape.vcs.parse(Flag.OPENCODE_FAKE_VCS),
           }
         }
 
@@ -186,7 +199,7 @@ export namespace Project {
         id: "global",
         worktree: "/",
         sandbox: "/",
-        vcs: Info.shape.vcs.parse(Flag.HOPCODERX_FAKE_VCS),
+        vcs: Info.shape.vcs.parse(Flag.OPENCODE_FAKE_VCS),
       }
     })
 
@@ -209,7 +222,7 @@ export namespace Project {
       return fresh
     })
 
-    if (Flag.HOPCODERX_EXPERIMENTAL_ICON_DISCOVERY) discover(existing)
+    if (Flag.OPENCODE_EXPERIMENTAL_ICON_DISCOVERY) discover(existing)
 
     const result: Info = {
       ...existing,

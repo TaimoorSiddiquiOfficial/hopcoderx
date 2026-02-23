@@ -27,7 +27,7 @@ export interface AuthSession {
 
 export function useAuthSession() {
   return useSession<AuthSession>({
-    password: Resource.ZEN_SESSION_SECRET.value,
+    password: Resource.BDR_SESSION_SECRET.value,
     name: "auth",
     maxAge: 60 * 60 * 24 * 365,
     cookie: {

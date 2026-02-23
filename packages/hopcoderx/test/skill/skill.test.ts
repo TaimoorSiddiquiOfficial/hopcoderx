@@ -22,11 +22,11 @@ This skill is loaded from the global home directory.
   )
 }
 
-test("discovers skills from .HopCoderX/skill/ directory", async () => {
+test("discovers skills from .opencode/skill/ directory", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      const skillDir = path.join(dir, ".HopCoderX", "skill", "test-skill")
+      const skillDir = path.join(dir, ".opencode", "skill", "test-skill")
       await Bun.write(
         path.join(skillDir, "SKILL.md"),
         `---
@@ -50,7 +50,7 @@ Instructions here.
       const testSkill = skills.find((s) => s.name === "test-skill")
       expect(testSkill).toBeDefined()
       expect(testSkill!.description).toBe("A test skill for verification.")
-      expect(testSkill!.location).toContain("skill/test-skill/SKILL.md")
+      expect(testSkill!.location).toContain(path.join("skill", "test-skill", "SKILL.md"))
     },
   })
 })
@@ -59,7 +59,7 @@ test("returns skill directories from Skill.dirs", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      const skillDir = path.join(dir, ".HopCoderX", "skill", "dir-skill")
+      const skillDir = path.join(dir, ".opencode", "skill", "dir-skill")
       await Bun.write(
         path.join(skillDir, "SKILL.md"),
         `---
@@ -73,30 +73,30 @@ description: Skill for dirs test.
     },
   })
 
-  const home = process.env.HOPCODERX_TEST_HOME
-  process.env.HOPCODERX_TEST_HOME = tmp.path
+  const home = process.env.OPENCODE_TEST_HOME
+  process.env.OPENCODE_TEST_HOME = tmp.path
 
   try {
     await Instance.provide({
       directory: tmp.path,
       fn: async () => {
         const dirs = await Skill.dirs()
-        const skillDir = path.join(tmp.path, ".HopCoderX", "skill", "dir-skill")
+        const skillDir = path.join(tmp.path, ".opencode", "skill", "dir-skill")
         expect(dirs).toContain(skillDir)
         expect(dirs.length).toBe(1)
       },
     })
   } finally {
-    process.env.HOPCODERX_TEST_HOME = home
+    process.env.OPENCODE_TEST_HOME = home
   }
 })
 
-test("discovers multiple skills from .HopCoderX/skill/ directory", async () => {
+test("discovers multiple skills from .opencode/skill/ directory", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      const skillDir1 = path.join(dir, ".HopCoderX", "skill", "skill-one")
-      const skillDir2 = path.join(dir, ".HopCoderX", "skill", "skill-two")
+      const skillDir1 = path.join(dir, ".opencode", "skill", "skill-one")
+      const skillDir2 = path.join(dir, ".opencode", "skill", "skill-two")
       await Bun.write(
         path.join(skillDir1, "SKILL.md"),
         `---
@@ -135,7 +135,7 @@ test("skips skills with missing frontmatter", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      const skillDir = path.join(dir, ".HopCoderX", "skill", "no-frontmatter")
+      const skillDir = path.join(dir, ".opencode", "skill", "no-frontmatter")
       await Bun.write(
         path.join(skillDir, "SKILL.md"),
         `# No Frontmatter
@@ -180,7 +180,7 @@ description: A skill in the .claude/skills directory.
       expect(skills.length).toBe(1)
       const claudeSkill = skills.find((s) => s.name === "claude-skill")
       expect(claudeSkill).toBeDefined()
-      expect(claudeSkill!.location).toContain(".claude/skills/claude-skill/SKILL.md")
+      expect(claudeSkill!.location).toContain(path.join(".claude", "skills", "claude-skill", "SKILL.md"))
     },
   })
 })
@@ -188,8 +188,8 @@ description: A skill in the .claude/skills directory.
 test("discovers global skills from ~/.claude/skills/ directory", async () => {
   await using tmp = await tmpdir({ git: true })
 
-  const originalHome = process.env.HOPCODERX_TEST_HOME
-  process.env.HOPCODERX_TEST_HOME = tmp.path
+  const originalHome = process.env.OPENCODE_TEST_HOME
+  process.env.OPENCODE_TEST_HOME = tmp.path
 
   try {
     await createGlobalSkill(tmp.path)
@@ -200,11 +200,11 @@ test("discovers global skills from ~/.claude/skills/ directory", async () => {
         expect(skills.length).toBe(1)
         expect(skills[0].name).toBe("global-test-skill")
         expect(skills[0].description).toBe("A global skill from ~/.claude/skills for testing.")
-        expect(skills[0].location).toContain(".claude/skills/global-test-skill/SKILL.md")
+        expect(skills[0].location).toContain(path.join(".claude", "skills", "global-test-skill", "SKILL.md"))
       },
     })
   } finally {
-    process.env.HOPCODERX_TEST_HOME = originalHome
+    process.env.OPENCODE_TEST_HOME = originalHome
   }
 })
 
@@ -245,7 +245,7 @@ description: A skill in the .agents/skills directory.
       expect(skills.length).toBe(1)
       const agentSkill = skills.find((s) => s.name === "agent-skill")
       expect(agentSkill).toBeDefined()
-      expect(agentSkill!.location).toContain(".agents/skills/agent-skill/SKILL.md")
+      expect(agentSkill!.location).toContain(path.join(".agents", "skills", "agent-skill", "SKILL.md"))
     },
   })
 })
@@ -253,8 +253,8 @@ description: A skill in the .agents/skills directory.
 test("discovers global skills from ~/.agents/skills/ directory", async () => {
   await using tmp = await tmpdir({ git: true })
 
-  const originalHome = process.env.HOPCODERX_TEST_HOME
-  process.env.HOPCODERX_TEST_HOME = tmp.path
+  const originalHome = process.env.OPENCODE_TEST_HOME
+  process.env.OPENCODE_TEST_HOME = tmp.path
 
   try {
     const skillDir = path.join(tmp.path, ".agents", "skills", "global-agent-skill")
@@ -279,11 +279,11 @@ This skill is loaded from the global home directory.
         expect(skills.length).toBe(1)
         expect(skills[0].name).toBe("global-agent-skill")
         expect(skills[0].description).toBe("A global skill from ~/.agents/skills for testing.")
-        expect(skills[0].location).toContain(".agents/skills/global-agent-skill/SKILL.md")
+        expect(skills[0].location).toContain(path.join(".agents", "skills", "global-agent-skill", "SKILL.md"))
       },
     })
   } finally {
-    process.env.HOPCODERX_TEST_HOME = originalHome
+    process.env.OPENCODE_TEST_HOME = originalHome
   }
 })
 
@@ -331,8 +331,8 @@ test("properly resolves directories that skills live in", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      const HopCoderXSkillDir = path.join(dir, ".HopCoderX", "skill", "agent-skill")
-      const HopCoderXSkillsDir = path.join(dir, ".HopCoderX", "skills", "agent-skill")
+      const opencodeSkillDir = path.join(dir, ".opencode", "skill", "agent-skill")
+      const opencodeSkillsDir = path.join(dir, ".opencode", "skills", "agent-skill")
       const claudeDir = path.join(dir, ".claude", "skills", "claude-skill")
       const agentDir = path.join(dir, ".agents", "skills", "agent-skill")
       await Bun.write(
@@ -356,23 +356,23 @@ description: A skill in the .agents/skills directory.
 `,
       )
       await Bun.write(
-        path.join(HopCoderXSkillDir, "SKILL.md"),
+        path.join(opencodeSkillDir, "SKILL.md"),
         `---
-name: HopCoderX-skill
-description: A skill in the .HopCoderX/skill directory.
+name: opencode-skill
+description: A skill in the .opencode/skill directory.
 ---
 
-# HopCoderX Skill
+# OpenCode Skill
 `,
       )
       await Bun.write(
-        path.join(HopCoderXSkillsDir, "SKILL.md"),
+        path.join(opencodeSkillsDir, "SKILL.md"),
         `---
-name: HopCoderX-skill
-description: A skill in the .HopCoderX/skills directory.
+name: opencode-skill
+description: A skill in the .opencode/skills directory.
 ---
 
-# HopCoderX Skill
+# OpenCode Skill
 `,
       )
     },

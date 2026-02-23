@@ -14,7 +14,7 @@ import type { EventSource } from "./context/sdk"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 
 declare global {
-  const HOPCODERX_WORKER_PATH: string
+  const OPENCODE_WORKER_PATH: string
 }
 
 type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
@@ -45,12 +45,12 @@ function createEventSource(client: RpcClient): EventSource {
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: "start HopCoderX tui",
+  describe: "start opencode tui",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
         type: "string",
-        describe: "path to start HopCoderX in",
+        describe: "path to start opencode in",
       })
       .option("model", {
         type: "string",
@@ -100,7 +100,7 @@ export const TuiThreadCommand = cmd({
       const localWorker = new URL("./worker.ts", import.meta.url)
       const distWorker = new URL("./cli/cmd/tui/worker.js", import.meta.url)
       const workerPath = await iife(async () => {
-        if (typeof HOPCODERX_WORKER_PATH !== "undefined") return HOPCODERX_WORKER_PATH
+        if (typeof OPENCODE_WORKER_PATH !== "undefined") return OPENCODE_WORKER_PATH
         if (await Filesystem.exists(fileURLToPath(distWorker))) return distWorker
         return localWorker
       })
@@ -156,7 +156,7 @@ export const TuiThreadCommand = cmd({
         url = server.url
       } else {
         // Use direct RPC communication (no HTTP)
-        url = "http://HopCoderX.internal"
+        url = "http://opencode.internal"
         customFetch = createWorkerFetch(client)
         events = createEventSource(client)
       }

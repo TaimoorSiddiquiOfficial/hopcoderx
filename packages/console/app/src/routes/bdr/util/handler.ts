@@ -1,18 +1,19 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { and, Database, eq, isNull, lt, or, sql } from "@hopcoderx/console-core/drizzle/index.js"
-import { KeyTable } from "@hopcoderx/console-core/schema/key.sql.js"
-import { BillingTable, SubscriptionTable, UsageTable } from "@hopcoderx/console-core/schema/billing.sql.js"
-import { centsToMicroCents } from "@hopcoderx/console-core/util/price.js"
-import { getWeekBounds } from "@hopcoderx/console-core/util/date.js"
-import { Identifier } from "@hopcoderx/console-core/identifier.js"
-import { Billing } from "@hopcoderx/console-core/billing.js"
-import { Actor } from "@hopcoderx/console-core/actor.js"
-import { WorkspaceTable } from "@hopcoderx/console-core/schema/workspace.sql.js"
-import { ZenData } from "@hopcoderx/console-core/model.js"
-import { Black, BlackData } from "@hopcoderx/console-core/black.js"
-import { UserTable } from "@hopcoderx/console-core/schema/user.sql.js"
-import { ModelTable } from "@hopcoderx/console-core/schema/model.sql.js"
-import { ProviderTable } from "@hopcoderx/console-core/schema/provider.sql.js"
+import { and, Database, eq, isNull, lt, or, sql } from "@opencode-ai/console-core/drizzle/index.js"
+import { KeyTable } from "@opencode-ai/console-core/schema/key.sql.js"
+import { BillingTable, SubscriptionTable, UsageTable } from "@opencode-ai/console-core/schema/billing.sql.js"
+import { centsToMicroCents } from "@opencode-ai/console-core/util/price.js"
+import { getWeekBounds } from "@opencode-ai/console-core/util/date.js"
+import { Identifier } from "@opencode-ai/console-core/identifier.js"
+import { Billing } from "@opencode-ai/console-core/billing.js"
+import { Actor } from "@opencode-ai/console-core/actor.js"
+import { WorkspaceTable } from "@opencode-ai/console-core/schema/workspace.sql.js"
+import { BdrData } from "@opencode-ai/console-core/model.js"
+import { Subscription } from "@opencode-ai/console-core/subscription.js"
+import { BlackData } from "@opencode-ai/console-core/black.js"
+import { UserTable } from "@opencode-ai/console-core/schema/user.sql.js"
+import { ModelTable } from "@opencode-ai/console-core/schema/model.sql.js"
+import { ProviderTable } from "@opencode-ai/console-core/schema/provider.sql.js"
 import { logger } from "./logger"
 import {
   AuthError,
@@ -33,7 +34,7 @@ import { createDataDumper } from "./dataDumper"
 import { createTrialLimiter } from "./trialLimiter"
 import { createStickyTracker } from "./stickyProviderTracker"
 
-type ZenData = Awaited<ReturnType<typeof ZenData.list>>
+type BdrData = Awaited<ReturnType<typeof BdrData.list>>
 type RetryOptions = {
   excludeProviders: string[]
   retryCount: number
@@ -43,7 +44,8 @@ type BillingSource = "anonymous" | "free" | "byok" | "subscription" | "balance"
 export async function handler(
   input: APIEvent,
   opts: {
-    format: ZenData.Format
+    format: BdrData.Format
+    modelList: "lite" | "full"
     parseApiKey: (headers: Headers) => string | undefined
     parseModel: (url: string, body: any) => string
     parseIsStream: (url: string, body: any) => boolean
@@ -58,7 +60,7 @@ export async function handler(
   const MAX_429_RETRIES = 3
   const FREE_WORKSPACES = [
     "wrk_01K46JDFR0E75SG2Q8K172KF3Y", // frank
-    "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // HopCoderX bench
+    "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // opencode bench
   ]
 
   try {
@@ -67,18 +69,18 @@ export async function handler(
     const model = opts.parseModel(url, body)
     const isStream = opts.parseIsStream(url, body)
     const ip = input.request.headers.get("x-real-ip") ?? ""
-    const sessionId = input.request.headers.get("x-HopCoderX-session") ?? ""
-    const requestId = input.request.headers.get("x-HopCoderX-request") ?? ""
-    const projectId = input.request.headers.get("x-HopCoderX-project") ?? ""
-    const ocClient = input.request.headers.get("x-HopCoderX-client") ?? ""
+    const sessionId = input.request.headers.get("x-opencode-session") ?? ""
+    const requestId = input.request.headers.get("x-opencode-request") ?? ""
+    const projectId = input.request.headers.get("x-opencode-project") ?? ""
+    const ocClient = input.request.headers.get("x-opencode-client") ?? ""
     logger.metric({
       is_tream: isStream,
       session: sessionId,
       request: requestId,
       client: ocClient,
     })
-    const zenData = ZenData.list()
-    const modelInfo = validateModel(zenData, model)
+    const bdrData = BdrData.list(opts.modelList)
+    const modelInfo = validateModel(bdrData, model)
     const dataDumper = createDataDumper(sessionId, requestId, projectId)
     const trialLimiter = createTrialLimiter(modelInfo.trial, ip, ocClient)
     const isTrial = await trialLimiter?.isTrial()
@@ -92,7 +94,7 @@ export async function handler(
     const retriableRequest = async (retry: RetryOptions = { excludeProviders: [], retryCount: 0 }) => {
       const providerInfo = selectProvider(
         model,
-        zenData,
+        bdrData,
         authInfo,
         modelInfo,
         sessionId,
@@ -107,11 +109,14 @@ export async function handler(
       const startTimestamp = Date.now()
       const reqUrl = providerInfo.modifyUrl(providerInfo.api, isStream)
       const reqBody = JSON.stringify(
-        providerInfo.modifyBody({
-          ...createBodyConverter(opts.format, providerInfo.format)(body),
-          model: providerInfo.model,
-          ...(providerInfo.payloadModifier ?? {}),
-        }),
+        providerInfo.modifyBody(
+          {
+            ...createBodyConverter(opts.format, providerInfo.format)(body),
+            model: providerInfo.model,
+            ...(providerInfo.payloadModifier ?? {}),
+          },
+          authInfo?.workspaceID,
+        ),
       )
       logger.debug("REQUEST URL: " + reqUrl)
       logger.debug("REQUEST: " + reqBody.substring(0, 300) + "...")
@@ -128,10 +133,10 @@ export async function handler(
           })
           headers.delete("host")
           headers.delete("content-length")
-          headers.delete("x-HopCoderX-request")
-          headers.delete("x-HopCoderX-session")
-          headers.delete("x-HopCoderX-project")
-          headers.delete("x-HopCoderX-client")
+          headers.delete("x-opencode-request")
+          headers.delete("x-opencode-session")
+          headers.delete("x-opencode-project")
+          headers.delete("x-opencode-client")
           return headers
         })(),
         body: reqBody,
@@ -192,7 +197,7 @@ export async function handler(
       const costInfo = calculateCost(modelInfo, usageInfo)
       await trialLimiter?.track(usageInfo)
       await rateLimiter?.track()
-      await trackUsage(billingSource, authInfo, modelInfo, providerInfo, usageInfo, costInfo)
+      await trackUsage(sessionId, billingSource, authInfo, modelInfo, providerInfo, usageInfo, costInfo)
       await reload(billingSource, authInfo, costInfo)
 
       const responseConverter = createResponseConverter(providerInfo.format, opts.format)
@@ -242,7 +247,7 @@ export async function handler(
                   const usageInfo = providerInfo.normalizeUsage(usage)
                   const costInfo = calculateCost(modelInfo, usageInfo)
                   await trialLimiter?.track(usageInfo)
-                  await trackUsage(billingSource, authInfo, modelInfo, providerInfo, usageInfo, costInfo)
+                  await trackUsage(sessionId, billingSource, authInfo, modelInfo, providerInfo, usageInfo, costInfo)
                   await reload(billingSource, authInfo, costInfo)
                   cost = calculateOccuredCost(billingSource, costInfo)
                 }
@@ -351,13 +356,13 @@ export async function handler(
     )
   }
 
-  function validateModel(zenData: ZenData, reqModel: string) {
-    if (!(reqModel in zenData.models)) throw new ModelError(`Model ${reqModel} not supported`)
+  function validateModel(bdrData: BdrData, reqModel: string) {
+    if (!(reqModel in bdrData.models)) throw new ModelError(`Model ${reqModel} not supported`)
 
-    const modelId = reqModel as keyof typeof zenData.models
-    const modelData = Array.isArray(zenData.models[modelId])
-      ? zenData.models[modelId].find((model) => opts.format === model.formatFilter)
-      : zenData.models[modelId]
+    const modelId = reqModel as keyof typeof bdrData.models
+    const modelData = Array.isArray(bdrData.models[modelId])
+      ? bdrData.models[modelId].find((model) => opts.format === model.formatFilter)
+      : bdrData.models[modelId]
 
     if (!modelData) throw new ModelError(`Model ${reqModel} not supported for format ${opts.format}`)
 
@@ -368,7 +373,7 @@ export async function handler(
 
   function selectProvider(
     reqModel: string,
-    zenData: ZenData,
+    bdrData: BdrData,
     authInfo: AuthInfo,
     modelInfo: ModelInfo,
     sessionId: string,
@@ -412,13 +417,13 @@ export async function handler(
     })()
 
     if (!modelProvider) throw new ModelError("No provider available")
-    if (!(modelProvider.id in zenData.providers)) throw new ModelError(`Provider ${modelProvider.id} not supported`)
+    if (!(modelProvider.id in bdrData.providers)) throw new ModelError(`Provider ${modelProvider.id} not supported`)
 
     return {
       ...modelProvider,
-      ...zenData.providers[modelProvider.id],
+      ...bdrData.providers[modelProvider.id],
       ...(() => {
-        const format = zenData.providers[modelProvider.id].format
+        const format = bdrData.providers[modelProvider.id].format
         const providerModel = modelProvider.model
         if (format === "anthropic") return anthropicHelper({ reqModel, providerModel })
         if (format === "google") return googleHelper({ reqModel, providerModel })
@@ -537,8 +542,9 @@ export async function handler(
 
         // Check weekly limit
         if (sub.fixedUsage && sub.timeFixedUpdated) {
-          const result = Black.analyzeWeeklyUsage({
-            plan,
+          const blackData = BlackData.getLimits({ plan })
+          const result = Subscription.analyzeWeeklyUsage({
+            limit: blackData.fixedLimit,
             usage: sub.fixedUsage,
             timeUpdated: sub.timeFixedUpdated,
           })
@@ -551,8 +557,10 @@ export async function handler(
 
         // Check rolling limit
         if (sub.rollingUsage && sub.timeRollingUpdated) {
-          const result = Black.analyzeRollingUsage({
-            plan,
+          const blackData = BlackData.getLimits({ plan })
+          const result = Subscription.analyzeRollingUsage({
+            limit: blackData.rollingLimit,
+            window: blackData.rollingWindow,
             usage: sub.rollingUsage,
             timeUpdated: sub.timeRollingUpdated,
           })
@@ -573,11 +581,11 @@ export async function handler(
     const billing = authInfo.billing
     if (!billing.paymentMethodID)
       throw new CreditsError(
-        `No payment method. Add a payment method here: https://HopCoderX.ai/workspace/${authInfo.workspaceID}/billing`,
+        `No payment method. Add a payment method here: https://opencode.ai/workspace/${authInfo.workspaceID}/billing`,
       )
     if (billing.balance <= 0)
       throw new CreditsError(
-        `Insufficient balance. Manage your billing here: https://HopCoderX.ai/workspace/${authInfo.workspaceID}/billing`,
+        `Insufficient balance. Manage your billing here: https://opencode.ai/workspace/${authInfo.workspaceID}/billing`,
       )
 
     const now = new Date()
@@ -592,7 +600,7 @@ export async function handler(
       currentMonth === billing.timeMonthlyUsageUpdated.getUTCMonth()
     )
       throw new MonthlyLimitError(
-        `Your workspace has reached its monthly spending limit of $${billing.monthlyLimit}. Manage your limits here: https://HopCoderX.ai/workspace/${authInfo.workspaceID}/billing`,
+        `Your workspace has reached its monthly spending limit of $${billing.monthlyLimit}. Manage your limits here: https://opencode.ai/workspace/${authInfo.workspaceID}/billing`,
       )
 
     if (
@@ -604,7 +612,7 @@ export async function handler(
       currentMonth === authInfo.user.timeMonthlyUsageUpdated.getUTCMonth()
     )
       throw new UserLimitError(
-        `You have reached your monthly spending limit of $${authInfo.user.monthlyLimit}. Manage your limits here: https://HopCoderX.ai/workspace/${authInfo.workspaceID}/members`,
+        `You have reached your monthly spending limit of $${authInfo.user.monthlyLimit}. Manage your limits here: https://opencode.ai/workspace/${authInfo.workspaceID}/members`,
       )
 
     return "balance"
@@ -683,6 +691,7 @@ export async function handler(
   }
 
   async function trackUsage(
+    sessionId: string,
     billingSource: BillingSource,
     authInfo: AuthInfo,
     modelInfo: ModelInfo,
@@ -730,6 +739,7 @@ export async function handler(
           cacheWrite1hTokens,
           cost,
           keyID: authInfo.apiKeyId,
+          sessionID: sessionId.substring(0, 30),
           enrichment: billingSource === "subscription" ? { plan: "sub" } : undefined,
         }),
         db

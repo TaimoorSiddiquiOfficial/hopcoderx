@@ -36,7 +36,7 @@ const fetchSvgContent = async (svgPath: string): Promise<string> => {
   }
 }
 
-export function Header(props: { zen?: boolean; hideGetStarted?: boolean }) {
+export function Header(props: { bdr?: boolean; hideGetStarted?: boolean }) {
   const navigate = useNavigate()
   const i18n = useI18n()
   const language = useLanguage()
@@ -166,11 +166,11 @@ export function Header(props: { zen?: boolean; hideGetStarted?: boolean }) {
           </li>
           <li>
             <Switch>
-              <Match when={props.zen}>
+              <Match when={props.bdr}>
                 <a href="/auth">{i18n.t("nav.login")}</a>
               </Match>
-              <Match when={!props.zen}>
-                <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
+              <Match when={!props.bdr}>
+                <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
               </Match>
             </Switch>
           </li>
@@ -262,11 +262,11 @@ export function Header(props: { zen?: boolean; hideGetStarted?: boolean }) {
                 </li>
                 <li>
                   <Switch>
-                    <Match when={props.zen}>
+                    <Match when={props.bdr}>
                       <a href="/auth">{i18n.t("nav.login")}</a>
                     </Match>
-                    <Match when={!props.zen}>
-                      <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
+                    <Match when={!props.bdr}>
+                      <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
                     </Match>
                   </Switch>
                 </li>

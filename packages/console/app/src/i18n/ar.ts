@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "المؤسسات",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "تسجيل الدخول",
   "nav.free": "مجانا",
   "nav.home": "الرئيسية",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | وكيل برمجة بالذكاء الاصطناعي مبني للطرفية",
   "temp.hero.title": "وكيل البرمجة بالذكاء الاصطناعي المبني للطرفية",
-  "temp.zen": "HopCoderX zen",
+  "temp.bdr": "HopCoderX bdr",
   "temp.getStarted": "ابدأ",
   "temp.feature.native.title": "واجهة طرفية أصلية",
   "temp.feature.native.body": "واجهة مستخدم طرفية سريعة الاستجابة، أصلية، وقابلة للتخصيص",
-  "temp.feature.zen.beforeLink": "قائمة",
-  "temp.feature.zen.link": "منسقة من النماذج",
-  "temp.feature.zen.afterLink": "مقدمة من HopCoderX",
+  "temp.feature.bdr.beforeLink": "قائمة",
+  "temp.feature.bdr.link": "منسقة من النماذج",
+  "temp.feature.bdr.afterLink": "مقدمة من HopCoderX",
   "temp.feature.models.beforeLink": "يدعم أكثر من 75 مزود LLM من خلال",
   "temp.feature.models.afterLink": "، بما في ذلك النماذج المحلية",
   "temp.screenshot.caption": "واجهة HopCoderX الطرفية مع سمة tokyonight",
@@ -143,10 +143,10 @@ export const dict = {
   "home.faq.q3": "هل أحتاج لاشتراكات ذكاء اصطناعي إضافية لاستخدام HopCoderX؟",
   "home.faq.a3.p1":
     "ليس بالضرورة، فـ HopCoderX يأتي مع مجموعة من النماذج المجانية التي تستطيع استخدامها دون إنشاء حساب.",
-  "home.faq.a3.p2.beforeZen": "وبخلاف ذلك، يمكنك استخدام أي من نماذج البرمجة الشائعة بإنشاء حساب",
-  "home.faq.a3.p2.afterZen": ".",
+  "home.faq.a3.p2.beforeBdr": "وبخلاف ذلك، يمكنك استخدام أي من نماذج البرمجة الشائعة بإنشاء حساب",
+  "home.faq.a3.p2.afterBdr": ".",
   "home.faq.a3.p3":
-    "مع أننا نشجّع المستخدمين على استخدام Zen، فإن HopCoderX يعمل أيضًا مع كل المزودين الشائعين مثل OpenAI، Anthropic، xAI إلخ.",
+    "مع أننا نشجّع المستخدمين على استخدام Bdr، فإن HopCoderX يعمل أيضًا مع كل المزودين الشائعين مثل OpenAI، Anthropic، xAI إلخ.",
   "home.faq.a3.p4.beforeLocal": "ويمكنك أيضًا ربط",
   "home.faq.a3.p4.localLink": "النماذج المحلية",
   "home.faq.q4": "هل يمكنني استخدام اشتراكاتي الحالية مع HopCoderX؟",
@@ -173,70 +173,70 @@ export const dict = {
   "home.faq.a8.p3":
     "، مما يعني أن أي شخص يستطيع استخدامه أو تعديله أو المساهمة في تطويره. يمكن لأي شخص من المجتمع فتح قضايا، وتقديم طلبات سحب، وتوسيع الوظائف.",
 
-  "home.zenCta.title": "وصول لنماذج محسنة وموثوقة لوكلاء البرمجة",
-  "home.zenCta.body":
-    "يمنحك Zen الوصول إلى مجموعة مختارة بعناية من نماذج الذكاء الاصطناعي التي اختبرها HopCoderX وقاس أداءها خصيصًا لوكلاء البرمجة. لا حاجة للقلق بشأن اختلاف الأداء والجودة بين المزودين، استخدم نماذج محققة تعمل بكفاءة.",
-  "home.zenCta.link": "تعرف على Zen",
+  "home.bdrCta.title": "وصول لنماذج محسنة وموثوقة لوكلاء البرمجة",
+  "home.bdrCta.body":
+    "يمنحك Bdr الوصول إلى مجموعة مختارة بعناية من نماذج الذكاء الاصطناعي التي اختبرها HopCoderX وقاس أداءها خصيصًا لوكلاء البرمجة. لا حاجة للقلق بشأن اختلاف الأداء والجودة بين المزودين، استخدم نماذج محققة تعمل بكفاءة.",
+  "home.bdrCta.link": "تعرف على Bdr",
 
-  "zen.title": "HopCoderX Zen | مجموعة منسقة من النماذج المحسنة والموثوقة لوكلاء البرمجة",
-  "zen.hero.title": "نماذج محسنة وموثوقة لوكلاء البرمجة",
-  "zen.hero.body":
-    "يمنحك Zen الوصول إلى مجموعة منسقة من نماذج الذكاء الاصطناعي التي اختبرها HopCoderX وقاس أداءها خصيصًا لوكلاء البرمجة. لا حاجة للقلق بشأن اختلاف الأداء والجودة، استخدم نماذج محققة تعمل بكفاءة.",
+  "bdr.title": "HopCoderX Bdr | مجموعة منسقة من النماذج المحسنة والموثوقة لوكلاء البرمجة",
+  "bdr.hero.title": "نماذج محسنة وموثوقة لوكلاء البرمجة",
+  "bdr.hero.body":
+    "يمنحك Bdr الوصول إلى مجموعة منسقة من نماذج الذكاء الاصطناعي التي اختبرها HopCoderX وقاس أداءها خصيصًا لوكلاء البرمجة. لا حاجة للقلق بشأن اختلاف الأداء والجودة، استخدم نماذج محققة تعمل بكفاءة.",
 
-  "zen.faq.q1": "ما هو HopCoderX Zen؟",
-  "zen.faq.a1":
-    "Zen هو مجموعة منسقة من نماذج الذكاء الاصطناعي التي تم اختبارها وقياس أدائها لوكلاء البرمجة، أنشأها الفريق المطور لـ HopCoderX.",
-  "zen.faq.q2": "ما الذي يجعل Zen أكثر دقة؟",
-  "zen.faq.a2":
-    "يوفر Zen فقط النماذج التي تم اختبارها وقياس أدائها خصيصًا لوكلاء البرمجة. لن تستخدم سكين زبدة لقطع شريحة لحم، فلا تستخدم نماذج ضعيفة للبرمجة.",
-  "zen.faq.q3": "هل Zen أرخص؟",
-  "zen.faq.a3":
-    "Zen ليس للربح. يمرر Zen التكاليف من مزودي النماذج إليك مباشرة. كلما زاد استخدام Zen، تمكن HopCoderX من التفاوض على أسعار أفضل وتمريرها إليك.",
-  "zen.faq.q4": "كم تكلفة Zen؟",
-  "zen.faq.a4.p1.beforePricing": "Zen",
-  "zen.faq.a4.p1.pricingLink": "يحاسب لكل طلب",
-  "zen.faq.a4.p1.afterPricing": "بدون أي هوامش ربح، لذا تدفع بالضبط ما يفرضه مزود النموذج.",
-  "zen.faq.a4.p2.beforeAccount": "تعتمد تكلفتك الإجمالية على الاستخدام، ويمكنك تعيين حدود إنفاق شهرية في",
-  "zen.faq.a4.p2.accountLink": "حسابك",
-  "zen.faq.a4.p3":
+  "bdr.faq.q1": "ما هو HopCoderX Bdr؟",
+  "bdr.faq.a1":
+    "Bdr هو مجموعة منسقة من نماذج الذكاء الاصطناعي التي تم اختبارها وقياس أدائها لوكلاء البرمجة، أنشأها الفريق المطور لـ HopCoderX.",
+  "bdr.faq.q2": "ما الذي يجعل Bdr أكثر دقة؟",
+  "bdr.faq.a2":
+    "يوفر Bdr فقط النماذج التي تم اختبارها وقياس أدائها خصيصًا لوكلاء البرمجة. لن تستخدم سكين زبدة لقطع شريحة لحم، فلا تستخدم نماذج ضعيفة للبرمجة.",
+  "bdr.faq.q3": "هل Bdr أرخص؟",
+  "bdr.faq.a3":
+    "Bdr ليس للربح. يمرر Bdr التكاليف من مزودي النماذج إليك مباشرة. كلما زاد استخدام Bdr، تمكن HopCoderX من التفاوض على أسعار أفضل وتمريرها إليك.",
+  "bdr.faq.q4": "كم تكلفة Bdr؟",
+  "bdr.faq.a4.p1.beforePricing": "Bdr",
+  "bdr.faq.a4.p1.pricingLink": "يحاسب لكل طلب",
+  "bdr.faq.a4.p1.afterPricing": "بدون أي هوامش ربح، لذا تدفع بالضبط ما يفرضه مزود النموذج.",
+  "bdr.faq.a4.p2.beforeAccount": "تعتمد تكلفتك الإجمالية على الاستخدام، ويمكنك تعيين حدود إنفاق شهرية في",
+  "bdr.faq.a4.p2.accountLink": "حسابك",
+  "bdr.faq.a4.p3":
     "لتغطية التكاليف، يضيف HopCoderX فقط رسومًا صغيرة لمعالجة الدفع قدرها 1.23 دولار لكل إعادة شحن رصيد بقيمة 20 دولارًا.",
-  "zen.faq.q5": "ماذا عن البيانات والخصوصية؟",
-  "zen.faq.a5.beforeExceptions":
-    "تتم استضافة جميع نماذج Zen في الولايات المتحدة. يتبع المزودون سياسة عدم الاحتفاظ بالبيانات ولا يستخدمون بياناتك لتدريب النماذج، مع",
-  "zen.faq.a5.exceptionsLink": "الاستثناءات التالية",
-  "zen.faq.q6": "هل يمكنني تعيين حدود للإنفاق؟",
-  "zen.faq.a6": "نعم، يمكنك تعيين حدود إنفاق شهرية في حسابك.",
-  "zen.faq.q7": "هل يمكنني الإلغاء؟",
-  "zen.faq.a7": "نعم، يمكنك تعطيل الفوترة في أي وقت واستخدام رصيدك المتبقي.",
-  "zen.faq.q8": "هل يمكنني استخدام Zen مع وكلاء برمجة آخرين؟",
-  "zen.faq.a8":
-    "بينما يعمل Zen بشكل رائع مع HopCoderX، يمكنك استخدام Zen مع أي وكيل. اتبع تعليمات الإعداد في وكيل البرمجة المفضل لديك.",
+  "bdr.faq.q5": "ماذا عن البيانات والخصوصية؟",
+  "bdr.faq.a5.beforeExceptions":
+    "تتم استضافة جميع نماذج Bdr في الولايات المتحدة. يتبع المزودون سياسة عدم الاحتفاظ بالبيانات ولا يستخدمون بياناتك لتدريب النماذج، مع",
+  "bdr.faq.a5.exceptionsLink": "الاستثناءات التالية",
+  "bdr.faq.q6": "هل يمكنني تعيين حدود للإنفاق؟",
+  "bdr.faq.a6": "نعم، يمكنك تعيين حدود إنفاق شهرية في حسابك.",
+  "bdr.faq.q7": "هل يمكنني الإلغاء؟",
+  "bdr.faq.a7": "نعم، يمكنك تعطيل الفوترة في أي وقت واستخدام رصيدك المتبقي.",
+  "bdr.faq.q8": "هل يمكنني استخدام Bdr مع وكلاء برمجة آخرين؟",
+  "bdr.faq.a8":
+    "بينما يعمل Bdr بشكل رائع مع HopCoderX، يمكنك استخدام Bdr مع أي وكيل. اتبع تعليمات الإعداد في وكيل البرمجة المفضل لديك.",
 
-  "zen.cta.start": "ابدأ مع Zen",
-  "zen.pricing.title": "أضف رصيد 20 دولار (دفع حسب الاستخدام)",
-  "zen.pricing.fee": "(+1.23 دولار رسوم معالجة البطاقة)",
-  "zen.pricing.body": "استخدمه مع أي وكيل. عيّن حدود الإنفاق الشهري. ألغِ في أي وقت.",
-  "zen.problem.title": "ما المشكلة التي يحلها Zen؟",
-  "zen.problem.body":
+  "bdr.cta.start": "ابدأ مع Bdr",
+  "bdr.pricing.title": "أضف رصيد 20 دولار (دفع حسب الاستخدام)",
+  "bdr.pricing.fee": "(+1.23 دولار رسوم معالجة البطاقة)",
+  "bdr.pricing.body": "استخدمه مع أي وكيل. عيّن حدود الإنفاق الشهري. ألغِ في أي وقت.",
+  "bdr.problem.title": "ما المشكلة التي يحلها Bdr؟",
+  "bdr.problem.body":
     "هناك العديد من النماذج المتاحة، ولكن القليل منها فقط يعمل بشكل جيد مع وكلاء البرمجة. يقوم معظم مقدمي الخدمة بتكوينها بشكل مختلف مما يعطي نتائج متفاوتة.",
-  "zen.problem.subtitle": "نحن نعمل على إصلاح هذا للجميع، وليس فقط لمستخدمي HopCoderX.",
-  "zen.problem.item1": "اختبار نماذج مختارة واستشارة فرقها",
-  "zen.problem.item2": "العمل مع مقدمي الخدمة لضمان تسليمها بشكل صحيح",
-  "zen.problem.item3": "قياس أداء جميع مجموعات النماذج والمزودين التي نوصي بها",
-  "zen.how.title": "كيف يعمل Zen",
-  "zen.how.body": "بينما نقترح عليك استخدام Zen مع HopCoderX، يمكنك استخدام Zen مع أي وكيل.",
-  "zen.how.step1.title": "سجّل وأضف رصيدًا بقيمة 20 دولارًا",
-  "zen.how.step1.beforeLink": "اتبع",
-  "zen.how.step1.link": "تعليمات الإعداد",
-  "zen.how.step2.title": "استخدم Zen بتسعير شفاف",
-  "zen.how.step2.link": "ادفع لكل طلب",
-  "zen.how.step2.afterLink": "بدون أي هوامش ربح",
-  "zen.how.step3.title": "شحن تلقائي",
-  "zen.how.step3.body": "عندما يصل رصيدك إلى 5 دولارات، سنضيف تلقائيًا 20 دولارًا",
-  "zen.privacy.title": "خصوصيتك مهمة بالنسبة لنا",
-  "zen.privacy.beforeExceptions":
-    "تتم استضافة جميع نماذج Zen في الولايات المتحدة. يتبع المزودون سياسة عدم الاحتفاظ بالبيانات ولا يستخدمون بياناتك لتدريب النماذج، مع",
-  "zen.privacy.exceptionsLink": "الاستثناءات التالية",
+  "bdr.problem.subtitle": "نحن نعمل على إصلاح هذا للجميع، وليس فقط لمستخدمي HopCoderX.",
+  "bdr.problem.item1": "اختبار نماذج مختارة واستشارة فرقها",
+  "bdr.problem.item2": "العمل مع مقدمي الخدمة لضمان تسليمها بشكل صحيح",
+  "bdr.problem.item3": "قياس أداء جميع مجموعات النماذج والمزودين التي نوصي بها",
+  "bdr.how.title": "كيف يعمل Bdr",
+  "bdr.how.body": "بينما نقترح عليك استخدام Bdr مع HopCoderX، يمكنك استخدام Bdr مع أي وكيل.",
+  "bdr.how.step1.title": "سجّل وأضف رصيدًا بقيمة 20 دولارًا",
+  "bdr.how.step1.beforeLink": "اتبع",
+  "bdr.how.step1.link": "تعليمات الإعداد",
+  "bdr.how.step2.title": "استخدم Bdr بتسعير شفاف",
+  "bdr.how.step2.link": "ادفع لكل طلب",
+  "bdr.how.step2.afterLink": "بدون أي هوامش ربح",
+  "bdr.how.step3.title": "شحن تلقائي",
+  "bdr.how.step3.body": "عندما يصل رصيدك إلى 5 دولارات، سنضيف تلقائيًا 20 دولارًا",
+  "bdr.privacy.title": "خصوصيتك مهمة بالنسبة لنا",
+  "bdr.privacy.beforeExceptions":
+    "تتم استضافة جميع نماذج Bdr في الولايات المتحدة. يتبع المزودون سياسة عدم الاحتفاظ بالبيانات ولا يستخدمون بياناتك لتدريب النماذج، مع",
+  "bdr.privacy.exceptionsLink": "الاستثناءات التالية",
 
   "black.meta.title": "HopCoderX Black | الوصول إلى أفضل نماذج البرمجة في العالم",
   "black.meta.description": "احصل على وصول إلى Claude، GPT، Gemini والمزيد مع خطط اشتراك HopCoderX Black.",
@@ -284,7 +284,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "تاريخ الانضمام",
   "black.subscribe.success.chargeNotice": "سيتم خصم المبلغ من بطاقتك عند تفعيل اشتراكك",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "مفاتيح API",
   "workspace.nav.members": "الأعضاء",
   "workspace.nav.billing": "الفوترة",
@@ -302,7 +302,7 @@ export const dict = {
     "الوصول إلى النماذج التي تم تكوينها لتحقيق الأداء الأمثل - لا تقليل للجودة أو توجيه إلى موفري خدمة أرخص.",
   "workspace.newUser.feature.lockin.title": "لا قيود على المزود",
   "workspace.newUser.feature.lockin.body":
-    "استخدم Zen مع أي وكيل برمجة، واستمر في استخدام موفرين آخرين مع HopCoderX وقتما تشاء.",
+    "استخدم Bdr مع أي وكيل برمجة، واستمر في استخدام موفرين آخرين مع HopCoderX وقتما تشاء.",
   "workspace.newUser.copyApiKey": "نسخ مفتاح API",
   "workspace.newUser.copyKey": "نسخ المفتاح",
   "workspace.newUser.copied": "تم النسخ!",
@@ -499,13 +499,13 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "ليس بالضرورة، ولكن على الأرجح. ستحتاج إلى اشتراك ذكاء اصطناعي إذا كنت تريد ربط HopCoderX بمزوّد مدفوع، رغم أنه يمكنك العمل مع",
   "download.faq.a3.localLink": "النماذج المحلية",
-  "download.faq.a3.afterLocal.beforeZen": "مجانًا. بينما نشجع المستخدمين على استخدام",
-  "download.faq.a3.afterZen": "، فإن HopCoderX يعمل مع جميع المزودين الشائعين مثل OpenAI، Anthropic، xAI إلخ.",
+  "download.faq.a3.afterLocal.beforeBdr": "مجانًا. بينما نشجع المستخدمين على استخدام",
+  "download.faq.a3.afterBdr": "، فإن HopCoderX يعمل مع جميع المزودين الشائعين مثل OpenAI، Anthropic، xAI إلخ.",
 
   "download.faq.a5.p1": "HopCoderX مجاني 100% للاستخدام.",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "أي تكاليف إضافية ستأتي من اشتراكك لدى مزود النماذج. بينما يعمل HopCoderX مع أي مزود نماذج، نوصي باستخدام",
-  "download.faq.a5.p2.afterZen": ".",
+  "download.faq.a5.p2.afterBdr": ".",
 
   "download.faq.a6.p1": "يتم حفظ بياناتك ومعلوماتك فقط عند إنشاء روابط قابلة للمشاركة في HopCoderX.",
   "download.faq.a6.p2.beforeShare": "اعرف المزيد عن",

@@ -9,7 +9,7 @@ export const dict = {
   "nav.discord": "Discord",
   "nav.x": "X",
   "nav.enterprise": "Enterprise",
-  "nav.zen": "Zen",
+  "nav.bdr": "Bdr",
   "nav.login": "Anmelden",
   "nav.free": "Kostenlos",
   "nav.home": "Startseite",
@@ -80,13 +80,13 @@ export const dict = {
 
   "temp.title": "HopCoderX | Für das Terminal gebauter AI-Coding-Agent",
   "temp.hero.title": "Der für das Terminal gebaute AI-Coding-Agent",
-  "temp.zen": "HopCoderX Zen",
+  "temp.bdr": "HopCoderX Bdr",
   "temp.getStarted": "Loslegen",
   "temp.feature.native.title": "Native TUI",
   "temp.feature.native.body": "Eine reaktionsschnelle, native, thematisierbare Terminal-UI",
-  "temp.feature.zen.beforeLink": "Eine",
-  "temp.feature.zen.link": "kuratierte Liste von Modellen",
-  "temp.feature.zen.afterLink": "bereitgestellt von HopCoderX",
+  "temp.feature.bdr.beforeLink": "Eine",
+  "temp.feature.bdr.link": "kuratierte Liste von Modellen",
+  "temp.feature.bdr.afterLink": "bereitgestellt von HopCoderX",
   "temp.feature.models.beforeLink": "Unterstützt 75+ LLM-Anbieter durch",
   "temp.feature.models.afterLink": ", einschließlich lokaler Modelle",
   "temp.screenshot.caption": "HopCoderX TUI mit dem Tokyonight-Theme",
@@ -114,9 +114,9 @@ export const dict = {
   "home.what.shareLinks.title": "Links teilen",
   "home.what.shareLinks.body": "Teile einen Link zu jeder Sitzung als Referenz oder zum Debuggen",
   "home.what.copilot.title": "GitHub Copilot",
-  "home.what.copilot.body": "Melde dich mit GitHub an, um deinen Copilot-Account zu nutzen",
+  "home.what.copilot.body": "Melde dich mit GitHub an, um deinen Copilot-Account zu nutbdr",
   "home.what.chatgptPlus.title": "ChatGPT Plus/Pro",
-  "home.what.chatgptPlus.body": "Melde dich mit OpenAI an, um deinen ChatGPT Plus- oder Pro-Account zu nutzen",
+  "home.what.chatgptPlus.body": "Melde dich mit OpenAI an, um deinen ChatGPT Plus- oder Pro-Account zu nutbdr",
   "home.what.anyModel.title": "Jedes Modell",
   "home.what.anyModel.body": "75+ LLM-Anbieter durch Models.dev, einschließlich lokaler Modelle",
   "home.what.anyEditor.title": "Jeder Editor",
@@ -142,19 +142,19 @@ export const dict = {
   "home.faq.q2": "Wie nutze ich HopCoderX?",
   "home.faq.a2.before": "Der einfachste Weg zu starten ist, die",
   "home.faq.a2.link": "Einführung zu lesen",
-  "home.faq.q3": "Brauche ich zusätzliche AI-Abos, um HopCoderX zu nutzen?",
+  "home.faq.q3": "Brauche ich zusätzliche AI-Abos, um HopCoderX zu nutbdr?",
   "home.faq.a3.p1":
-    "Nicht unbedingt, HopCoderX kommt mit einer Reihe kostenloser Modelle, die du ohne Account nutzen kannst.",
-  "home.faq.a3.p2.beforeZen": "Abgesehen davon kannst du jedes beliebige Coding-Modell nutzen, indem du einen",
-  "home.faq.a3.p2.afterZen": " Account erstellst.",
+    "Nicht unbedingt, HopCoderX kommt mit einer Reihe kostenloser Modelle, die du ohne Account nutbdr kannst.",
+  "home.faq.a3.p2.beforeBdr": "Abgesehen davon kannst du jedes beliebige Coding-Modell nutbdr, indem du einen",
+  "home.faq.a3.p2.afterBdr": " Account erstellst.",
   "home.faq.a3.p3":
-    "Während wir dazu raten, Zen zu nutzen, funktioniert HopCoderX auch mit allen beliebten Anbietern wie OpenAI, Anthropic, xAI etc.",
+    "Während wir dazu raten, Bdr zu nutbdr, funktioniert HopCoderX auch mit allen beliebten Anbietern wie OpenAI, Anthropic, xAI etc.",
   "home.faq.a3.p4.beforeLocal": "Du kannst sogar deine",
   "home.faq.a3.p4.localLink": "lokalen Modelle verbinden",
-  "home.faq.q4": "Kann ich meine bestehenden AI-Abos mit HopCoderX nutzen?",
+  "home.faq.q4": "Kann ich meine bestehenden AI-Abos mit HopCoderX nutbdr?",
   "home.faq.a4.p1":
-    "Ja, HopCoderX unterstützt Abos von allen großen Anbietern. Du kannst deine Claude Pro/Max, ChatGPT Plus/Pro oder GitHub Copilot Abos nutzen.",
-  "home.faq.q5": "Kann ich HopCoderX nur im Terminal nutzen?",
+    "Ja, HopCoderX unterstützt Abos von allen großen Anbietern. Du kannst deine Claude Pro/Max, ChatGPT Plus/Pro oder GitHub Copilot Abos nutbdr.",
+  "home.faq.q5": "Kann ich HopCoderX nur im Terminal nutbdr?",
   "home.faq.a5.beforeDesktop": "Nicht mehr! HopCoderX ist jetzt als App für",
   "home.faq.a5.desktop": "Desktop",
   "home.faq.a5.and": "und",
@@ -172,75 +172,75 @@ export const dict = {
   "home.faq.q8": "Ist HopCoderX Open Source?",
   "home.faq.a8.p1": "Ja, HopCoderX ist vollständig Open Source. Der Quellcode ist öffentlich auf",
   "home.faq.a8.p2": "unter der",
-  "home.faq.a8.mitLicense": "MIT Lizenz",
+  "home.faq.a8.mitLicense": "MIT Libdrz",
   "home.faq.a8.p3":
-    ", was bedeutet, dass jeder ihn nutzen, modifizieren oder zu seiner Entwicklung beitragen kann. Jeder aus der Community kann Issues melden, Pull Requests einreichen und die Funktionalität erweitern.",
+    ", was bedeutet, dass jeder ihn nutbdr, modifizieren oder zu seiner Entwicklung beitragen kann. Jeder aus der Community kann Issues melden, Pull Requests einreichen und die Funktionalität erweitern.",
 
-  "home.zenCta.title": "Zugriff auf zuverlässige, optimierte Modelle für Coding-Agents",
-  "home.zenCta.body":
-    "Zen gibt dir Zugriff auf ein handverlesenes Set an AI-Modellen, die HopCoderX speziell für Coding-Agents getestet und bewertet hat. Keine Sorge wegen inkonsistenter Leistung und Qualität bei verschiedenen Anbietern – nutze validierte Modelle, die funktionieren.",
-  "home.zenCta.link": "Erfahre mehr über Zen",
+  "home.bdrCta.title": "Zugriff auf zuverlässige, optimierte Modelle für Coding-Agents",
+  "home.bdrCta.body":
+    "Bdr gibt dir Zugriff auf ein handverlesenes Set an AI-Modellen, die HopCoderX speziell für Coding-Agents getestet und bewertet hat. Keine Sorge wegen inkonsistenter Leistung und Qualität bei verschiedenen Anbietern – nutze validierte Modelle, die funktionieren.",
+  "home.bdrCta.link": "Erfahre mehr über Bdr",
 
-  "zen.title": "HopCoderX Zen | Ein kuratiertes Set zuverlässiger, optimierter Modelle für Coding-Agents",
-  "zen.hero.title": "Zuverlässige, optimierte Modelle für Coding-Agents",
-  "zen.hero.body":
-    "Zen gibt dir Zugriff auf ein kuratiertes Set an AI-Modellen, die HopCoderX speziell für Coding-Agents getestet und bewertet hat. Keine Sorge wegen inkonsistenter Leistung und Qualität – nutze validierte Modelle, die funktionieren.",
+  "bdr.title": "HopCoderX Bdr | Ein kuratiertes Set zuverlässiger, optimierter Modelle für Coding-Agents",
+  "bdr.hero.title": "Zuverlässige, optimierte Modelle für Coding-Agents",
+  "bdr.hero.body":
+    "Bdr gibt dir Zugriff auf ein kuratiertes Set an AI-Modellen, die HopCoderX speziell für Coding-Agents getestet und bewertet hat. Keine Sorge wegen inkonsistenter Leistung und Qualität – nutze validierte Modelle, die funktionieren.",
 
-  "zen.faq.q1": "Was ist HopCoderX Zen?",
-  "zen.faq.a1":
-    "Zen ist ein kuratiertes Set an AI-Modellen, getestet und bewertet für Coding-Agents, erstellt vom Team hinter HopCoderX.",
-  "zen.faq.q2": "Was macht Zen genauer?",
-  "zen.faq.a2":
-    "Zen bietet nur Modelle, die speziell für Coding-Agents getestet und bewertet wurden. Du würdest kein Buttermesser nehmen, um ein Steak zu schneiden – nutze keine schlechten Modelle zum Coden.",
-  "zen.faq.q3": "Ist Zen günstiger?",
-  "zen.faq.a3":
-    "Zen ist nicht gewinnorientiert. Zen gibt die Kosten der Modellanbieter an dich weiter. Je höher die Nutzung von Zen, desto besser kann HopCoderX Preise verhandeln und diese an dich weitergeben.",
-  "zen.faq.q4": "Wie viel kostet Zen?",
-  "zen.faq.a4.p1.beforePricing": "Zen",
-  "zen.faq.a4.p1.pricingLink": "berechnet pro Anfrage",
-  "zen.faq.a4.p1.afterPricing": "ohne Aufschläge, also zahlst du genau das, was der Modellanbieter berechnet.",
-  "zen.faq.a4.p2.beforeAccount":
+  "bdr.faq.q1": "Was ist HopCoderX Bdr?",
+  "bdr.faq.a1":
+    "Bdr ist ein kuratiertes Set an AI-Modellen, getestet und bewertet für Coding-Agents, erstellt vom Team hinter HopCoderX.",
+  "bdr.faq.q2": "Was macht Bdr genauer?",
+  "bdr.faq.a2":
+    "Bdr bietet nur Modelle, die speziell für Coding-Agents getestet und bewertet wurden. Du würdest kein Buttermesser nehmen, um ein Steak zu schneiden – nutze keine schlechten Modelle zum Coden.",
+  "bdr.faq.q3": "Ist Bdr günstiger?",
+  "bdr.faq.a3":
+    "Bdr ist nicht gewinnorientiert. Bdr gibt die Kosten der Modellanbieter an dich weiter. Je höher die Nutzung von Bdr, desto besser kann HopCoderX Preise verhandeln und diese an dich weitergeben.",
+  "bdr.faq.q4": "Wie viel kostet Bdr?",
+  "bdr.faq.a4.p1.beforePricing": "Bdr",
+  "bdr.faq.a4.p1.pricingLink": "berechnet pro Anfrage",
+  "bdr.faq.a4.p1.afterPricing": "ohne Aufschläge, also zahlst du genau das, was der Modellanbieter berechnet.",
+  "bdr.faq.a4.p2.beforeAccount":
     "Deine Gesamtkosten hängen von der Nutzung ab, und du kannst monatliche Ausgabenlimits in deinem",
-  "zen.faq.a4.p2.accountLink": "Account festlegen",
-  "zen.faq.a4.p3":
+  "bdr.faq.a4.p2.accountLink": "Account festlegen",
+  "bdr.faq.a4.p3":
     "Um die Kosten zu decken, fügt HopCoderX nur eine kleine Bearbeitungsgebühr von $1.23 pro $20 Guthabenaufladung hinzu.",
-  "zen.faq.q5": "Was ist mit Daten und Privatsphäre?",
-  "zen.faq.a5.beforeExceptions":
-    "Alle Zen-Modelle werden in den USA gehostet. Anbieter folgen einer Zero-Retention-Policy und nutzen deine Daten nicht zum Trainieren von Modellen, mit den",
-  "zen.faq.a5.exceptionsLink": "folgenden Ausnahmen",
-  "zen.faq.q6": "Kann ich Ausgabenlimits setzen?",
-  "zen.faq.a6": "Ja, du kannst monatliche Ausgabenlimits in deinem Account setzen.",
-  "zen.faq.q7": "Kann ich kündigen?",
-  "zen.faq.a7": "Ja, du kannst die Abrechnung jederzeit deaktivieren und dein verbleibendes Guthaben nutzen.",
-  "zen.faq.q8": "Kann ich Zen mit anderen Coding-Agents nutzen?",
-  "zen.faq.a8":
-    "Während Zen großartig mit HopCoderX funktioniert, kannst du Zen mit jedem Agent nutzen. Folge den Einrichtungsanweisungen in deinem bevorzugten Coding-Agent.",
+  "bdr.faq.q5": "Was ist mit Daten und Privatsphäre?",
+  "bdr.faq.a5.beforeExceptions":
+    "Alle Bdr-Modelle werden in den USA gehostet. Anbieter folgen einer Zero-Retention-Policy und nutbdr deine Daten nicht zum Trainieren von Modellen, mit den",
+  "bdr.faq.a5.exceptionsLink": "folgenden Ausnahmen",
+  "bdr.faq.q6": "Kann ich Ausgabenlimits setbdr?",
+  "bdr.faq.a6": "Ja, du kannst monatliche Ausgabenlimits in deinem Account setbdr.",
+  "bdr.faq.q7": "Kann ich kündigen?",
+  "bdr.faq.a7": "Ja, du kannst die Abrechnung jederzeit deaktivieren und dein verbleibendes Guthaben nutbdr.",
+  "bdr.faq.q8": "Kann ich Bdr mit anderen Coding-Agents nutbdr?",
+  "bdr.faq.a8":
+    "Während Bdr großartig mit HopCoderX funktioniert, kannst du Bdr mit jedem Agent nutbdr. Folge den Einrichtungsanweisungen in deinem bevorzugten Coding-Agent.",
 
-  "zen.cta.start": "Starte mit Zen",
-  "zen.pricing.title": "Füge $20 Pay-as-you-go Guthaben hinzu",
-  "zen.pricing.fee": "(+$1.23 Bearbeitungsgebühr)",
-  "zen.pricing.body": "Nutze es mit jedem Agent. Setze monatliche Ausgabenlimits. Jederzeit kündbar.",
-  "zen.problem.title": "Welches Problem löst Zen?",
-  "zen.problem.body":
+  "bdr.cta.start": "Starte mit Bdr",
+  "bdr.pricing.title": "Füge $20 Pay-as-you-go Guthaben hinzu",
+  "bdr.pricing.fee": "(+$1.23 Bearbeitungsgebühr)",
+  "bdr.pricing.body": "Nutze es mit jedem Agent. Setze monatliche Ausgabenlimits. Jederzeit kündbar.",
+  "bdr.problem.title": "Welches Problem löst Bdr?",
+  "bdr.problem.body":
     "Es gibt so viele Modelle, aber nur wenige funktionieren gut mit Coding-Agents. Die meisten Anbieter konfigurieren sie unterschiedlich, was zu variierenden Ergebnissen führt.",
-  "zen.problem.subtitle": "Wir beheben das für alle, nicht nur für HopCoderX-Nutzer.",
-  "zen.problem.item1": "Testen ausgewählter Modelle und Beratung mit deren Teams",
-  "zen.problem.item2": "Zusammenarbeit mit Anbietern, um korrekte Bereitstellung zu sichern",
-  "zen.problem.item3": "Benchmarking aller Modell-Anbieter-Kombinationen, die wir empfehlen",
-  "zen.how.title": "Wie Zen funktioniert",
-  "zen.how.body": "Während wir dir raten, Zen mit HopCoderX zu nutzen, kannst du Zen mit jedem Agent nutzen.",
-  "zen.how.step1.title": "Melde dich an und füge $20 Guthaben hinzu",
-  "zen.how.step1.beforeLink": "folge den",
-  "zen.how.step1.link": "Einrichtungsanweisungen",
-  "zen.how.step2.title": "Nutze Zen mit transparenter Preisgestaltung",
-  "zen.how.step2.link": "zahle pro Anfrage",
-  "zen.how.step2.afterLink": "ohne Aufschläge",
-  "zen.how.step3.title": "Auto-Top-up",
-  "zen.how.step3.body": "wenn dein Guthaben $5 erreicht, fügen wir automatisch $20 hinzu",
-  "zen.privacy.title": "Deine Privatsphäre ist uns wichtig",
-  "zen.privacy.beforeExceptions":
-    "Alle Zen-Modelle werden in den USA gehostet. Anbieter folgen einer Zero-Retention-Policy und nutzen deine Daten nicht für Modelltraining, mit den",
-  "zen.privacy.exceptionsLink": "folgenden Ausnahmen",
+  "bdr.problem.subtitle": "Wir beheben das für alle, nicht nur für HopCoderX-Nutzer.",
+  "bdr.problem.item1": "Testen ausgewählter Modelle und Beratung mit deren Teams",
+  "bdr.problem.item2": "Zusammenarbeit mit Anbietern, um korrekte Bereitstellung zu sichern",
+  "bdr.problem.item3": "Benchmarking aller Modell-Anbieter-Kombinationen, die wir empfehlen",
+  "bdr.how.title": "Wie Bdr funktioniert",
+  "bdr.how.body": "Während wir dir raten, Bdr mit HopCoderX zu nutbdr, kannst du Bdr mit jedem Agent nutbdr.",
+  "bdr.how.step1.title": "Melde dich an und füge $20 Guthaben hinzu",
+  "bdr.how.step1.beforeLink": "folge den",
+  "bdr.how.step1.link": "Einrichtungsanweisungen",
+  "bdr.how.step2.title": "Nutze Bdr mit transparenter Preisgestaltung",
+  "bdr.how.step2.link": "zahle pro Anfrage",
+  "bdr.how.step2.afterLink": "ohne Aufschläge",
+  "bdr.how.step3.title": "Auto-Top-up",
+  "bdr.how.step3.body": "wenn dein Guthaben $5 erreicht, fügen wir automatisch $20 hinzu",
+  "bdr.privacy.title": "Deine Privatsphäre ist uns wichtig",
+  "bdr.privacy.beforeExceptions":
+    "Alle Bdr-Modelle werden in den USA gehostet. Anbieter folgen einer Zero-Retention-Policy und nutbdr deine Daten nicht für Modelltraining, mit den",
+  "bdr.privacy.exceptionsLink": "folgenden Ausnahmen",
 
   "black.meta.title": "HopCoderX Black | Zugriff auf die weltweit besten Coding-Modelle",
   "black.meta.description": "Erhalte Zugriff auf Claude, GPT, Gemini und mehr mit HopCoderX Black Abos.",
@@ -288,7 +288,7 @@ export const dict = {
   "black.subscribe.success.dateJoined": "Beitrittsdatum",
   "black.subscribe.success.chargeNotice": "Deine Karte wird belastet, sobald dein Abonnement aktiviert ist",
 
-  "workspace.nav.zen": "Zen",
+  "workspace.nav.bdr": "Bdr",
   "workspace.nav.apiKeys": "API Keys",
   "workspace.nav.members": "Mitglieder",
   "workspace.nav.billing": "Abrechnung",
@@ -307,7 +307,7 @@ export const dict = {
     "Zugriff auf Modelle, die für optimale Leistung konfiguriert sind – keine Downgrades oder Routing zu billigeren Anbietern.",
   "workspace.newUser.feature.lockin.title": "Kein Lock-in",
   "workspace.newUser.feature.lockin.body":
-    "Nutze Zen mit jedem Coding-Agent und nutze weiterhin andere Anbieter mit HopCoderX, wann immer du willst.",
+    "Nutze Bdr mit jedem Coding-Agent und nutze weiterhin andere Anbieter mit HopCoderX, wann immer du willst.",
   "workspace.newUser.copyApiKey": "API Key kopieren",
   "workspace.newUser.copyKey": "Key kopieren",
   "workspace.newUser.copied": "Kopiert!",
@@ -394,7 +394,7 @@ export const dict = {
   "workspace.members.role.memberDescription": "Kann nur API Keys für sich selbst generieren",
 
   "workspace.settings.title": "Einstellungen",
-  "workspace.settings.subtitle": "Aktualisiere deinen Workspace-Namen und Präferenzen.",
+  "workspace.settings.subtitle": "Aktualisiere deinen Workspace-Namen und Präferenbdr.",
   "workspace.settings.workspaceName": "Workspace-Name",
   "workspace.settings.defaultName": "Standard",
   "workspace.settings.updating": "Aktualisiere...",
@@ -419,7 +419,7 @@ export const dict = {
   "workspace.monthlyLimit.subtitle": "Setze ein monatliches Nutzungslimit für deinen Account.",
   "workspace.monthlyLimit.placeholder": "50",
   "workspace.monthlyLimit.setting": "Setze...",
-  "workspace.monthlyLimit.set": "Setzen",
+  "workspace.monthlyLimit.set": "Setbdr",
   "workspace.monthlyLimit.edit": "Limit bearbeiten",
   "workspace.monthlyLimit.noLimit": "Kein Nutzungslimit gesetzt.",
   "workspace.monthlyLimit.currentUsage.beforeMonth": "Aktuelle Nutzung für",
@@ -505,14 +505,14 @@ export const dict = {
   "download.faq.a3.beforeLocal":
     "Nicht unbedingt, aber wahrscheinlich. Du brauchst ein AI-Abo, wenn du HopCoderX mit einem bezahlten Anbieter verbinden willst, obwohl du mit",
   "download.faq.a3.localLink": "lokalen Modellen",
-  "download.faq.a3.afterLocal.beforeZen": "kostenlos arbeiten kannst. Während wir Nutzern raten,",
-  "download.faq.a3.afterZen":
-    " zu nutzen, funktioniert HopCoderX mit allen populären Anbietern wie OpenAI, Anthropic, xAI etc.",
+  "download.faq.a3.afterLocal.beforeBdr": "kostenlos arbeiten kannst. Während wir Nutzern raten,",
+  "download.faq.a3.afterBdr":
+    " zu nutbdr, funktioniert HopCoderX mit allen populären Anbietern wie OpenAI, Anthropic, xAI etc.",
 
   "download.faq.a5.p1": "HopCoderX ist 100% kostenlos.",
-  "download.faq.a5.p2.beforeZen":
+  "download.faq.a5.p2.beforeBdr":
     "Zusätzliche Kosten entstehen durch dein Abo bei einem Modellanbieter. Während HopCoderX mit jedem Modellanbieter funktioniert, empfehlen wir",
-  "download.faq.a5.p2.afterZen": " zu nutzen.",
+  "download.faq.a5.p2.afterBdr": " zu nutbdr.",
 
   "download.faq.a6.p1":
     "Deine Daten und Informationen werden nur gespeichert, wenn du teilbare Links in HopCoderX erstellst.",
@@ -523,7 +523,7 @@ export const dict = {
   "enterprise.meta.description": "Kontaktieren Sie HopCoderX für Enterprise-Lösungen",
   "enterprise.hero.title": "Ihr Code gehört Ihnen",
   "enterprise.hero.body1":
-    "HopCoderX arbeitet sicher innerhalb Ihrer Organisation, ohne dass Daten oder Kontext gespeichert werden und ohne Lizenzbeschränkungen oder Eigentumsansprüche. Starten Sie einen Testlauf mit Ihrem Team, dann rollen Sie es in Ihrer Organisation aus, indem Sie es in Ihr SSO und internes AI-Gateway integrieren.",
+    "HopCoderX arbeitet sicher innerhalb Ihrer Organisation, ohne dass Daten oder Kontext gespeichert werden und ohne Libdrzbeschränkungen oder Eigentumsansprüche. Starten Sie einen Testlauf mit Ihrem Team, dann rollen Sie es in Ihrer Organisation aus, indem Sie es in Ihr SSO und internes AI-Gateway integrieren.",
   "enterprise.hero.body2": "Lassen Sie uns wissen, wie wir helfen können.",
   "enterprise.form.name.label": "Vollständiger Name",
   "enterprise.form.name.placeholder": "Jeff Bezos",
@@ -539,7 +539,7 @@ export const dict = {
   "enterprise.faq.title": "FAQ",
   "enterprise.faq.q1": "Was ist HopCoderX Enterprise?",
   "enterprise.faq.a1":
-    "HopCoderX Enterprise ist für Organisationen, die sicherstellen wollen, dass Code und Daten niemals ihre Infrastruktur verlassen. Dies geschieht durch eine zentrale Konfiguration, die in Ihr SSO und internes AI-Gateway integriert wird.",
+    "HopCoderX Enterprise ist für Organisationen, die sicherstellen wollen, dass Code und Daten niemals ihre Infrastruktur verlassen. Dies geschieht durch eine bdrtrale Konfiguration, die in Ihr SSO und internes AI-Gateway integriert wird.",
   "enterprise.faq.q2": "Wie starte ich mit HopCoderX Enterprise?",
   "enterprise.faq.a2":
     "Starten Sie einfach mit einem internen Testlauf mit Ihrem Team. HopCoderX speichert standardmäßig weder Code noch Kontextdaten, was den Einstieg erleichtert. Kontaktieren Sie uns dann, um Preise und Implementierungsoptionen zu besprechen.",
@@ -548,7 +548,7 @@ export const dict = {
     "Wir bieten eine Preisgestaltung pro Arbeitsplatz (Seat) an. Wenn Sie Ihr eigenes LLM-Gateway haben, berechnen wir keine Gebühren für genutzte Token. Für weitere Details kontaktieren Sie uns für ein individuelles Angebot basierend auf den Anforderungen Ihrer Organisation.",
   "enterprise.faq.q4": "Sind meine Daten mit HopCoderX Enterprise sicher?",
   "enterprise.faq.a4":
-    "Ja. HopCoderX speichert weder Ihren Code noch Kontextdaten. Alle Verarbeitungen finden lokal oder über direkte API-Aufrufe an Ihren AI-Anbieter statt. Mit zentraler Konfiguration und SSO-Integration bleiben Ihre Daten sicher innerhalb der Infrastruktur Ihrer Organisation.",
+    "Ja. HopCoderX speichert weder Ihren Code noch Kontextdaten. Alle Verarbeitungen finden lokal oder über direkte API-Aufrufe an Ihren AI-Anbieter statt. Mit bdrtraler Konfiguration und SSO-Integration bleiben Ihre Daten sicher innerhalb der Infrastruktur Ihrer Organisation.",
 
   "brand.title": "HopCoderX | Marke",
   "brand.meta.description": "HopCoderX Markenrichtlinien",

@@ -2,7 +2,7 @@ import { Model } from "@hopcoderx/console-core/model.js"
 import { query, action, useParams, createAsync, json } from "@solidjs/router"
 import { createMemo, For, Show } from "solid-js"
 import { withActor } from "~/context/auth.withActor"
-import { ZenData } from "@hopcoderx/console-core/model.js"
+import { BdrData } from "@hopcoderx/console-core/model.js"
 import styles from "./model-section.module.css"
 import { querySessionInfo } from "../common"
 import {
@@ -36,7 +36,7 @@ const getModelsInfo = query(async (workspaceID: string) => {
   "use server"
   return withActor(async () => {
     return {
-      all: Object.entries(ZenData.list().models)
+      all: Object.entries(BdrData.list().models)
         .filter(([id, _model]) => !["claude-3-5-haiku"].includes(id))
         .filter(([id, _model]) => !id.startsWith("alpha-"))
         .sort(([idA, modelA], [idB, modelB]) => {
@@ -99,7 +99,7 @@ export function ModelSection() {
         <h2>{i18n.t("workspace.models.title")}</h2>
         <p>
           {i18n.t("workspace.models.subtitle.beforeLink")}{" "}
-          <a href={language.route("/docs/zen#pricing")}>{i18n.t("common.learnMore")}</a>.
+          <a href={language.route("/docs/bdr#pricing")}>{i18n.t("common.learnMore")}</a>.
         </p>
       </div>
       <div data-slot="models-list">
