@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HopCoderX BDR &mdash; Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808; --surface: #0f0f0f; --surface2: #131313; --border: #1c1c1c;
+      --gold: #c9a227; --gold-hi: #f0c040; --gold-dim: #6b5512; --gold-faint: rgba(201,162,39,.05);
+      --text: #e0e0e0; --muted: #555; --muted2: #2a2a2a;
+      --danger: #c0392b; --danger-dim: rgba(192,57,43,.12);
+      --success: #27ae60; --success-dim: rgba(39,174,96,.1);
+      --mono: 'JetBrains Mono', 'Courier New', monospace;
+    }
+    *, body { font-family: var(--mono); }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse 100% 40% at 50% 0%, rgba(201,162,39,.04) 0%, transparent 60%); pointer-events: none; }
+    nav { background: #0a0a0a; border-bottom: 1px solid var(--border); padding: 0 24px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-size: 14px; font-weight: 700; color: var(--gold); letter-spacing: .06em; display: flex; align-items: center; gap: 10px; }
+    .nav-badge { font-size: 9px; border: 1px solid var(--gold-dim); color: var(--gold-dim); padding: 2px 7px; border-radius: 2px; letter-spacing: .15em; text-transform: uppercase; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-email { font-size: 11px; color: var(--muted); margin-right: 4px; }
+    .btn { background: linear-gradient(135deg, #1a1500, #222000); border: 1px solid var(--gold-dim);
+      border-radius: 2px; color: var(--gold); font-family: var(--mono); font-size: 10px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; padding: 7px 14px; cursor: pointer; transition: all .18s; }
+    .btn:hover { border-color: var(--gold); color: var(--gold-hi); box-shadow: 0 0 12px rgba(201,162,39,.15); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--muted2); color: var(--text); box-shadow: none; }
+    .btn-danger { background: var(--danger-dim); border: 1px solid rgba(192,57,43,.3); color: #e74c3c; }
+    .btn-danger:hover { border-color: var(--danger); box-shadow: 0 0 10px rgba(192,57,43,.15); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 22px; position: relative; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+    .card-label { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-value { font-size: 32px; font-weight: 700; color: var(--gold); margin: 6px 0 4px;
+      text-shadow: 0 0 20px rgba(201,162,39,.3); }
+    .stat-sub { font-size: 11px; color: var(--muted); }
+    .section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: '❯'; opacity: .6; }
+    .key-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 2px;
+      padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .key-name { font-size: 13px; color: var(--text); margin-bottom: 3px; }
+    .key-prefix { font-size: 11px; color: var(--gold-dim); }
+    .key-used { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .tbl th { font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted);
+      padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; background: var(--surface2); }
+    .tbl th.r { text-align: right; } .tbl th.c { text-align: center; }
+    .tbl td { padding: 10px 12px; border-bottom: 1px solid var(--muted2); color: var(--text); vertical-align: middle; }
+    .tbl td.r { text-align: right; } .tbl td.c { text-align: center; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: var(--gold-faint); }
+    .tbl-empty { padding: 32px; text-align: center; color: var(--muted); font-size: 11px; }
+    .badge-green { background: var(--success-dim); border: 1px solid rgba(39,174,96,.2); color: #2ecc71;
+      font-size: 9px; padding: 2px 7px; border-radius: 2px; letter-spacing: .1em; text-transform: uppercase; }
+    .badge-red { background: var(--danger-dim); border: 1px solid rgba(192,57,43,.2); color: #e74c3c;
+      font-size: 9px; padding: 2px 7px; border-radius: 2px; letter-spacing: .1em; text-transform: uppercase; }
+    .badge-muted { background: rgba(255,255,255,.04); border: 1px solid var(--border); color: var(--muted);
+      font-size: 9px; padding: 2px 7px; border-radius: 2px; letter-spacing: .1em; text-transform: uppercase; }
+    .pkg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .pkg-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 2px;
+      color: var(--text); font-family: var(--mono); font-size: 18px; font-weight: 700; padding: 18px 12px;
+      cursor: pointer; transition: all .18s; text-align: center; }
+    .pkg-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-faint); box-shadow: 0 0 14px rgba(201,162,39,.1); }
+    .pkg-btn small { display: block; font-size: 9px; color: var(--muted); letter-spacing: .1em; margin-top: 4px; text-transform: uppercase; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--gold-dim);
+      color: var(--gold); font-size: 12px; padding: 10px 18px; border-radius: 2px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 999; }
+    .toast.show { opacity: 1; }
+    .alert { background: rgba(39,174,96,.08); border: 1px solid rgba(39,174,96,.25); color: #2ecc71;
+      font-size: 12px; padding: 12px 16px; border-radius: 2px; margin-bottom: 20px; display: none; }
+    .alert-err { background: var(--danger-dim); border-color: rgba(192,57,43,.3); color: #e74c3c; }
+    .view { display: none; } .view.active { display: block; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-brand">HopCoderX BDR <span class="nav-badge">Dashboard</span></div>
+    <div class="nav-right">
+      <span class="nav-email" id="user-email"></span>
+      <a id="admin-link" href="/admin" class="btn btn-ghost" style="display:none">Admin</a>
+      <button class="btn btn-ghost" onclick="showView('billing-view'); loadBillingView()">Billing</button>
+      <button class="btn btn-ghost" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+  <div class="container">
+    <div id="alert-success" class="alert">&#10003; Payment successful &mdash; credits have been added to your account.</div>
+    <div id="alert-cancel" class="alert alert-err">&#10007; Payment cancelled &mdash; no charge was made.</div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="view active">
+      <div class="stats">
+        <div class="card">
+          <div class="card-label">Balance</div>
+          <div class="stat-value">$<span id="balance">0.00</span></div>
+          <div class="stat-sub">Monthly limit: $<span id="monthly-limit">&#8212;</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Spent This Month</div>
+          <div class="stat-value" style="color:var(--text)">$<span id="month-spent">0.00</span></div>
+          <div class="stat-sub">of $<span id="monthly-limit2">&#8212;</span> limit</div>
+        </div>
+        <div class="card">
+          <div class="card-label">API Keys</div>
+          <div class="stat-value" style="color:var(--text)"><span id="key-count">&#8212;</span></div>
+          <div class="stat-sub">active keys</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="section-hdr">
+          <div class="section-title">API Keys</div>
+          <button class="btn" onclick="createApiKey()">+ New Key</button>
+        </div>
+        <div id="api-keys-list"><div class="tbl-empty">Loading&#8230;</div></div>
+      </div>
+      <div class="card">
+        <div class="section-hdr" style="margin-bottom:12px">
+          <div class="section-title">Recent Usage</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Date</th><th>Model</th>
+              <th class="r">Tokens</th><th class="r">Cost</th><th class="c">Cache</th>
+            </tr></thead>
+            <tbody id="usage-list"><tr><td colspan="5" class="tbl-empty">No usage yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Billing View -->
+    <div id="billing-view" class="view">
+      <div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:600px;margin-bottom:24px">
+        <div class="card">
+          <div class="card-label">Current Balance</div>
+          <div class="stat-value">$<span id="billing-balance">0.00</span></div>
+          <div class="stat-sub">Monthly limit: $<span id="billing-limit">&#8212;</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">This Month Spent</div>
+          <div class="stat-value" style="color:var(--text)">$<span id="billing-spent">0.00</span></div>
+          <div class="stat-sub">so far this month</div>
+        </div>
+      </div>
+      <div class="card" style="max-width:600px;margin-bottom:24px">
+        <div class="section-hdr" style="margin-bottom:14px">
+          <div class="section-title">Add Credits</div>
+          <button class="btn btn-ghost" style="font-size:10px" onclick="showView('dashboard-view')">&#8592; Back</button>
+        </div>
+        <div id="billing-disabled-msg" style="display:none;color:var(--muted);font-size:12px;margin-bottom:14px">
+          &#10095; Billing is currently disabled by the administrator.
+        </div>
+        <div id="pkg-grid" class="pkg-grid"></div>
+        <div style="font-size:10px;color:var(--muted)">Credits added instantly via Stripe secure checkout.</div>
+      </div>
+      <div class="card">
+        <div class="section-hdr" style="margin-bottom:12px">
+          <div class="section-title">Transaction History</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Date</th><th>Type</th><th class="r">Amount</th><th>Description</th>
+            </tr></thead>
+            <tbody id="transactions-list"><tr><td colspan="4" class="tbl-empty">No transactions yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script>
+    const API = '/api';
+    let token = localStorage.getItem('token');
+    let user = null;
+    async function init() {
+      if (!token) return (window.location.href = '/login');
+      let res;
+      try { res = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } }); }
+      catch { return (window.location.href = '/login'); }
+      if (res.status === 401) { localStorage.removeItem('token'); return (window.location.href = '/login'); }
+      if (!res.ok) return (window.location.href = '/login');
+      user = await res.json();
+      document.getElementById('user-email').textContent = user.email;
+      if (user.role === 'admin') document.getElementById('admin-link').style.display = '';
+      const params = new URLSearchParams(location.search);
+      if (params.get('success') === '1') {
+        history.replaceState({}, '', '/dashboard');
+        show('alert-success'); setTimeout(() => hide('alert-success'), 6000);
+      }
+      if (params.get('canceled') === '1') {
+        history.replaceState({}, '', '/dashboard');
+        show('alert-cancel'); setTimeout(() => hide('alert-cancel'), 6000);
+      }
+      loadDashboard();
+    }
+    function show(id) { document.getElementById(id).style.display = 'block'; }
+    function hide(id) { document.getElementById(id).style.display = 'none'; }
+    function showView(id) { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+    async function loadDashboard() { await Promise.all([loadBalance(), loadApiKeys(), loadUsage()]); }
+    async function loadBalance() {
+      const res = await fetch(`${API}/user/balance`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const d = await res.json();
+      const bal = (d.balance_cents / 100).toFixed(2), lim = (d.monthly_limit_cents / 100).toFixed(2), spent = (d.month_spent_cents / 100).toFixed(2);
+      document.getElementById('balance').textContent = bal;
+      document.getElementById('monthly-limit').textContent = lim;
+      document.getElementById('monthly-limit2').textContent = lim;
+      document.getElementById('month-spent').textContent = spent;
+      document.getElementById('billing-balance').textContent = bal;
+      document.getElementById('billing-limit').textContent = lim;
+      document.getElementById('billing-spent').textContent = spent;
+    }
+    async function loadApiKeys() {
+      const res = await fetch(`${API}/user/api-keys`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const keys = await res.json();
+      document.getElementById('key-count').textContent = keys.length;
+      const list = document.getElementById('api-keys-list');
+      if (keys.length === 0) { list.innerHTML = '<div class="tbl-empty">No API keys yet.</div>'; return; }
+      list.innerHTML = keys.map(k => `
+        <div class="key-item">
+          <div>
+            <div class="key-name">${k.name}</div>
+            <div class="key-prefix">${k.key_prefix}&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</div>
+            <div class="key-used">Last used: ${k.last_used ? new Date(k.last_used).toLocaleString() : 'Never'} &middot; Created ${new Date(k.created_at).toLocaleDateString()}</div>
+          </div>
+          <button class="btn btn-danger" onclick="revokeKey(${k.id})">Revoke</button>
+        </div>`).join('');
+    }
+    async function createApiKey() {
+      const name = prompt('Key name (e.g. "My Laptop"):');
+      if (name === null) return;
+      const res = await fetch(`${API}/user/api-keys`, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: name || 'API Key' }) });
+      if (res.ok) { const d = await res.json(); alert('Copy your key now — it will not be shown again:\n\n' + d.key); loadApiKeys(); }
+      else { const e = await res.json().catch(() => ({ error: 'Failed' })); toast('Error: ' + e.error); }
+    }
+    async function revokeKey(id) {
+      if (!confirm('Revoke this API key?')) return;
+      const res = await fetch(`${API}/user/api-keys/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) { toast('Key revoked'); loadApiKeys(); } else toast('Failed to revoke key');
+    }
+    async function loadUsage() {
+      const res = await fetch(`${API}/user/usage?limit=20`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data = await res.json();
+      const tbody = document.getElementById('usage-list');
+      if (!data.logs || data.logs.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="tbl-empty">No usage yet.</td></tr>'; return; }
+      tbody.innerHTML = data.logs.map(log => `<tr>
+        <td>${new Date(log.created_at).toLocaleString()}</td>
+        <td style="font-size:11px;color:var(--gold-dim)">${log.model}</td>
+        <td class="r">${(log.prompt_tokens + log.completion_tokens).toLocaleString()}</td>
+        <td class="r">$${(log.cost_cents / 100).toFixed(4)}</td>
+        <td class="c">${log.gateway_cache_hit ? '<span class="badge-green">Cached</span>' : '<span style="color:var(--muted)">&#8212;</span>'}</td>
+      </tr>`).join('');
+    }
+    async function loadBillingView() { await loadBalance(); await loadPackages(); await loadTransactions(); }
+    async function loadPackages() {
+      const res = await fetch(`${API}/billing/packages`);
+      const grid = document.getElementById('pkg-grid');
+      if (!res.ok) { grid.innerHTML = '<div style="color:var(--muted);font-size:11px">Unable to load packages.</div>'; return; }
+      const data = await res.json();
+      if (!data.billing_enabled) {
+        document.getElementById('billing-disabled-msg').style.display = 'block';
+        grid.innerHTML = ''; return;
+      }
+      document.getElementById('billing-disabled-msg').style.display = 'none';
+      grid.innerHTML = data.packages.map(p => `<button class="pkg-btn" onclick="createCheckout(${p.amount_cents})">${p.label}<small>USD</small></button>`).join('');
+    }
+    async function loadTransactions() {
+      const res = await fetch(`${API}/billing/transactions`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const txns = await res.json();
+      const tbody = document.getElementById('transactions-list');
+      if (txns.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="tbl-empty">No transactions yet.</td></tr>'; return; }
+      tbody.innerHTML = txns.map(t => `<tr>
+        <td>${new Date(t.created_at).toLocaleString()}</td>
+        <td>${t.type === 'credit_add' ? '<span class="badge-green">credit</span>' : t.type === 'usage_payment' ? '<span class="badge-red">usage</span>' : '<span class="badge-muted">' + t.type + '</span>'}</td>
+        <td class="r" style="color:${t.amount_cents > 0 ? 'var(--success)' : 'var(--danger)'}">
+          ${t.amount_cents > 0 ? '+' : ''}$${(Math.abs(t.amount_cents) / 100).toFixed(2)}</td>
+        <td style="font-size:11px;color:var(--muted)">${t.description || '&#8212;'}</td>
+      </tr>`).join('');
+    }
+    async function createCheckout(amountCents) {
+      const res = await fetch(`${API}/billing/create-checkout`, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ amountCents }) });
+      if (res.ok) { const d = await res.json(); window.location.href = d.url; }
+      else { const e = await res.json().catch(() => ({ error: 'Billing unavailable' })); toast('Error: ' + e.error); }
+    }
+    function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
+    init();
+  </script>
+</body>
+</html>

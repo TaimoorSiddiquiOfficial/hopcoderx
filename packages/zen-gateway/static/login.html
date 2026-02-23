@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HopCoderX BDR — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808; --surface: #101010; --border: #1e1e1e;
+      --gold: #c9a227; --gold-hi: #f0c040; --gold-dim: #6b5512;
+      --text: #e0e0e0; --muted: #555; --danger: #c0392b;
+      --mono: 'JetBrains Mono', 'Courier New', monospace;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--mono);
+      display: flex; align-items: center; justify-content: center; }
+    body::before { content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,162,39,.07) 0%, transparent 70%);
+      pointer-events: none; }
+    .card { width: 420px; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 3px;
+      box-shadow: 0 0 40px rgba(201,162,39,.1), inset 0 1px 0 rgba(240,192,64,.06); padding: 40px; position: relative; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .logo { text-align: center; margin-bottom: 36px; }
+    .logo-title { font-size: 22px; font-weight: 700; letter-spacing: .08em; color: var(--gold);
+      text-shadow: 0 0 24px rgba(201,162,39,.45); }
+    .logo-sub { font-size: 10px; color: var(--muted); letter-spacing: .22em; text-transform: uppercase; margin-top: 6px; }
+    .blink { display: inline-block; animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .section-label { font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--gold-dim);
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .section-label::before { content: '❯'; color: var(--gold); }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    label { display: block; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+    input { width: 100%; background: #070707; border: 1px solid var(--border); border-radius: 2px;
+      color: var(--text); font-family: var(--mono); font-size: 13px; padding: 10px 12px; margin-bottom: 14px; outline: none; transition: border-color .2s; }
+    input:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 2px rgba(201,162,39,.07); }
+    .btn { width: 100%; background: linear-gradient(135deg, #1a1500, #252000); border: 1px solid var(--gold-dim);
+      border-radius: 2px; color: var(--gold); font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: .18em; text-transform: uppercase; padding: 12px; cursor: pointer; transition: all .2s; margin-top: 4px; }
+    .btn:hover { background: linear-gradient(135deg, #2a2000, #3a2d00); border-color: var(--gold);
+      color: var(--gold-hi); box-shadow: 0 0 18px rgba(201,162,39,.18); }
+    .toggle { text-align: center; margin-top: 20px; font-size: 11px; color: var(--muted); }
+    .toggle a { color: var(--gold); text-decoration: none; }
+    .toggle a:hover { color: var(--gold-hi); }
+    .err { background: rgba(192,57,43,.1); border: 1px solid rgba(192,57,43,.3); color: #e74c3c;
+      font-size: 11px; padding: 9px 12px; border-radius: 2px; margin-bottom: 14px; display: none; }
+    .view { display: none; }
+    .view.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-title">HopCoderX<span class="blink">_</span>BDR</div>
+      <div class="logo-sub">AI Gateway &middot; Terminal Interface</div>
+    </div>
+    <div id="login-view" class="view active">
+      <div class="section-label">Authenticate</div>
+      <div id="login-err" class="err"></div>
+      <form id="login-form">
+        <label>Email Address</label>
+        <input type="email" id="login-email" autocomplete="email" required placeholder="user@example.com">
+        <label>Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" required placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
+        <button type="submit" class="btn">Sign In &#10095;</button>
+      </form>
+      <div class="toggle">No account? <a href="#" onclick="showRegister()">Register</a></div>
+    </div>
+    <div id="register-view" class="view">
+      <div class="section-label">Create Account</div>
+      <div id="reg-err" class="err"></div>
+      <form id="register-form">
+        <label>Email Address</label>
+        <input type="email" id="register-email" autocomplete="email" required placeholder="user@example.com">
+        <label>Password <span style="color:var(--gold-dim)">(min 8 chars)</span></label>
+        <input type="password" id="register-password" autocomplete="new-password" required minlength="8" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
+        <button type="submit" class="btn">Create Account &#10095;</button>
+      </form>
+      <div class="toggle">Have an account? <a href="#" onclick="showLogin()">Sign in</a></div>
+    </div>
+  </div>
+  <script>
+    const API = '/api';
+    const token = localStorage.getItem('token');
+    if (token) verifyToken();
+    document.getElementById('login-form').addEventListener('submit', login);
+    document.getElementById('register-form').addEventListener('submit', register);
+    async function verifyToken() {
+      const res = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) { const u = await res.json(); window.location.href = u.role === 'admin' ? '/admin' : '/dashboard'; }
+      else localStorage.removeItem('token');
+    }
+    function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
+    function clearErr(id) { document.getElementById(id).style.display = 'none'; }
+    async function login(e) {
+      e.preventDefault(); clearErr('login-err');
+      const res = await fetch(`${API}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('login-email').value, password: document.getElementById('login-password').value }) });
+      if (res.ok) { const d = await res.json(); localStorage.setItem('token', d.token); window.location.href = d.user.role === 'admin' ? '/admin' : '/dashboard'; }
+      else { const err = await res.json().catch(() => ({ error: 'Login failed' })); showErr('login-err', '❯ ' + err.error); }
+    }
+    async function register(e) {
+      e.preventDefault(); clearErr('reg-err');
+      const pw = document.getElementById('register-password').value;
+      if (pw.length < 8) return showErr('reg-err', '❯ Password must be at least 8 characters');
+      const res = await fetch(`${API}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('register-email').value, password: pw }) });
+      if (res.ok) { const d = await res.json(); localStorage.setItem('token', d.token); window.location.href = d.user.role === 'admin' ? '/admin' : '/dashboard'; }
+      else { const err = await res.json().catch(() => ({ error: 'Registration failed' })); showErr('reg-err', '❯ ' + err.error); }
+    }
+    function showLogin() { document.getElementById('login-view').classList.add('active'); document.getElementById('register-view').classList.remove('active'); }
+    function showRegister() { document.getElementById('login-view').classList.remove('active'); document.getElementById('register-view').classList.add('active'); }
+  </script>
+</body>
+</html>

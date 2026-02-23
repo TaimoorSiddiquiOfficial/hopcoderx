@@ -82,6 +82,7 @@
     "@hopcoderx/plugin": "workspace:*",
     "@hopcoderx/script": "workspace:*",
     "@hopcoderx/sdk": "workspace:*",
+    "@hopcoderx/bdr-provider": "workspace:*",
     "typescript": "catalog:"
   },
   "repository": {

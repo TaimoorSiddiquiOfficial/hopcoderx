@@ -1,0 +1,45 @@
+name = "hopcoderx-bdr"
+main = "src/index.ts"
+compatibility_date = "2025-02-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = false
+
+# ─── D1 Database ──────────────────────────────────────────────────────────────
+# Step 1: Run `wrangler d1 create hopcoderx-bdr` and paste the database_id here
+[[d1_databases]]
+binding = "DB"
+database_name = "hopcoderx-bdr"
+database_id = "34b6b865-1d6e-46d3-baad-26da07dcb3c6"
+
+# ─── KV Namespaces ────────────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "CACHE"
+id = "5dd06c51b46d4c29b0a987eb2167c4ab"
+
+# ─── Plain (non-secret) vars ──────────────────────────────────────────────────
+[vars]
+SITE_URL              = "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev"
+CLOUDFLARE_ACCOUNT_ID = "6b97f9ad3af6dde786bc87b42b31e8a0"
+CLOUDFLARE_GATEWAY_ID = "hopcoderx-bdr"
+
+# ─── Secrets (never put values here — use `wrangler secret put`) ──────────────
+# JWT_SECRET              – openssl rand -base64 32
+# CLOUDFLARE_GATEWAY_TOKEN – AI Gateway → API Token (cf-aig-authorization)
+# OPENROUTER_API_KEY      – openrouter.ai/keys
+# STRIPE_SECRET_KEY       – Stripe Dashboard → Developers → API Keys
+# STRIPE_WEBHOOK_SECRET   – Stripe Dashboard → Developers → Webhooks → Signing secret
+
+# ─── Custom domain (uncomment after adding domain in Cloudflare Dashboard) ────
+# routes = [
+#   { pattern = "bdr.hopcoder.dev/*", zone_name = "hopcoder.dev" }
+# ]
+
+# ─── Local dev overrides (only applied with --env dev / wrangler dev) ─────────
+[env.dev.vars]
+JWT_SECRET            = "local-dev-secret-change-in-production-please"
+CLOUDFLARE_ACCOUNT_ID = "6b97f9ad3af6dde786bc87b42b31e8a0"
+CLOUDFLARE_GATEWAY_ID = "hopcoderx-bdr"

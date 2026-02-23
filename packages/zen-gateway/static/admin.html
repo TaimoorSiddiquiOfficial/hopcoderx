@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HopCoderX BDR &mdash; Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808; --surface: #0f0f0f; --surface2: #131313; --border: #1c1c1c;
+      --gold: #c9a227; --gold-hi: #f0c040; --gold-dim: #6b5512; --gold-faint: rgba(201,162,39,.05);
+      --text: #e0e0e0; --muted: #555; --muted2: #2a2a2a;
+      --danger: #c0392b; --danger-dim: rgba(192,57,43,.12);
+      --success: #27ae60; --success-dim: rgba(39,174,96,.1);
+      --warn: #d4a017; --warn-dim: rgba(212,160,23,.1);
+      --mono: 'JetBrains Mono', 'Courier New', monospace;
+    }
+    body { font-family: var(--mono); background: var(--bg); color: var(--text); min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 100% 40% at 50% 0%, rgba(201,162,39,.04) 0%, transparent 60%); pointer-events: none; }
+    nav { background: #060606; border-bottom: 1px solid var(--border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-size: 14px; font-weight: 700; color: var(--gold); letter-spacing: .06em; display: flex; align-items: center; gap: 10px; }
+    .nav-badge { font-size: 9px; border: 1px solid rgba(201,162,39,.5); color: var(--gold); background: rgba(201,162,39,.08); padding: 2px 8px; border-radius: 2px; letter-spacing: .15em; text-transform: uppercase; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-email { font-size: 11px; color: var(--muted); margin-right: 4px; }
+    .layout { display: grid; grid-template-columns: 210px 1fr; gap: 20px; max-width: 1280px; margin: 28px auto; padding: 0 24px; }
+    .sidebar { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 16px; height: fit-content; position: sticky; top: 72px; }
+    .sidebar-title { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .nav-item { display: block; padding: 9px 12px; border-radius: 2px; font-size: 11px; letter-spacing: .05em; color: var(--muted); cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: all .15s; margin-bottom: 2px; }
+    .nav-item:hover { color: var(--gold); background: var(--gold-faint); }
+    .nav-item.active { color: var(--gold); background: var(--gold-faint); border-left: 2px solid var(--gold); padding-left: 10px; }
+    .btn { background: linear-gradient(135deg, #1a1500, #222000); border: 1px solid var(--gold-dim); border-radius: 2px; color: var(--gold); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 7px 14px; cursor: pointer; transition: all .18s; }
+    .btn:hover { border-color: var(--gold); color: var(--gold-hi); box-shadow: 0 0 12px rgba(201,162,39,.15); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--muted2); color: var(--text); box-shadow: none; }
+    .btn-danger { background: var(--danger-dim); border: 1px solid rgba(192,57,43,.3); color: #e74c3c; }
+    .btn-danger:hover { border-color: var(--danger); box-shadow: 0 0 10px rgba(192,57,43,.15); }
+    .btn-warn { background: var(--warn-dim); border: 1px solid rgba(212,160,23,.3); color: var(--warn); }
+    .btn-warn:hover { border-color: var(--warn); }
+    .btn-sm { padding: 4px 9px; font-size: 9px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 22px; position: relative; margin-bottom: 20px; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); display: flex; align-items: center; gap: 8px; }
+    .card-title::before { content: '❯'; opacity: .6; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 16px; text-align: center; }
+    .stat-val { font-size: 22px; font-weight: 700; color: var(--gold-hi); margin-bottom: 4px; }
+    .stat-lbl { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .tbl th { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; background: var(--surface2); }
+    .tbl th.r { text-align: right; } .tbl th.c { text-align: center; }
+    .tbl td { padding: 9px 10px; border-bottom: 1px solid var(--muted2); color: var(--text); vertical-align: middle; }
+    .tbl td.r { text-align: right; } .tbl td.c { text-align: center; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: var(--gold-faint); }
+    .tbl-empty { padding: 28px; text-align: center; color: var(--muted); font-size: 11px; }
+    .bdg { font-size: 8px; padding: 2px 7px; border-radius: 2px; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+    .bdg-gold { background: rgba(201,162,39,.12); border: 1px solid var(--gold-dim); color: var(--gold); }
+    .bdg-muted { background: rgba(255,255,255,.04); border: 1px solid var(--border); color: var(--muted); }
+    .bdg-green { background: var(--success-dim); border: 1px solid rgba(39,174,96,.2); color: #2ecc71; }
+    .bdg-red { background: var(--danger-dim); border: 1px solid rgba(192,57,43,.3); color: #e74c3c; }
+    .bdg-warn { background: var(--warn-dim); border: 1px solid rgba(212,160,23,.25); color: var(--warn); }
+    .view { display: none; } .view.active { display: block; }
+    /* Settings tabs */
+    .stabs { display: flex; gap: 2px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stab { background: transparent; border: 1px solid var(--border); border-radius: 2px; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 6px 14px; cursor: pointer; transition: all .15s; }
+    .stab:hover { color: var(--gold); border-color: var(--gold-dim); }
+    .stab.active { color: var(--gold); border-color: var(--gold); background: var(--gold-faint); }
+    .spane { display: none; } .spane.active { display: block; }
+    /* Forms */
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .form-hint { font-size: 10px; color: var(--muted); margin-top: 5px; }
+    input[type=text], input[type=password], input[type=number], input[type=email], select, textarea { width: 100%; background: #070707; border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: var(--mono); font-size: 12px; padding: 9px 12px; outline: none; transition: border-color .2s; }
+    textarea { resize: vertical; min-height: 80px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 2px rgba(201,162,39,.06); }
+    select option { background: var(--surface); color: var(--text); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .form-check { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text); }
+    input[type=checkbox] { accent-color: var(--gold); width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+    .section-header { font-size: 10px; letter-spacing: .13em; text-transform: uppercase; color: var(--gold-dim); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 14px; margin-top: 6px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot-green { background: #27ae60; } .dot-red { background: #c0392b; } .dot-warn { background: var(--warn); }
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 3px; padding: 28px; max-width: 520px; width: 100%; position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .modal-title { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .invite-url { background: #070707; border: 1px solid var(--border); padding: 10px 12px; font-size: 10px; color: var(--gold-dim); word-break: break-all; border-radius: 2px; margin-top: 8px; }
+    .period-btn.active { color: var(--gold) !important; border-color: var(--gold) !important; background: var(--gold-faint) !important; }
+    /* Chart bar */
+    .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .bar-label { font-size: 9px; color: var(--muted); width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+    .bar-track { flex: 1; background: var(--muted2); border-radius: 2px; height: 8px; }
+    .bar-fill { height: 8px; border-radius: 2px; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
+    .bar-val { font-size: 9px; color: var(--muted); width: 60px; text-align: right; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">HopCoderX BDR <span class="nav-badge">Admin</span></div>
+  <div class="nav-right">
+    <span class="nav-email" id="admin-email"></span>
+    <a href="/dashboard" class="btn btn-ghost btn-sm">Dashboard</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-title">Admin Panel</div>
+    <button class="nav-item active" id="nav-models"    onclick="showSection('models')">Models</button>
+    <button class="nav-item"        id="nav-users"     onclick="showSection('users')">Users</button>
+    <button class="nav-item"        id="nav-analytics" onclick="showSection('analytics')">Analytics</button>
+    <button class="nav-item"        id="nav-invites"      onclick="showSection('invites')">Invites</button>
+    <button class="nav-item"        id="nav-providers"    onclick="showSection('providers')">Providers</button>
+    <button class="nav-item"        id="nav-transactions" onclick="showSection('transactions')">Transactions</button>
+    <button class="nav-item"        id="nav-health"       onclick="showSection('health')">Health</button>
+    <button class="nav-item"        id="nav-spend"        onclick="showSection('spend')">Spend Leaderboard</button>
+    <button class="nav-item"        id="nav-aliases"      onclick="showSection('aliases')">Model Aliases</button>
+    <button class="nav-item"        id="nav-routing"      onclick="showSection('routing')">Routing Rules</button>
+    <button class="nav-item"        id="nav-settings"     onclick="showSection('settings')">Settings</button>
+  </div>
+
+  <div>
+    <!-- MODELS -->
+    <div id="models-view" class="view active">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Model Management</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="importWorkersAI()">Import Workers AI</button>
+            <button class="btn btn-sm" onclick="importOpenRouter()">Import OpenRouter</button>
+            <button class="btn btn-ghost btn-sm" onclick="syncPrices()">&#8635; Sync Prices</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Model ID</th><th>Name</th>
+              <th class="r">Input $/1M</th><th class="r">Output $/1M</th>
+              <th class="c">Featured</th><th class="c">Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="models-table"><tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="users-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">User Management</div>
+          <button class="btn btn-sm" onclick="createInvite()">+ Invite User</button>
+        </div>
+        <div style="margin-bottom:12px">
+          <input type="text" id="user-search" placeholder="&#128269; Filter users by email..." oninput="filterUsers()" style="max-width:320px;font-size:11px;padding:6px 12px">
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Email</th><th>Role</th><th>Status</th>
+              <th class="r">Balance</th><th class="r">Limit/mo</th>
+              <th class="c">Keys</th><th>Provider</th><th>Joined</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="users-table"><tr><td colspan="9" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="analytics-view" class="view">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Period</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm period-btn" data-days="7" onclick="setAnalyticsDays(7)">7d</button>
+          <button class="btn btn-ghost btn-sm period-btn active" data-days="30" onclick="setAnalyticsDays(30)">30d</button>
+          <button class="btn btn-ghost btn-sm period-btn" data-days="90" onclick="setAnalyticsDays(90)">90d</button>
+        </div>
+      </div>
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Requests (30d)</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Tokens (30d)</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Revenue (30d)</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Active Users</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Provider Cost (30d)</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Profit (30d)</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Margin %</div></div>
+        <div class="stat"><div class="stat-val">-</div><div class="stat-lbl">Cache Hit Rate</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title" id="top-models-title">Top Models (30d)</div></div>
+        <div id="top-models-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title" id="daily-chart-title">Daily Requests (30d)</div></div>
+        <div id="daily-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Provider Breakdown</div></div>
+        <div id="providers-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Recent Requests</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Time</th><th>User</th><th>Model</th><th class="r">Tokens</th><th class="r">Revenue</th><th class="r">Provider Cost</th><th class="r">Profit</th></tr></thead>
+            <tbody id="recent-table"><tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVITES -->
+    <div id="invites-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Invite Links</div>
+          <button class="btn btn-sm" onclick="createInvite()">+ New Invite</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Token (prefix)</th><th>For Email</th><th>Used By</th><th>Expires</th><th>Created</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="invites-table"><tr><td colspan="6" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="settings-view" class="view">
+      <div class="stabs">
+        <button class="stab active" onclick="showStab('general')">General</button>
+        <button class="stab" onclick="showStab('auth')">Auth &amp; Verification</button>
+        <button class="stab" onclick="showStab('routing')">Routing &amp; Limits</button>
+        <button class="stab" onclick="showStab('billing')">Billing</button>
+        <button class="stab" onclick="showStab('email')">Email / SMTP</button>
+        <button class="stab" onclick="showStab('security')">Security</button>
+      </div>
+
+      <!-- General -->
+      <div id="stab-general" class="spane active">
+        <div class="card">
+          <div class="card-header"><div class="card-title">General</div></div>
+          <form id="form-general">
+            <div class="form-group">
+              <label class="form-label">Site / Worker URL</label>
+              <input type="text" id="s-site-url" placeholder="https://yourworker.workers.dev">
+              <div class="form-hint">Used for Stripe redirect URLs and invite links.</div>
+            </div>
+            <div class="form-group">
+              <div class="form-check">
+                <input type="checkbox" id="s-maintenance-mode">
+                <label for="s-maintenance-mode">Maintenance Mode</label>
+                <span style="font-size:10px;color:var(--muted);margin-left:6px">Blocks all non-admin API requests.</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Custom System Prompt (injected into all requests)</label>
+              <textarea id="s-custom-prompt" placeholder="Optional. Leave blank to disable."></textarea>
+            </div>
+            <button type="submit" class="btn">Save &#10095;</button>
+            <span class="save-status" data-form="general"></span>
+          </form>
+        </div>
+      </div>
+
+      <!-- Auth -->
+      <div id="stab-auth" class="spane">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Registration &amp; Auth Methods</div></div>
+          <form id="form-auth">
+            <div class="section-header">Registration</div>
+            <div class="form-group">
+              <label class="form-label">Registration Mode</label>
+              <select id="s-reg-mode">
+                <option value="open">Open (anyone can register)</option>
+                <option value="invite_only">Invite Only</option>
+                <option value="disabled">Disabled (admins only)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Required Email Domain</label>
+              <input type="text" id="s-email-domain" placeholder="@company.com (leave blank for any)">
+              <div class="form-hint">Only emails ending in this domain may register.</div>
+            </div>
+            <div class="form-group">
+              <div class="form-check">
+                <input type="checkbox" id="s-email-verify">
+                <label for="s-email-verify">Require email verification before login</label>
+              </div>
+              <div class="form-hint">Requires SMTP settings configured below.</div>
+            </div>
+            <div class="section-header" style="margin-top:22px">Auth Methods</div>
+            <div class="form-group">
+              <div class="form-check" style="margin-bottom:10px">
+                <input type="checkbox" id="s-auth-password">
+                <label for="s-auth-password">Password (email + password)</label>
+              </div>
+              <div class="form-check" style="margin-bottom:10px">
+                <input type="checkbox" id="s-auth-magic">
+                <label for="s-auth-magic">Magic Link (passwordless email login)</label>
+                <span style="font-size:9px;color:var(--muted);margin-left:6px">Requires SMTP</span>
+              </div>
+              <div class="form-check" style="margin-bottom:10px">
+                <input type="checkbox" id="s-auth-google">
+                <label for="s-auth-google">Google OAuth</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" id="s-auth-github">
+                <label for="s-auth-github">GitHub OAuth</label>
+              </div>
+            </div>
+            <div id="oauth-google-fields">
+              <div class="section-header">Google OAuth</div>
+              <div class="form-row form-group">
+                <div>
+                  <label class="form-label">Google Client ID</label>
+                  <input type="text" id="s-google-id" placeholder="xxxx.apps.googleusercontent.com">
+                </div>
+                <div>
+                  <label class="form-label">Google Client Secret</label>
+                  <input type="password" id="s-google-secret" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226; (set to update)">
+                </div>
+              </div>
+            </div>
+            <div id="oauth-github-fields">
+              <div class="section-header">GitHub OAuth</div>
+              <div class="form-row form-group">
+                <div>
+                  <label class="form-label">GitHub Client ID</label>
+                  <input type="text" id="s-github-id" placeholder="Ov23li...">
+                </div>
+                <div>
+                  <label class="form-label">GitHub Client Secret</label>
+                  <input type="password" id="s-github-secret" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226; (set to update)">
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn">Save &#10095;</button>
+            <span class="save-status" data-form="auth"></span>
+          </form>
+        </div>
+      </div>
+
+      <!-- Routing -->
+      <div id="stab-routing" class="spane">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Routing &amp; Limits</div></div>
+          <form id="form-routing">
+            <div class="form-group">
+              <label class="form-label">OpenRouter API Key</label>
+              <input type="password" id="s-or-key" placeholder="sk-or-&#8230; (set to update)">
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <label class="form-label">Markup Type</label>
+                <select id="s-markup-type">
+                  <option value="none">None (cost pass-through)</option>
+                  <option value="percentage">Percentage %</option>
+                  <option value="flat">Flat per 1M tokens (cents)</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Markup Value</label>
+                <input type="number" id="s-markup-val" placeholder="20 = 20%">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Default Monthly Limit (cents)</label>
+              <input type="number" id="s-monthly-limit" placeholder="10000">
+              <div class="form-hint">10000 = $100. Applied to new users on registration.</div>
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <label class="form-label">Max Tokens Per Request</label>
+                <input type="number" id="s-max-tokens" placeholder="0 = unlimited">
+              </div>
+              <div>
+                <label class="form-label">Rate Limit Per API Key (req/min)</label>
+                <input type="number" id="s-rate-limit">
+              </div>
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <div class="form-check" style="margin-bottom:8px">
+                  <input type="checkbox" id="s-cache-enabled">
+                  <label for="s-cache-enabled">Enable Response Cache</label>
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Cache TTL (seconds)</label>
+                <input type="number" id="s-cache-ttl" placeholder="300">
+              </div>
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <label class="form-label">Request Timeout (ms)</label>
+                <input type="number" id="s-timeout-ms" placeholder="30000">
+                <div class="form-hint">ms before upstream is cancelled.</div>
+              </div>
+              <div>
+                <label class="form-label">Max Retries</label>
+                <input type="number" id="s-retry-attempts" placeholder="2" min="0" max="10">
+                <div class="form-hint">Retry failed providers.</div>
+              </div>
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <label class="form-label">Circuit Breaker Threshold</label>
+                <input type="number" id="s-cb-threshold" placeholder="5" min="1">
+                <div class="form-hint">Failures before opening circuit.</div>
+              </div>
+              <div>
+                <label class="form-label">Circuit Breaker Cooldown (ms)</label>
+                <input type="number" id="s-cb-cooldown" placeholder="60000">
+                <div class="form-hint">ms before half-open probe.</div>
+              </div>
+            </div>
+            <button type="submit" class="btn">Save &#10095;</button>
+            <span class="save-status" data-form="routing"></span>
+          </form>
+        </div>
+      </div>
+
+      <!-- Billing -->
+      <div id="stab-billing" class="spane">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Stripe Billing</div></div>
+          <form id="form-billing">
+            <div class="form-group">
+              <div class="form-check">
+                <input type="checkbox" id="s-billing-enabled">
+                <label for="s-billing-enabled">Billing Enabled</label>
+                <span style="font-size:10px;color:var(--muted);margin-left:6px">Requires all Stripe keys below.</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stripe Publishable Key</label>
+              <input type="text" id="s-stripe-pub" placeholder="pk_live_&#8230;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stripe Secret Key</label>
+              <input type="password" id="s-stripe-secret" placeholder="sk_live_&#8230; (set to update)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stripe Webhook Secret</label>
+              <input type="password" id="s-stripe-webhook" placeholder="whsec_&#8230; (set to update)">
+            </div>
+            <button type="submit" class="btn">Save &#10095;</button>
+            <span class="save-status" data-form="billing"></span>
+          </form>
+        </div>
+      </div>
+
+      <!-- Email/SMTP -->
+      <div id="stab-email" class="spane">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Email / SMTP</div></div>
+          <form id="form-email">
+            <div class="form-row form-group">
+              <div>
+                <label class="form-label">SMTP Host</label>
+                <input type="text" id="s-smtp-host" placeholder="smtp.sendgrid.net">
+              </div>
+              <div>
+                <label class="form-label">SMTP Port</label>
+                <input type="number" id="s-smtp-port" placeholder="587">
+              </div>
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <label class="form-label">SMTP Username</label>
+                <input type="text" id="s-smtp-user" placeholder="apikey">
+              </div>
+              <div>
+                <label class="form-label">SMTP Password</label>
+                <input type="password" id="s-smtp-pass" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226; (set to update)">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">From Address</label>
+              <input type="email" id="s-smtp-from" placeholder="noreply@example.com">
+            </div>
+            <div class="form-hint" style="margin-bottom:14px">Used for email verification, magic links, and password resets. Compatible with SendGrid, Mailgun, Postmark, etc.</div>
+            <button type="submit" class="btn">Save &#10095;</button>
+            <span class="save-status" data-form="email"></span>
+          </form>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div id="stab-security" class="spane">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Security</div></div>
+          <form id="form-security">
+            <div class="form-group">
+              <label class="form-label">IP Allowlist (CIDR, comma-separated)</label>
+              <textarea id="s-ip-allowlist" placeholder="Leave blank to allow all IPs&#10;e.g.: 1.2.3.4/32, 10.0.0.0/8"></textarea>
+              <div class="form-hint">Only listed IPs will be allowed to call gateway endpoints. Applies after auth.</div>
+            </div>
+            <div class="form-row form-group">
+              <div>
+                <div class="form-check">
+                  <input type="checkbox" id="s-req-logging">
+                  <label for="s-req-logging">Request Logging</label>
+                </div>
+                <div class="form-hint">Stores usage records in D1 for analytics and billing.</div>
+              </div>
+              <div>
+                <label class="form-label">Log Retention (days)</label>
+                <input type="number" id="s-log-retention" placeholder="90">
+              </div>
+            </div>
+            <button type="submit" class="btn">Save &#10095;</button>
+            <span class="save-status" data-form="security"></span>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROVIDERS -->
+    <div id="providers-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Provider Configs</div>
+          <button class="btn btn-sm" onclick="openProviderModal()">+ Add Provider</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:14px">Configure upstream API providers for routing, fallback, and load balancing. Lower priority = tried first. Weight balances traffic between same-priority providers.</div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Name</th><th>Type</th><th>Base URL</th>
+              <th class="c">Priority</th><th class="c">Weight</th>
+              <th class="c">Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="providers-table"><tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div id="transactions-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Transaction Ledger</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="txn-type-filter" onchange="loadTransactions()" style="font-size:10px;padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--mono)">
+              <option value="">All Types</option>
+              <option value="stripe_deposit">Stripe Deposit</option>
+              <option value="admin_adjust">Admin Adjust</option>
+              <option value="usage_deduct">Usage Deduct</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="exportUsage()">&#11019; Export Usage CSV</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Time</th><th>User</th><th>Type</th><th class="r">Amount</th><th>Description</th>
+            </tr></thead>
+            <tbody id="transactions-table"><tr><td colspan="5" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH CHECK -->
+    <div id="health-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Provider Health</div>
+          <button class="btn btn-sm" onclick="loadHealth(true)">&#8635; Run Checks</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:14px">Tests each active provider with a single completion call and measures latency.</div>
+        <div id="health-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px"></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Provider</th><th>Type</th><th class="c">Status</th><th class="r">Latency</th><th>Details</th>
+            </tr></thead>
+            <tbody id="health-table"><tr><td colspan="5" class="tbl-empty">Click "Run Checks" to test providers&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">
+          <div class="card-title">Circuit Breaker States</div>
+          <button class="btn btn-sm" onclick="loadCircuitBreaker()">&#8635; Refresh</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:14px">Automatic circuit breakers trip when a provider exceeds the failure threshold. Reset manually to restore immediately.</div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Provider</th><th class="c">State</th><th class="r">Failures</th><th>Last Failure</th><th>Action</th>
+            </tr></thead>
+            <tbody id="cb-table"><tr><td colspan="5" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPEND LEADERBOARD -->
+    <div id="spend-view" class="view">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm period-btn active" data-spdays="7"  onclick="setSpendDays(7)">7d</button>
+        <button class="btn btn-ghost btn-sm period-btn"        data-spdays="30" onclick="setSpendDays(30)">30d</button>
+        <button class="btn btn-ghost btn-sm period-btn"        data-spdays="90" onclick="setSpendDays(90)">90d</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Top Keys by Spend</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Key</th><th>User</th><th class="r">Requests</th><th class="r">Tokens</th>
+              <th class="r">Charged ($)</th><th class="r">Provider ($)</th><th class="r">Profit ($)</th>
+            </tr></thead>
+            <tbody id="spend-keys-table"><tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><div class="card-title">Top Models by Revenue</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Model</th><th class="r">Requests</th><th class="r">Tokens</th>
+              <th class="r">Revenue ($)</th><th class="r">Cost ($)</th><th class="r">Profit ($)</th><th class="r">Avg Latency</th>
+            </tr></thead>
+            <tbody id="spend-models-table"><tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODEL ALIASES -->
+    <div id="aliases-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Model Aliases</div>
+          <button class="btn btn-sm" onclick="openAliasModal()">+ New Alias</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:14px">Map short names (e.g. <code>fastest</code>) to real model IDs. Clients send the alias; the gateway resolves it transparently.</div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Alias</th><th>Model ID</th><th>Description</th><th class="c">Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="aliases-table"><tr><td colspan="5" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROUTING RULES -->
+    <div id="routing-view" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Routing Rules</div>
+          <button class="btn btn-sm" onclick="openRoutingModal()">+ New Rule</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:14px">Conditional routing: match on metadata fields, tags, or model param and redirect to a different model. Rules evaluated by priority (lower = first).</div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Name</th><th class="r">Priority</th><th>Condition</th><th>Target Model</th><th class="c">Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="routing-table"><tr><td colspan="6" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Alias Modal -->
+<div id="alias-modal" class="modal-overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><span class="modal-title" id="alias-modal-title">New Alias</span><button class="modal-close" onclick="closeModal('alias-modal')">&#10005;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="alias-id">
+      <div class="form-group"><label class="form-label">Alias <span style="color:var(--error)">*</span></label>
+        <input class="form-input" id="alias-alias" placeholder="fastest, smart, cheap…"></div>
+      <div class="form-group"><label class="form-label">Model ID <span style="color:var(--error)">*</span></label>
+        <input class="form-input" id="alias-model" placeholder="openai/gpt-4o-mini"></div>
+      <div class="form-group"><label class="form-label">Description</label>
+        <input class="form-input" id="alias-desc" placeholder="Optional note"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:4px;cursor:pointer">
+        <input type="checkbox" id="alias-active" checked> <span class="form-label" style="margin:0">Active</span></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('alias-modal')">Cancel</button>
+      <button class="btn" onclick="saveAlias()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Routing Rule Modal -->
+<div id="routing-modal" class="modal-overlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><span class="modal-title" id="routing-modal-title">New Routing Rule</span><button class="modal-close" onclick="closeModal('routing-modal')">&#10005;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="routing-id">
+      <div class="form-group"><label class="form-label">Name <span style="color:var(--error)">*</span></label>
+        <input class="form-input" id="routing-name" placeholder="e.g. Route paid users to GPT-4o"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Priority</label>
+          <input class="form-input" id="routing-priority" type="number" value="0" min="0"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-input" id="routing-active"><option value="1">Active</option><option value="0">Disabled</option></select></div>
+      </div>
+      <div class="form-hint" style="margin-top:-4px;margin-bottom:12px">Condition — If</div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 2fr;gap:8px;margin-bottom:12px">
+        <div><label class="form-label" style="font-size:10px">Field</label>
+          <input class="form-input" id="routing-field" placeholder="metadata.user_plan, tag, params.model"></div>
+        <div><label class="form-label" style="font-size:10px">Op</label>
+          <select class="form-input" id="routing-op">
+            <option value="eq">eq</option><option value="neq">neq</option>
+            <option value="in">in (csv)</option><option value="startswith">startsWith</option>
+            <option value="regex">regex</option>
+          </select></div>
+        <div><label class="form-label" style="font-size:10px">Value</label>
+          <input class="form-input" id="routing-value" placeholder="paid"></div>
+      </div>
+      <div class="form-hint" style="margin-bottom:8px">Then route to</div>
+      <div class="form-group"><label class="form-label">Target Model ID <span style="color:var(--error)">*</span></label>
+        <input class="form-input" id="routing-target" placeholder="openai/gpt-4o"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('routing-modal')">Cancel</button>
+      <button class="btn" onclick="saveRoutingRule()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Edit Modal -->
+<div id="user-modal" class="modal-overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title" id="user-modal-title">Edit User</div>
+    <input type="hidden" id="u-id">
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="text" id="u-email" disabled style="opacity:.5">
+    </div>
+    <div class="form-row form-group">
+      <div>
+        <label class="form-label">Role</label>
+        <select id="u-role">
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Monthly Limit (cents)</label>
+        <input type="number" id="u-limit">
+      </div>
+    </div>
+    <div class="form-row form-group">
+      <div>
+        <div class="form-check">
+          <input type="checkbox" id="u-suspended">
+          <label for="u-suspended">Suspended</label>
+        </div>
+      </div>
+      <div>
+        <div class="form-check">
+          <input type="checkbox" id="u-verified">
+          <label for="u-verified">Email Verified</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adjust Balance (cents, negative to deduct)</label>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="u-balance-adj" placeholder="e.g. 1000 = +$10">
+        <button type="button" class="btn btn-sm" onclick="saveBalanceAdjust()" style="white-space:nowrap">Apply</button>
+      </div>
+    </div>
+    <div id="u-usage" style="margin-bottom:14px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="deleteUser()">Delete</button>
+      <button class="btn btn-warn btn-sm" onclick="resetPassword()">Reset PW</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-sm" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="modal-overlay">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title" id="confirm-title">Confirm</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px" id="confirm-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Modal -->
+<div id="invite-modal" class="modal-overlay">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">Create Invite Link</div>
+    <div class="form-group">
+      <label class="form-label">Email (optional — pre-fills registration)</label>
+      <input type="email" id="inv-email" placeholder="user@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Expires In (hours)</label>
+      <input type="number" id="inv-hours" value="48">
+    </div>
+    <div id="invite-result" style="display:none">
+      <div class="form-label" style="margin-bottom:6px">Invite URL (share with user):</div>
+      <div class="invite-url" id="invite-url-display"></div>
+      <button class="btn btn-sm" style="margin-top:10px" onclick="copyInviteUrl()">Copy URL</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeInviteModal()">Close</button>
+      <button class="btn btn-sm" id="invite-create-btn" onclick="submitInvite()">Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Provider Modal -->
+<div id="provider-modal" class="modal-overlay">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title" id="provider-modal-title">Add Provider</div>
+    <input type="hidden" id="prov-id">
+    <div class="form-row form-group">
+      <div>
+        <label class="form-label">Name</label>
+        <input type="text" id="prov-name" placeholder="My OpenRouter Backup">
+      </div>
+      <div>
+        <label class="form-label">Provider Type</label>
+        <select id="prov-type">
+          <option value="openrouter">OpenRouter</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="workers-ai">Cloudflare Workers AI</option>
+          <option value="cf-ai-gateway">Cloudflare AI Gateway (universal proxy)</option>
+          <option value="custom">Custom (OpenAI-compat)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input type="password" id="prov-key" placeholder="sk-&#8230; (leave blank to keep current)">
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="prov-url-label">Base URL (optional &mdash; leave blank for provider default)</label>
+      <input type="text" id="prov-url" placeholder="https://custom-endpoint.com/v1">
+      <div id="prov-url-hint" style="font-size:11px;color:var(--muted);margin-top:4px;display:none">ℹ️ <b>cf-ai-gateway</b> supports two modes (auto-detected from model format):<br>
+        &bull; <b>Compat</b> — base_url = <code>…/v1/{accountId}/{gatewayId}</code>, model = <code>openai/gpt-4o</code> (provider prefix required)<br>
+        &bull; <b>Provider-specific</b> — base_url = <code>…/{gatewayId}/openai</code>, model = <code>gpt-4o</code> (plain name)<br>
+        <b>API key</b> = your upstream provider key (e.g. OpenRouter key, OpenAI key) — sent as <code>Authorization: Bearer</code> to the provider. Required for usage tracking &amp; billing.<br>
+        Gateway-level auth token → set <code>CLOUDFLARE_GATEWAY_TOKEN</code> wrangler secret (sent as <code>cf-aig-authorization</code>).</div>
+    </div>
+    <div class="form-row form-group">
+      <div>
+        <label class="form-label">Priority (lower = tried first)</label>
+        <input type="number" id="prov-priority" value="0">
+      </div>
+      <div>
+        <label class="form-label">Weight (load balance same priority)</label>
+        <input type="number" id="prov-weight" value="100">
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-check">
+        <input type="checkbox" id="prov-active" checked>
+        <label for="prov-active">Active</label>
+      </div>
+    </div>
+    <div id="prov-test-result" style="display:none;font-size:11px;padding:8px 12px;border-radius:2px;margin-bottom:12px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeProviderModal()">Cancel</button>
+      <button class="btn btn-warn btn-sm" id="prov-test-btn" onclick="testProviderModal()" style="display:none">&#9654; Test</button>
+      <button class="btn btn-sm" onclick="saveProvider()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('token');
+let user = null, confirmCb = null, editingUserId = null;
+
+async function init() {
+  if (!token) return (window.location.href = '/login');
+  let res;
+  try { res = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } }); }
+  catch { return (window.location.href = '/login'); }
+  if (res.status === 401) { localStorage.removeItem('token'); return (window.location.href = '/login'); }
+  if (!res.ok) return (window.location.href = '/login'); // server error — keep token, re-login
+  user = await res.json();
+  if (user.role !== 'admin') { alert('Admin access required'); return (window.location.href = '/dashboard'); }
+  document.getElementById('admin-email').textContent = user.email;
+  showSection('models');
+}
+
+function showSection(s) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(s + '-view').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-' + s).classList.add('active');
+  const loaders = { models: loadModels, users: loadUsers, analytics: loadAnalytics, invites: loadInvites, settings: loadSettings, providers: loadProviders, transactions: loadTransactions, health: loadHealth, spend: loadSpendLeaderboard, aliases: loadAliases, routing: loadRoutingRules };
+  if (loaders[s]) loaders[s]();
+}
+
+function showStab(t) {
+  document.querySelectorAll('.stab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.spane').forEach(el => el.classList.remove('active'));
+  document.getElementById('stab-' + t).classList.add('active');
+  document.querySelectorAll('.stab').forEach(el => { if (el.textContent.trim().toLowerCase().startsWith(t === 'general' ? 'gen' : t === 'auth' ? 'auth' : t === 'routing' ? 'rout' : t === 'billing' ? 'bill' : t === 'email' ? 'email' : 'sec')) el.classList.add('active'); });
+}
+
+// fix stab click — use data attrs instead
+document.querySelectorAll('.stab').forEach((el, i) => {
+  const ids = ['general','auth','routing','billing','email','security'];
+  el.onclick = () => {
+    document.querySelectorAll('.stab').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.spane').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('stab-' + ids[i]).classList.add('active');
+  };
+});
+
+// ── Models ──────────────────────────────────────────────────────────
+async function loadModels() {
+  const res = await fetch(`${API}/admin/models`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const data = await res.json();
+  const tbody = document.getElementById('models-table');
+  if (!data.curated || !data.curated.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="tbl-empty">No models. Import from OpenRouter or Workers AI.</td></tr>'; return;
+  }
+  tbody.innerHTML = data.curated.map(m => `<tr>
+    <td style="font-size:10px;color:var(--gold-dim)">${m.model_id}</td>
+    <td>${m.name}</td>
+    <td class="r">$${(m.pricing_input_cents_per_m / 100).toFixed(4)}</td>
+    <td class="r">$${(m.pricing_output_cents_per_m / 100).toFixed(4)}</td>
+    <td class="c"><input type="checkbox" ${m.is_featured ? 'checked' : ''} onchange="toggleModel(${m.id},'is_featured',this.checked)"></td>
+    <td class="c"><input type="checkbox" ${m.is_active ? 'checked' : ''} onchange="toggleModel(${m.id},'is_active',this.checked)"></td>
+    <td style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="editPricing(${m.id})">Pricing</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteModel(${m.id})">Del</button>
+    </td>
+  </tr>`).join('');
+}
+async function toggleModel(id, field, val) {
+  await fetch(`${API}/admin/models/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ [field]: val }) });
+}
+async function editPricing(id) {
+  const i = prompt('Input price (cents per 1M tokens):');
+  const o = prompt('Output price (cents per 1M tokens):');
+  if (i === null || o === null) return;
+  await fetch(`${API}/admin/models/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ pricing_input_cents_per_m: parseFloat(i), pricing_output_cents_per_m: parseFloat(o) }) });
+  loadModels();
+}
+function confirmDeleteModel(id) {
+  showConfirm('Delete Model', 'Remove this model from the gateway?', () => deleteModel(id));
+}
+async function deleteModel(id) {
+  const res = await fetch(`${API}/admin/models/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  if (res.ok) loadModels();
+  else { const e = await res.json().catch(() => ({})); alert('Delete failed: ' + (e.error || res.status)); }
+}
+async function importOpenRouter() {
+  const res = await fetch(`${API}/admin/models`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return alert('Failed to load models');
+  const data = await res.json();
+  const available = (data.openrouter || []).slice(0, 60);
+  if (!available.length) return alert('No OpenRouter models available. Set OpenRouter API Key in Settings > Routing first.');
+  const preview = available.map(m => m.model_id).join('\n');
+  const raw = prompt('Available (' + available.length + '):\n' + preview + '\n\nEnter model IDs (one per line):');
+  if (!raw) return;
+  const ids = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const r = await fetch(`${API}/admin/models/import/openrouter`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ model_ids: ids }) });
+  alert(r.ok ? 'Imported ' + ids.length + ' model(s)' : 'Import failed');
+  if (r.ok) loadModels();
+}
+async function importWorkersAI() {
+  showConfirm('Import Workers AI', 'Import all Cloudflare Workers AI models?', async () => {
+    const r = await fetch(`${API}/admin/models/import/workers-ai`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    alert(r.ok ? 'Workers AI models imported' : 'Import failed');
+    if (r.ok) loadModels();
+  });
+}
+async function syncPrices() {
+  showConfirm('Sync Prices', 'Fetch latest pricing from OpenRouter and update all OpenRouter models?', async () => {
+    const r = await fetch(`${API}/admin/models/sync-prices`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (r.ok) { alert(`Synced ${d.updated}/${d.total} OpenRouter model prices`); loadModels(); }
+    else alert('Sync failed: ' + (d.error || r.status));
+  });
+}
+
+// ── Users ────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const res = await fetch(`${API}/admin/users`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  allUsers = await res.json();
+  const s = document.getElementById('user-search');
+  if (s) s.value = '';
+  renderUsersTable(allUsers);
+}
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-table');
+  if (!users.length) { tbody.innerHTML = `<tr><td colspan="9" class="tbl-empty">${allUsers.length ? 'No matches.' : 'No users yet.'}</td></tr>`; return; }
+  tbody.innerHTML = users.map(u => `<tr>
+    <td>${u.email}</td>
+    <td>${u.role === 'admin' ? '<span class="bdg bdg-gold">admin</span>' : '<span class="bdg bdg-muted">user</span>'}</td>
+    <td>${u.suspended ? '<span class="bdg bdg-red">suspended</span>' : (u.email_verified ? '<span class="bdg bdg-green">active</span>' : '<span class="bdg bdg-warn">unverified</span>')}</td>
+    <td class="r">$${((u.balance_cents || 0) / 100).toFixed(2)}</td>
+    <td class="r">$${((u.monthly_limit_cents || 0) / 100).toFixed(0)}</td>
+    <td class="c">${u.api_key_count}</td>
+    <td><span class="bdg bdg-muted">${u.auth_provider || 'password'}</span></td>
+    <td style="font-size:10px;color:var(--muted)">${(u.created_at || '').slice(0,10)}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick='openUserModal(${JSON.stringify(u)})'>Edit</button></td>
+  </tr>`).join('');
+}
+function openUserModal(u) {
+  editingUserId = u.id;
+  document.getElementById('u-id').value = u.id;
+  document.getElementById('u-email').value = u.email;
+  document.getElementById('u-role').value = u.role;
+  document.getElementById('u-limit').value = u.monthly_limit_cents;
+  document.getElementById('u-suspended').checked = !!u.suspended;
+  document.getElementById('u-verified').checked = !!u.email_verified;
+  document.getElementById('u-balance-adj').value = '';
+  document.getElementById('u-usage').innerHTML = '';
+  document.getElementById('user-modal-title').textContent = 'Edit: ' + u.email;
+  document.getElementById('user-modal').classList.add('show');
+  // Load usage
+  fetch(`${API}/admin/users/${u.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(d => {
+    const usage = d.usage || [];
+    if (!usage.length) return;
+    document.getElementById('u-usage').innerHTML = '<div class="section-header">Usage (30d)</div>' +
+      '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Model</th><th class="r">Reqs</th><th class="r">Tokens</th><th class="r">Cost</th></tr></thead><tbody>' +
+      usage.map(u => `<tr><td style="font-size:10px">${u.model}</td><td class="r">${u.requests}</td><td class="r">${(u.tokens||0).toLocaleString()}</td><td class="r">$${((u.cost||0)/100).toFixed(4)}</td></tr>`).join('') +
+      '</tbody></table></div>';
+  });
+}
+function closeUserModal() { document.getElementById('user-modal').classList.remove('show'); editingUserId = null; }
+async function saveUser() {
+  const id = document.getElementById('u-id').value;
+  const r = await fetch(`${API}/admin/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({
+    role: document.getElementById('u-role').value,
+    monthly_limit_cents: parseInt(document.getElementById('u-limit').value),
+    suspended: document.getElementById('u-suspended').checked,
+    email_verified: document.getElementById('u-verified').checked,
+  })});
+  if (r.ok) { closeUserModal(); loadUsers(); }
+  else alert('Failed to save user');
+}
+async function saveBalanceAdjust() {
+  const id = document.getElementById('u-id').value;
+  const amt = parseInt(document.getElementById('u-balance-adj').value);
+  if (!amt) return alert('Enter an amount');
+  const r = await fetch(`${API}/billing/admin/users/${id}/adjust-balance`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ amount_cents: amt, description: 'Admin adjustment' }) });
+  if (r.ok) { alert('Balance updated'); document.getElementById('u-balance-adj').value = ''; loadUsers(); }
+  else alert('Failed to adjust balance');
+}
+async function resetPassword() {
+  const id = document.getElementById('u-id').value;
+  showConfirm('Reset Password', 'Generate a new temporary password for this user?', async () => {
+    const r = await fetch(`${API}/admin/users/${id}/reset-password`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    if (r.ok) { const d = await r.json(); alert('Temporary password: ' + d.temp_password + '\n\nShare this with the user securely.'); }
+    else alert('Failed to reset password');
+  });
+}
+async function deleteUser() {
+  const id = document.getElementById('u-id').value;
+  const email = document.getElementById('u-email').value;
+  showConfirm('Delete User', 'Permanently delete ' + email + '? This also deletes all their API keys, usage logs and transactions.', async () => {
+    const r = await fetch(`${API}/admin/users/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (r.ok) { closeUserModal(); loadUsers(); }
+    else { const e = await r.json(); alert(e.error || 'Failed to delete user'); }
+  });
+}
+
+// ── Analytics ────────────────────────────────────────────────────────
+async function loadAnalytics(days) {
+  days = days || analytDays;
+  const res = await fetch(`${API}/admin/analytics?days=${days}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const d = await res.json();
+  const g = document.getElementById('stat-grid');
+  const t = d.totals || {};
+  const rev = (t.total_cost_cents || 0) / 100;
+  const prov = (t.total_provider_cost_cents || 0) / 100;
+  const profit = (t.total_profit_cents || 0) / 100;
+  const margin = t.profit_margin_pct != null ? t.profit_margin_pct.toFixed(1) : '0.0';
+  g.innerHTML = `
+    <div class="stat"><div class="stat-val">${(t.total_requests || 0).toLocaleString()}</div><div class="stat-lbl">Requests (${days}d)</div></div>
+    <div class="stat"><div class="stat-val">${fmtNum(t.total_tokens || 0)}</div><div class="stat-lbl">Tokens (${days}d)</div></div>
+    <div class="stat"><div class="stat-val">$${rev.toFixed(2)}</div><div class="stat-lbl">Revenue (${days}d)</div></div>
+    <div class="stat"><div class="stat-val">${t.active_users || 0}</div><div class="stat-lbl">Active Users</div></div>
+    <div class="stat"><div class="stat-val">$${prov.toFixed(2)}</div><div class="stat-lbl">Provider Cost (${days}d)</div></div>
+    <div class="stat"><div class="stat-val" style="color:${profit>=0?'var(--gold)':'#f87171'}">$${profit.toFixed(2)}</div><div class="stat-lbl">Profit (${days}d)</div></div>
+    <div class="stat"><div class="stat-val" style="color:${parseFloat(margin)>=0?'var(--gold)':'#f87171'}">${margin}%</div><div class="stat-lbl">Margin %</div></div>
+    <div class="stat"><div class="stat-val">${(t.cache_hit_rate || 0).toFixed(1)}%</div><div class="stat-lbl">Cache Hit Rate</div></div>`;
+  const models = d.top_models || [];
+  const maxReqs = Math.max(1, ...models.map(m => m.requests || 0));
+  document.getElementById('top-models-chart').innerHTML = models.length
+    ? models.map(m => `<div class="bar-row">
+        <div class="bar-label" title="${m.model}">${m.model.split('/').pop()}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round((m.requests/maxReqs)*100)}%"></div></div>
+        <div class="bar-val">${m.requests} reqs &bull; $${((m.profit_cents||0)/100).toFixed(2)} profit</div>
+      </div>`).join('')
+    : '<div class="tbl-empty">No data yet.</div>';
+  // Update card titles dynamically
+  const tmt = document.getElementById('top-models-title');
+  if (tmt) tmt.textContent = `Top Models (${days}d)`;
+  const dct = document.getElementById('daily-chart-title');
+  if (dct) dct.textContent = `Daily Requests (${days}d)`;
+  // Daily trend chart
+  const daily = d.daily || [];
+  const dc = document.getElementById('daily-chart');
+  if (dc) {
+    const maxD = Math.max(1, ...daily.map(x => x.requests || 0));
+    dc.innerHTML = daily.length
+      ? daily.map(x => `<div class="bar-row">
+          <div class="bar-label" style="width:72px">${(x.date||'').slice(5)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round((x.requests/maxD)*100)}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold-hi))"></div></div>
+          <div class="bar-val" style="width:110px">${x.requests} req &bull; $${((x.cost_cents||0)/100).toFixed(2)}</div>
+        </div>`).join('')
+      : '<div class="tbl-empty">No data yet.</div>';
+  }
+  // Provider breakdown chart
+  const provs = d.top_providers || [];
+  const provChart = document.getElementById('providers-chart');
+  if (provChart) {
+    const maxP = Math.max(1, ...provs.map(p => p.requests || 0));
+    provChart.innerHTML = provs.length
+      ? provs.map(p => `<div class="bar-row">
+          <div class="bar-label">${p.provider}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round((p.requests/maxP)*100)}%;background:linear-gradient(90deg,rgba(39,174,96,.3),rgba(39,174,96,.8))"></div></div>
+          <div class="bar-val" style="width:110px">${p.requests} req &bull; $${((p.cost_cents||0)/100).toFixed(2)}</div>
+        </div>`).join('')
+      : '<div class="tbl-empty">No provider data.</div>';
+  }
+  const tbody = document.getElementById('recent-table');
+  const recent = d.recent || [];
+  tbody.innerHTML = recent.length
+    ? recent.map(r => {
+        const p = (r.cost_cents||0) - (r.provider_cost_cents||0);
+        return `<tr>
+          <td style="font-size:10px;color:var(--muted)">${(r.created_at||'').slice(0,16)}</td>
+          <td style="font-size:10px">${r.email}</td>
+          <td style="font-size:10px;color:var(--gold-dim)">${r.model}</td>
+          <td class="r">${(r.total_tokens||0).toLocaleString()}</td>
+          <td class="r">$${((r.cost_cents||0)/100).toFixed(4)}</td>
+          <td class="r" style="color:var(--muted)">$${((r.provider_cost_cents||0)/100).toFixed(4)}</td>
+          <td class="r" style="color:${p>=0?'var(--gold)':'#f87171'}">$${(p/100).toFixed(4)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="7" class="tbl-empty">No requests yet.</td></tr>';
+}
+function fmtNum(n) { if (n >= 1e9) return (n/1e9).toFixed(1)+'B'; if (n >= 1e6) return (n/1e6).toFixed(1)+'M'; if (n >= 1e3) return (n/1e3).toFixed(1)+'K'; return n; }
+
+// ── Invites ──────────────────────────────────────────────────────────
+async function loadInvites() {
+  const res = await fetch(`${API}/admin/invites`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const invites = await res.json();
+  const tbody = document.getElementById('invites-table');
+  if (!invites.length) { tbody.innerHTML = '<tr><td colspan="6" class="tbl-empty">No invites yet. Create one to onboard users.</td></tr>'; return; }
+  tbody.innerHTML = invites.map(i => `<tr>
+    <td style="font-size:10px;color:var(--gold-dim)">${i.token.slice(0,12)}&hellip;</td>
+    <td>${i.email || '<span style="color:var(--muted)">any</span>'}</td>
+    <td>${i.used_by_email ? '<span class="bdg bdg-green">'+i.used_by_email+'</span>' : '<span class="bdg bdg-muted">unused</span>'}</td>
+    <td style="font-size:10px;color:var(--muted)">${(i.expires_at||'').slice(0,16)}</td>
+    <td style="font-size:10px;color:var(--muted)">${(i.created_at||'').slice(0,10)}</td>
+    <td>${!i.used_by ? `<button class="btn btn-danger btn-sm" onclick="revokeInvite(${i.id})">Revoke</button>` : ''}</td>
+  </tr>`).join('');
+}
+function createInvite() {
+  document.getElementById('inv-email').value = '';
+  document.getElementById('inv-hours').value = '48';
+  document.getElementById('invite-result').style.display = 'none';
+  document.getElementById('invite-modal').classList.add('show');
+}
+async function submitInvite() {
+  const email = document.getElementById('inv-email').value.trim();
+  const hours = parseInt(document.getElementById('inv-hours').value) || 48;
+  const r = await fetch(`${API}/admin/invites`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ email: email || undefined, expires_hours: hours }) });
+  if (!r.ok) return alert('Failed to create invite');
+  const d = await r.json();
+  document.getElementById('invite-url-display').textContent = d.url;
+  document.getElementById('invite-result').style.display = 'block';
+  document.getElementById('invite-create-btn').style.display = 'none';
+  loadInvites();
+}
+function copyInviteUrl() { navigator.clipboard.writeText(document.getElementById('invite-url-display').textContent).then(() => alert('Copied!')); }
+function closeInviteModal() { document.getElementById('invite-modal').classList.remove('show'); document.getElementById('invite-create-btn').style.display = ''; }
+async function revokeInvite(id) {
+  showConfirm('Revoke Invite', 'Revoke this invite link? It will no longer work.', async () => {
+    await fetch(`${API}/admin/invites/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    loadInvites();
+  });
+}
+
+// ── Settings ─────────────────────────────────────────────────────────
+async function loadSettings() {
+  const res = await fetch(`${API}/admin/settings`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const s = await res.json();
+  // General
+  document.getElementById('s-site-url').value = s.site_url || '';
+  document.getElementById('s-maintenance-mode').checked = !!s.maintenance_mode;
+  document.getElementById('s-custom-prompt').value = s.custom_system_prompt || '';
+  // Auth
+  document.getElementById('s-reg-mode').value = s.registration_mode || 'open';
+  document.getElementById('s-email-domain').value = s.required_email_domain || '';
+  document.getElementById('s-email-verify').checked = !!s.email_verification_required;
+  document.getElementById('s-auth-password').checked = s.auth_password !== false;
+  document.getElementById('s-auth-magic').checked = !!s.auth_magic_link;
+  document.getElementById('s-auth-google').checked = !!s.auth_google;
+  document.getElementById('s-auth-github').checked = !!s.auth_github;
+  document.getElementById('s-google-id').value = s.google_client_id || '';
+  document.getElementById('s-github-id').value = s.github_client_id || '';
+  // Routing
+  document.getElementById('s-or-key').value = '';
+  document.getElementById('s-markup-type').value = s.markup_type || 'none';
+  document.getElementById('s-markup-val').value = s.markup_value || '0';
+  document.getElementById('s-monthly-limit').value = s.default_monthly_limit_cents || '10000';
+  document.getElementById('s-max-tokens').value = s.max_tokens_per_request || '0';
+  document.getElementById('s-rate-limit').value = s.rate_limit_per_min || '60';
+  document.getElementById('s-cache-enabled').checked = !!s.cache_enabled;
+  document.getElementById('s-cache-ttl').value = s.cache_ttl_seconds || '300';
+  document.getElementById('s-timeout-ms').value = s.request_timeout_ms || '30000';
+  document.getElementById('s-retry-attempts').value = s.retry_attempts || '2';
+  document.getElementById('s-cb-threshold').value = s.cb_failure_threshold || '5';
+  document.getElementById('s-cb-cooldown').value = s.cb_cooldown_ms || '60000';
+  // Billing
+  document.getElementById('s-billing-enabled').checked = !!s.billing_enabled;
+  document.getElementById('s-stripe-pub').value = s.stripe_publishable_key || '';
+  document.getElementById('s-stripe-secret').value = '';
+  document.getElementById('s-stripe-webhook').value = '';
+  // Email
+  document.getElementById('s-smtp-host').value = s.smtp_host || '';
+  document.getElementById('s-smtp-port').value = s.smtp_port || '587';
+  document.getElementById('s-smtp-user').value = s.smtp_user || '';
+  document.getElementById('s-smtp-pass').value = '';
+  document.getElementById('s-smtp-from').value = s.smtp_from || '';
+  // Security
+  document.getElementById('s-ip-allowlist').value = s.ip_allowlist || '';
+  document.getElementById('s-req-logging').checked = s.request_logging_enabled !== false;
+  document.getElementById('s-log-retention').value = s.log_retention_days || '90';
+}
+
+function showSaveStatus(formId, ok) {
+  const el = document.querySelector(`.save-status[data-form="${formId}"]`);
+  if (!el) return;
+  el.style.display = 'inline';
+  el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+  el.textContent = ok ? '✓ Saved' : '✗ Failed';
+  setTimeout(() => (el.style.display = 'none'), 3000);
+}
+
+async function saveSettings(updates, formId) {
+  const res = await fetch(`${API}/admin/settings`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(updates) });
+  showSaveStatus(formId, res.ok);
+}
+
+document.getElementById('form-general').addEventListener('submit', async e => {
+  e.preventDefault();
+  await saveSettings({ site_url: document.getElementById('s-site-url').value.trim(), maintenance_mode: document.getElementById('s-maintenance-mode').checked, custom_system_prompt: document.getElementById('s-custom-prompt').value.trim() }, 'general');
+});
+
+document.getElementById('form-auth').addEventListener('submit', async e => {
+  e.preventDefault();
+  const u = {
+    registration_mode: document.getElementById('s-reg-mode').value,
+    required_email_domain: document.getElementById('s-email-domain').value.trim(),
+    email_verification_required: document.getElementById('s-email-verify').checked,
+    auth_password: document.getElementById('s-auth-password').checked,
+    auth_magic_link: document.getElementById('s-auth-magic').checked,
+    auth_google: document.getElementById('s-auth-google').checked,
+    auth_github: document.getElementById('s-auth-github').checked,
+    google_client_id: document.getElementById('s-google-id').value.trim(),
+    github_client_id: document.getElementById('s-github-id').value.trim(),
+  };
+  const gs = document.getElementById('s-google-secret').value.trim();
+  const ghs = document.getElementById('s-github-secret').value.trim();
+  if (gs && !gs.includes('\u2022')) u.google_client_secret = gs;
+  if (ghs && !ghs.includes('\u2022')) u.github_client_secret = ghs;
+  await saveSettings(u, 'auth');
+});
+
+document.getElementById('form-routing').addEventListener('submit', async e => {
+  e.preventDefault();
+  const u = {
+    markup_type: document.getElementById('s-markup-type').value,
+    markup_value: document.getElementById('s-markup-val').value,
+    default_monthly_limit_cents: document.getElementById('s-monthly-limit').value,
+    max_tokens_per_request: document.getElementById('s-max-tokens').value,
+    rate_limit_per_min: document.getElementById('s-rate-limit').value,
+    cache_enabled: document.getElementById('s-cache-enabled').checked,
+    cache_ttl_seconds: document.getElementById('s-cache-ttl').value,
+    request_timeout_ms: document.getElementById('s-timeout-ms').value,
+    retry_attempts: document.getElementById('s-retry-attempts').value,
+    cb_failure_threshold: document.getElementById('s-cb-threshold').value,
+    cb_cooldown_ms: document.getElementById('s-cb-cooldown').value,
+  };
+  const orKey = document.getElementById('s-or-key').value.trim();
+  if (orKey) u.openrouter_api_key = orKey;
+  await saveSettings(u, 'routing');
+});
+
+document.getElementById('form-billing').addEventListener('submit', async e => {
+  e.preventDefault();
+  const u = {
+    billing_enabled: document.getElementById('s-billing-enabled').checked,
+    stripe_publishable_key: document.getElementById('s-stripe-pub').value.trim(),
+  };
+  const ss = document.getElementById('s-stripe-secret').value.trim();
+  const sw = document.getElementById('s-stripe-webhook').value.trim();
+  if (ss) u.stripe_secret_key = ss;
+  if (sw) u.stripe_webhook_secret = sw;
+  await saveSettings(u, 'billing');
+});
+
+document.getElementById('form-email').addEventListener('submit', async e => {
+  e.preventDefault();
+  const u = {
+    smtp_host: document.getElementById('s-smtp-host').value.trim(),
+    smtp_port: document.getElementById('s-smtp-port').value,
+    smtp_user: document.getElementById('s-smtp-user').value.trim(),
+    smtp_from: document.getElementById('s-smtp-from').value.trim(),
+  };
+  const sp = document.getElementById('s-smtp-pass').value.trim();
+  if (sp) u.smtp_pass = sp;
+  await saveSettings(u, 'email');
+});
+
+document.getElementById('form-security').addEventListener('submit', async e => {
+  e.preventDefault();
+  await saveSettings({
+    ip_allowlist: document.getElementById('s-ip-allowlist').value.trim(),
+    request_logging_enabled: document.getElementById('s-req-logging').checked,
+    log_retention_days: document.getElementById('s-log-retention').value,
+  }, 'security');
+});
+
+// ── Modals ────────────────────────────────────────────────────────────
+function showConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-modal').classList.add('show');
+  confirmCb = cb;
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('show'); confirmCb = null; }
+document.getElementById('confirm-ok').addEventListener('click', () => { if (confirmCb) confirmCb(); closeConfirm(); });
+
+function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
+
+// ── Providers ────────────────────────────────────────────────────────
+let editingProviderId = null;
+async function loadProviders() {
+  const res = await fetch(`${API}/providers`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const data = await res.json();
+  const tbody = document.getElementById('providers-table');
+  const providers = data.providers || [];
+  if (!providers.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="tbl-empty">No providers configured. Add one to enable multi-provider routing, fallback, and load balancing.</td></tr>'; return;
+  }
+  tbody.innerHTML = providers.map(p => `<tr>
+    <td>${p.name}</td>
+    <td><span class="bdg bdg-gold">${p.provider}</span></td>
+    <td style="font-size:10px;color:var(--muted)">${p.base_url || '&#8212; default'}</td>
+    <td class="c">${p.priority}</td>
+    <td class="c">${p.weight}</td>
+    <td class="c"><input type="checkbox" ${p.is_active ? 'checked' : ''} onchange="toggleProvider(${p.id}, this.checked)"></td>
+    <td style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="editProvider(${p.id})">Edit</button>
+      <button class="btn btn-warn btn-sm" onclick="runProviderTest(${p.id}, this)">Test</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteProvider(${p.id})">Del</button>
+    </td>
+  </tr>`).join('');
+}
+function openProviderModal() {
+  editingProviderId = null;
+  document.getElementById('provider-modal-title').textContent = 'Add Provider';
+  document.getElementById('prov-id').value = '';
+  document.getElementById('prov-name').value = '';
+  document.getElementById('prov-type').value = 'openrouter';
+  document.getElementById('prov-key').value = '';
+  document.getElementById('prov-url').value = '';
+  document.getElementById('prov-priority').value = '0';
+  document.getElementById('prov-weight').value = '100';
+  document.getElementById('prov-active').checked = true;
+  document.getElementById('prov-test-result').style.display = 'none';
+  document.getElementById('prov-test-btn').style.display = 'none';
+  document.getElementById('provider-modal').classList.add('show');
+}
+function editProvider(id) {
+  fetch(`${API}/providers`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(d => {
+    const p = (d.providers || []).find(x => x.id === id);
+    if (!p) return;
+    editingProviderId = id;
+    document.getElementById('provider-modal-title').textContent = 'Edit: ' + p.name;
+    document.getElementById('prov-id').value = id;
+    document.getElementById('prov-name').value = p.name;
+    document.getElementById('prov-type').value = p.provider;
+    document.getElementById('prov-key').value = '';
+    document.getElementById('prov-url').value = p.base_url || '';
+    document.getElementById('prov-priority').value = p.priority;
+    document.getElementById('prov-weight').value = p.weight;
+    document.getElementById('prov-active').checked = !!p.is_active;
+    document.getElementById('prov-test-result').style.display = 'none';
+    document.getElementById('prov-test-btn').style.display = 'inline-block';
+    document.getElementById('provider-modal').classList.add('show');
+  });
+}
+function closeProviderModal() { document.getElementById('provider-modal').classList.remove('show'); }
+document.getElementById('prov-type').addEventListener('change', function() {
+  const hint = document.getElementById('prov-url-hint');
+  hint.style.display = this.value === 'cf-ai-gateway' ? 'block' : 'none';
+  document.getElementById('prov-url').placeholder = this.value === 'cf-ai-gateway'
+    ? 'https://gateway.ai.cloudflare.com/v1/{accountId}/{gatewayId}'
+    : 'https://custom-endpoint.com/v1';
+});
+async function saveProvider() {
+  const id = document.getElementById('prov-id').value;
+  const body = {
+    name: document.getElementById('prov-name').value.trim(),
+    provider: document.getElementById('prov-type').value,
+    base_url: document.getElementById('prov-url').value.trim() || undefined,
+    priority: parseInt(document.getElementById('prov-priority').value) || 0,
+    weight: parseInt(document.getElementById('prov-weight').value) || 100,
+    is_active: document.getElementById('prov-active').checked,
+  };
+  const key = document.getElementById('prov-key').value.trim();
+  if (key) body.api_key = key;
+  if (!body.name) return alert('Name is required');
+  if (!id && !key) return alert('API key is required — enter your upstream provider key (e.g. OpenRouter key, OpenAI key, CF API token)');
+  const r = await fetch(`${API}/providers${id ? '/' + id : ''}`, {
+    method: id ? 'PATCH' : 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  if (r.ok) { closeProviderModal(); loadProviders(); }
+  else { const e = await r.json().catch(() => ({})); alert('Save failed: ' + (e.error || r.status)); }
+}
+async function toggleProvider(id, active) {
+  await fetch(`${API}/providers/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ is_active: active }) });
+}
+function confirmDeleteProvider(id) {
+  showConfirm('Delete Provider', 'Remove this provider config? This may affect routing.', async () => {
+    const r = await fetch(`${API}/providers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (r.ok) loadProviders();
+    else alert('Delete failed');
+  });
+}
+async function runProviderTest(id, btn) {
+  if (btn) { btn.textContent = '&#8987;'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${API}/providers/${id}/test`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    alert(d.ok ? `\u2713 OK \u2014 ${d.latency_ms}ms\n"${d.response}"` : `\u2717 Failed (${d.status||'err'})\n${d.error}`);
+  } catch { alert('Test request failed'); }
+  if (btn) { btn.textContent = 'Test'; btn.disabled = false; }
+}
+async function testProviderModal() {
+  const id = document.getElementById('prov-id').value;
+  if (!id) return;
+  const el = document.getElementById('prov-test-result');
+  el.style.display = 'block'; el.style.background = 'var(--muted2)'; el.style.color = 'var(--muted)'; el.textContent = 'Testing\u2026';
+  const r = await fetch(`${API}/providers/${id}/test`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  const d = await r.json();
+  el.style.background = d.ok ? 'var(--success-dim)' : 'var(--danger-dim)';
+  el.style.color = d.ok ? '#2ecc71' : '#e74c3c';
+  el.textContent = d.ok ? `\u2713 ${d.latency_ms}ms \u2014 "${d.response}"` : `\u2717 ${d.error || 'Failed'}`;
+}
+
+// ── Transactions ──────────────────────────────────────────────────────
+async function loadTransactions() {
+  const type = document.getElementById('txn-type-filter')?.value || '';
+  const url = `${API}/admin/transactions?limit=200${type ? '&type=' + type : ''}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const rows = await res.json();
+  const tbody = document.getElementById('transactions-table');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="tbl-empty">No transactions yet.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(t => {
+    const pos = t.amount_cents >= 0;
+    const badge = { stripe_deposit: '<span class="bdg bdg-green">stripe</span>', admin_adjust: '<span class="bdg bdg-gold">admin</span>', usage_deduct: '<span class="bdg bdg-muted">usage</span>' }[t.type] || `<span class="bdg bdg-muted">${t.type}</span>`;
+    return `<tr>
+      <td style="font-size:10px;color:var(--muted)">${(t.created_at||'').slice(0,16)}</td>
+      <td style="font-size:10px">${t.email || '\u2014'}</td>
+      <td>${badge}</td>
+      <td class="r" style="color:${pos?'#2ecc71':'#f87171'}">${pos?'+':''}$${(t.amount_cents/100).toFixed(2)}</td>
+      <td style="font-size:10px;color:var(--muted)">${t.description || ''}</td>
+    </tr>`;
+  }).join('');
+}
+async function exportUsage() {
+  const days = analytDays || 30;
+  const r = await fetch(`${API}/admin/export/usage?days=${days}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) return alert('Export failed');
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `usage-${days}d.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Analytics period ─────────────────────────────────────────────────
+let analytDays = 30;
+function setAnalyticsDays(d) {
+  analytDays = d;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.days) === d));
+  loadAnalytics(d);
+}
+
+// ── Users filter ──────────────────────────────────────────────────────
+let allUsers = [];
+function filterUsers() {
+  const q = (document.getElementById('user-search')?.value || '').toLowerCase().trim();
+  renderUsersTable(q ? allUsers.filter(u => u.email.toLowerCase().includes(q)) : allUsers);
+}
+
+// ── Health check ──────────────────────────────────────────────────────
+async function loadHealth(forceRun) {
+  loadCircuitBreaker();
+  if (!forceRun) return; // provider checks only on explicit click
+  document.getElementById('health-table').innerHTML = '<tr><td colspan="5" class="tbl-empty">Running checks&#8230;</td></tr>';
+  const r = await fetch(`${API}/admin/health`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) { document.getElementById('health-table').innerHTML = '<tr><td colspan="5" class="tbl-empty" style="color:var(--red)">Failed to fetch health data</td></tr>'; return; }
+  const d = await r.json();
+  const sumEl = document.getElementById('health-summary');
+  sumEl.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" style="color:${d.status==='ok'?'var(--gold)':'#e84d4d'}">${d.status.toUpperCase()}</div></div>
+    <div class="stat-card"><div class="stat-label">Healthy</div><div class="stat-value">${d.healthy} / ${d.total}</div></div>
+    <div class="stat-card"><div class="stat-label">Checked</div><div class="stat-value" style="font-size:11px">${new Date(d.checked_at).toLocaleTimeString()}</div></div>
+  `;
+  document.getElementById('health-table').innerHTML = (d.providers || []).map(p => {
+    const ok = p.status === 'healthy';
+    return `<tr>
+      <td>${p.name}</td>
+      <td><span class="badge">${p.provider}</span></td>
+      <td class="c"><span style="color:${ok?'var(--gold)':'#e84d4d'};font-weight:600">${ok?'✓ healthy':'✗ unhealthy'}</span></td>
+      <td class="r">${p.latency_ms ? p.latency_ms + ' ms' : '—'}</td>
+      <td style="color:var(--muted);font-size:10px;max-width:240px;word-break:break-all">${p.error || ''}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="tbl-empty">No active providers configured</td></tr>';
+}
+
+// ── Spend leaderboard ─────────────────────────────────────────────────
+let spendDays = 30;
+function setSpendDays(d) {
+  spendDays = d;
+  document.querySelectorAll('[data-spdays]').forEach(b => b.classList.toggle('active', parseInt(b.dataset.spdays) === d));
+  loadSpendLeaderboard();
+}
+async function loadSpendLeaderboard() {
+  document.getElementById('spend-keys-table').innerHTML = '<tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr>';
+  document.getElementById('spend-models-table').innerHTML = '<tr><td colspan="7" class="tbl-empty">Loading&#8230;</td></tr>';
+  const [kr, mr] = await Promise.all([
+    fetch(`${API}/admin/spend/keys?days=${spendDays}`, { headers: { Authorization: `Bearer ${token}` } }),
+    fetch(`${API}/admin/spend/models?days=${spendDays}`, { headers: { Authorization: `Bearer ${token}` } }),
+  ]);
+  if (kr.ok) {
+    const keys = await kr.json();
+    document.getElementById('spend-keys-table').innerHTML = keys.length ? keys.map(k => {
+      const charged = (k.cost_cents || 0) / 100;
+      const cost = (k.provider_cost_cents || 0) / 100;
+      const profit = charged - cost;
+      return `<tr>
+        <td><span style="font-family:var(--mono);color:var(--gold-dim)">${k.key_prefix}&#8230;</span> <span style="color:var(--muted);font-size:10px">${k.name||''}</span></td>
+        <td style="font-size:10px">${k.email||'—'}</td>
+        <td class="r">${(k.requests||0).toLocaleString()}</td>
+        <td class="r">${(k.total_tokens||0).toLocaleString()}</td>
+        <td class="r">$${charged.toFixed(4)}</td>
+        <td class="r">$${cost.toFixed(4)}</td>
+        <td class="r" style="color:${profit>=0?'var(--gold)':'#e84d4d'}">$${profit.toFixed(4)}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="7" class="tbl-empty">No usage data for this period</td></tr>';
+  }
+  if (mr.ok) {
+    const models = await mr.json();
+    document.getElementById('spend-models-table').innerHTML = models.length ? models.map(m => {
+      const rev = (m.cost_cents || 0) / 100;
+      const cost = (m.provider_cost_cents || 0) / 100;
+      const profit = rev - cost;
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:10px">${m.model}</td>
+        <td class="r">${(m.requests||0).toLocaleString()}</td>
+        <td class="r">${(m.total_tokens||0).toLocaleString()}</td>
+        <td class="r">$${rev.toFixed(4)}</td>
+        <td class="r">$${cost.toFixed(4)}</td>
+        <td class="r" style="color:${profit>=0?'var(--gold)':'#e84d4d'}">$${profit.toFixed(4)}</td>
+        <td class="r">${m.avg_latency_ms ? Math.round(m.avg_latency_ms) + ' ms' : '—'}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="7" class="tbl-empty">No model usage data for this period</td></tr>';
+  }
+}
+
+init();
+
+// ── Circuit Breaker ───────────────────────────────────────────────────
+async function loadCircuitBreaker() {
+  const res = await fetch(`${API}/admin/circuit-breaker`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const { providers } = await res.json();
+  const tbody = document.getElementById('cb-table');
+  if (!providers?.length) { tbody.innerHTML = '<tr><td colspan="5" class="tbl-empty">No active providers.</td></tr>'; return; }
+  tbody.innerHTML = providers.map(p => {
+    const st = p.circuit?.state || 'closed';
+    const color = st === 'open' ? '#e84d4d' : st === 'half_open' ? '#f59e0b' : '#2ecc71';
+    const badge = `<span style="color:${color};font-weight:600;font-size:11px">${st}</span>`;
+    const lastFail = p.circuit?.last_failure ? new Date(p.circuit.last_failure).toLocaleString() : '—';
+    const reset = st !== 'closed' ? `<button class="btn btn-sm btn-ghost" onclick="adminResetCircuit(${p.id})">Reset</button>` : '—';
+    return `<tr>
+      <td>${p.name}</td>
+      <td class="c">${badge}</td>
+      <td class="r">${p.circuit?.failures || 0}</td>
+      <td style="font-size:10px;color:var(--muted)">${lastFail}</td>
+      <td>${reset}</td>
+    </tr>`;
+  }).join('');
+}
+async function adminResetCircuit(id) {
+  await fetch(`${API}/admin/circuit-breaker/${id}/reset`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  loadCircuitBreaker();
+}
+
+// ── Model Aliases ─────────────────────────────────────────────────────
+async function loadAliases() {
+  const res = await fetch(`${API}/admin/aliases`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const { aliases } = await res.json();
+  const tbody = document.getElementById('aliases-table');
+  if (!aliases.length) { tbody.innerHTML = '<tr><td colspan="5" class="tbl-empty">No aliases configured.</td></tr>'; return; }
+  tbody.innerHTML = aliases.map(a => `<tr>
+    <td style="font-family:var(--mono);font-size:11px">${a.alias}</td>
+    <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${a.model_id}</td>
+    <td style="font-size:10px">${a.description || '—'}</td>
+    <td class="c"><span style="color:${a.is_active?'#2ecc71':'var(--muted)'}">${a.is_active?'✓':'✗'}</span></td>
+    <td><button class="btn btn-sm btn-ghost" onclick="editAlias(${JSON.stringify(a).replace(/"/g,'&quot;')})">Edit</button>
+        <button class="btn btn-sm btn-ghost" style="color:#e84d4d" onclick="deleteAlias('${a.id}')">Del</button></td>
+  </tr>`).join('');
+}
+function openAliasModal(a) {
+  document.getElementById('alias-id').value = a?.id || '';
+  document.getElementById('alias-modal-title').textContent = a ? 'Edit Alias' : 'New Alias';
+  document.getElementById('alias-alias').value = a?.alias || '';
+  document.getElementById('alias-model').value = a?.model_id || '';
+  document.getElementById('alias-desc').value = a?.description || '';
+  document.getElementById('alias-active').checked = a ? !!a.is_active : true;
+  document.getElementById('alias-modal').classList.add('active');
+}
+function editAlias(a) { openAliasModal(a); }
+async function saveAlias() {
+  const id = document.getElementById('alias-id').value;
+  const body = {
+    alias: document.getElementById('alias-alias').value.trim(),
+    model_id: document.getElementById('alias-model').value.trim(),
+    description: document.getElementById('alias-desc').value.trim() || null,
+    is_active: document.getElementById('alias-active').checked,
+  };
+  if (!body.alias || !body.model_id) return alert('Alias and Model ID are required');
+  const url = id ? `${API}/admin/aliases/${id}` : `${API}/admin/aliases`;
+  const method = id ? 'PATCH' : 'POST';
+  const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) return alert('Failed to save alias');
+  closeModal('alias-modal');
+  loadAliases();
+}
+async function deleteAlias(id) {
+  if (!confirm('Delete this alias?')) return;
+  await fetch(`${API}/admin/aliases/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  loadAliases();
+}
+
+// ── Routing Rules ─────────────────────────────────────────────────────
+async function loadRoutingRules() {
+  const res = await fetch(`${API}/admin/routing-rules`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return;
+  const { rules } = await res.json();
+  const tbody = document.getElementById('routing-table');
+  if (!rules.length) { tbody.innerHTML = '<tr><td colspan="6" class="tbl-empty">No routing rules configured.</td></tr>'; return; }
+  tbody.innerHTML = rules.map(r => `<tr>
+    <td>${r.name}</td>
+    <td class="r">${r.priority}</td>
+    <td style="font-size:10px;font-family:var(--mono)">${r.condition_field} <span style="color:var(--gold)">${r.condition_op}</span> ${r.condition_value}</td>
+    <td style="font-family:var(--mono);font-size:10px">${r.target_model}</td>
+    <td class="c"><span style="color:${r.is_active?'#2ecc71':'var(--muted)'}">${r.is_active?'✓':'✗'}</span></td>
+    <td><button class="btn btn-sm btn-ghost" onclick="editRoutingRule(${JSON.stringify(r).replace(/"/g,'&quot;')})">Edit</button>
+        <button class="btn btn-sm btn-ghost" style="color:#e84d4d" onclick="deleteRoutingRule('${r.id}')">Del</button></td>
+  </tr>`).join('');
+}
+function openRoutingModal(r) {
+  document.getElementById('routing-id').value = r?.id || '';
+  document.getElementById('routing-modal-title').textContent = r ? 'Edit Rule' : 'New Routing Rule';
+  document.getElementById('routing-name').value = r?.name || '';
+  document.getElementById('routing-priority').value = r?.priority ?? 0;
+  document.getElementById('routing-field').value = r?.condition_field || '';
+  document.getElementById('routing-op').value = r?.condition_op || 'eq';
+  document.getElementById('routing-value').value = r?.condition_value || '';
+  document.getElementById('routing-target').value = r?.target_model || '';
+  document.getElementById('routing-active').value = r?.is_active ?? 1;
+  document.getElementById('routing-modal').classList.add('active');
+}
+function editRoutingRule(r) { openRoutingModal(r); }
+async function saveRoutingRule() {
+  const id = document.getElementById('routing-id').value;
+  const body = {
+    name: document.getElementById('routing-name').value.trim(),
+    priority: parseInt(document.getElementById('routing-priority').value) || 0,
+    condition_field: document.getElementById('routing-field').value.trim(),
+    condition_op: document.getElementById('routing-op').value,
+    condition_value: document.getElementById('routing-value').value.trim(),
+    target_model: document.getElementById('routing-target').value.trim(),
+    is_active: document.getElementById('routing-active').value === '1',
+  };
+  if (!body.name || !body.condition_field || !body.condition_value || !body.target_model) return alert('All condition fields and target model are required');
+  const url = id ? `${API}/admin/routing-rules/${id}` : `${API}/admin/routing-rules`;
+  const method = id ? 'PATCH' : 'POST';
+  const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) return alert('Failed to save routing rule');
+  closeModal('routing-modal');
+  loadRoutingRules();
+}
+async function deleteRoutingRule(id) {
+  if (!confirm('Delete this routing rule?')) return;
+  await fetch(`${API}/admin/routing-rules/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  loadRoutingRules();
+}
+</script>
+</body>
+</html>
+

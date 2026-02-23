@@ -1,0 +1,31 @@
+{
+  "name": "@hopcoderx/bdr-gateway",
+  "version": "0.0.1",
+  "description": "Cloudflare Worker for HopCoderX BDR gateway with admin panel, billing, and model curation",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:push": "wrangler d1 execute hopcoderx-bdr --file src/db/schema.sql",
+    "typecheck": "bun typecheck"
+  },
+  "dependencies": {
+    "hono": "^4.10.7",
+    "@hono/zod-validator": "^0.4.2",
+    "zod": "^4.1.8",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^14.22.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251008.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "typescript": "^5.8.2",
+    "wrangler": "4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

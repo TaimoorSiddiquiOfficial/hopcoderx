@@ -588,6 +588,36 @@ export namespace Provider {
         },
       }
     },
+    "hopcoderx-bdr": async (input) => {
+      const accountId = Env.get("CLOUDFLARE_ACCOUNT_ID") || "6b97f9ad3af6dde786bc87b42b31e8a0"
+      const gateway = "hopcoderx-bdr"
+
+      const apiKey = await (async () => {
+        const envToken = Env.get("CLOUDFLARE_API_TOKEN") || Env.get("CF_AIG_TOKEN")
+        if (envToken) return envToken
+        const auth = await Auth.get(input.id)
+        if (auth?.type === "api") return auth.key
+        return undefined
+      })()
+
+      if (!apiKey) return { autoload: false }
+
+      const { createAiGateway } = await import("ai-gateway-provider")
+      const { createUnified } = await import("ai-gateway-provider/providers/unified")
+
+      const aigateway = createAiGateway({ accountId, gateway, apiKey })
+      const unified = createUnified()
+
+      return {
+        autoload: true,
+        async getModel(_sdk: any, modelID: string) {
+          // modelID should use unified format: provider/model
+          // e.g. "openai/gpt-4o", "anthropic/claude-sonnet-4-5", "workers-ai/@cf/meta/llama-3.1-8b-instruct"
+          return aigateway(unified(modelID))
+        },
+        options: {},
+      }
+    },
   }
 
   export const Model = z
