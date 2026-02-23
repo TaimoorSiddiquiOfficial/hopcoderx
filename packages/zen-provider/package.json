@@ -12,11 +12,7 @@
     "@ai-sdk/openai-compatible": "^2.0.0"
   },
   "devDependencies": {
-    "@hopcoderx/sdk": "workspace:*",
     "@types/node": "^22.13.9",
     "typescript": "^5.8.2"
-  },
-  "peerDependencies": {
-    "@hopcoderx/sdk": "workspace:*"
   }
 }
