@@ -8,6 +8,7 @@ import { billingRoutes } from './routes/billing';
 import { virtualKeyRoutes } from './routes/virtualkeys';
 import { providerRoutes } from './routes/providers';
 import { mcpRoutes } from './routes/mcp';
+import { agentRoutes } from './routes/agents';
 import adminHtml from '../static/admin.html';
 import dashboardHtml from '../static/dashboard.html';
 import loginHtml from '../static/login.html';
@@ -17,8 +18,9 @@ const app = new Hono<{ Bindings: Env }>();
 // CORS
 app.use('*', cors({
   origin: '*',
-  allowHeaders: ['Content-Type', 'Authorization', 'x-hopcoderx-key'],
+  allowHeaders: ['Content-Type', 'Authorization', 'x-hopcoderx-key', 'x-hopcoderx-agent', 'x-hopcoderx-metadata', 'x-hopcoderx-tag'],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  exposeHeaders: ['x-hopcoderx-provider', 'x-hopcoderx-agent-id', 'x-hopcoderx-agent-slug', 'x-hopcoderx-resolved-model', 'x-hopcoderx-latency', 'x-hopcoderx-cache'],
 }));
 
 // Health
@@ -51,6 +53,9 @@ api.route('/vk', virtualKeyRoutes());
 
 // Provider config routes (admin)
 api.route('/admin/providers', providerRoutes());
+
+// Agent preset routes (CRUD at /api/admin/agents, public listing shared below)
+api.route('/admin/agents', agentRoutes());
 
 app.route('/api', api);
 

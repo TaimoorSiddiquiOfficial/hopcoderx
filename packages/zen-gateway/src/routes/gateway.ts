@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { createHash } from 'crypto'
 import { getSettings } from '../services/settings'
 import { calculateCosts } from '../services/cost'
@@ -6,6 +7,8 @@ import { routeRequest } from '../services/router'
 import { runInputGuardrails, runOutputGuardrails } from '../services/guardrails'
 import { makeCacheKey, getFromCache, setToCache } from '../services/cache'
 import type { ProviderConfig, ProviderType } from '../services/provider'
+import { resolveAgent, applyAgentPreset } from './agents'
+import type { ResolvedAgent } from './agents'
 
 // loadProviders returns DB-configured providers, or falls back to CF AI Gateway compat
 // endpoint so traffic always routes through your CF AI Gateway for observability/caching.
@@ -43,10 +46,13 @@ function cidrMatch(ip: string, cidr: string): boolean {
   return (ipToNum(ip) & mask) === (ipToNum(base) & mask)
 }
 
-export function gatewayRoutes() {
-  const app = new Hono<{ Bindings: Env }>()
-
-  app.post('/chat/completions', async (c) => {
+// ── Shared chat handler ─────────────────────────────────────────────────────
+// Registered on both /v1/chat/completions and /v1/agents/:slug/chat/completions.
+// agentSlugHint is set when the slug comes from the URL path rather than a header.
+async function chatHandler(
+  c: Context<{ Bindings: Env }>,
+  agentSlugHint?: string,
+): Promise<Response> {
     const settings = await getSettings(c.env.DB)
 
     if (settings.maintenance_mode === '1') {
@@ -146,12 +152,34 @@ export function gatewayRoutes() {
       }
     }
 
-    const body = await c.req.json<{
+    const rawBody = await c.req.json<{
       model: string; messages: any[]
-      max_tokens?: number; temperature?: number; stream?: boolean
+      max_tokens?: number; temperature?: number; top_p?: number
+      frequency_penalty?: number; presence_penalty?: number
+      stop?: any; tools?: any[]; tool_choice?: any; stream?: boolean
     }>()
-    if (!body.model || !Array.isArray(body.messages)) {
+    if (!rawBody.model || !Array.isArray(rawBody.messages)) {
       return c.json({ error: 'Invalid request: model and messages are required' }, 400)
+    }
+
+    // ── Agent preset resolution ──────────────────────────────────────────────
+    // Priority: URL slug param → x-hopcoderx-agent header → none
+    const agentSlug = agentSlugHint ?? c.req.header('x-hopcoderx-agent') ?? null
+    let preset: ResolvedAgent | null = null
+    let agentId: number | null = null
+
+    let body = rawBody
+    if (agentSlug) {
+      preset = await resolveAgent(c.env.DB, agentSlug)
+      if (!preset) return c.json({ error: `Agent preset '${agentSlug}' not found or inactive` }, 404)
+      const applied = applyAgentPreset(
+        preset, body,
+        keyRecord?.id ?? undefined,
+        keyRecord?.user_id ?? virtualKey?.user_id ?? undefined,
+      )
+      if (applied.error) return c.json({ error: applied.error }, 403)
+      body = applied.body
+      agentId = preset.id
     }
 
     // Parse metadata and tag from request headers
@@ -229,7 +257,7 @@ export function gatewayRoutes() {
       }
     }
 
-    const model = await c.env.DB.prepare(
+    let model = await c.env.DB.prepare(
       'SELECT * FROM models WHERE model_id = ? AND is_active = 1'
     ).bind(resolvedModel).first<{ id: number; model_id: string; pricing_input_cents_per_m: number; pricing_output_cents_per_m: number }>()
     if (!model) return c.json({ error: `Model '${resolvedModel}' not found or inactive. GET /v1/models for available models.` }, 404)
@@ -310,11 +338,17 @@ export function gatewayRoutes() {
       providers = pinned
     }
 
-    const result = await routeRequest(providers, {
-      model: resolvedModel,
+    // ── Call upstream (with agent preset model fallback if configured) ────────
+    const routeOpts = {
       messages,
       max_tokens: effectiveMaxTokens,
       temperature: body.temperature,
+      top_p: body.top_p,
+      frequency_penalty: body.frequency_penalty,
+      presence_penalty: body.presence_penalty,
+      stop: body.stop,
+      tools: body.tools,
+      tool_choice: body.tool_choice,
       stream: body.stream,
       retry_attempts: parseInt(settings.retry_attempts || '2'),
       timeout_ms: parseInt(settings.request_timeout_ms || '30000'),
@@ -322,7 +356,36 @@ export function gatewayRoutes() {
       cb_threshold: parseInt(settings.cb_failure_threshold || '5'),
       cb_cooldown_ms: parseInt(settings.cb_cooldown_ms || '60000'),
       env: c.env as unknown as Record<string, unknown>,
-    })
+    }
+
+    // Build the ordered model list: preset's main model → fallbacks → original resolvedModel
+    const fallbackChain: string[] = preset?.fallback_models?.filter(m => m !== resolvedModel) ?? []
+    const modelsToTry = [...new Set([resolvedModel, ...fallbackChain])]
+
+    let result = await routeRequest(providers, { ...routeOpts, model: modelsToTry[0] })
+
+    // If first attempt failed and we have fallbacks, try each in order
+    if (!result.response.ok && modelsToTry.length > 1) {
+      for (const fallbackModel of modelsToTry.slice(1)) {
+        // Verify fallback model exists before attempting
+        const fallbackRow = await c.env.DB.prepare(
+          'SELECT model_id FROM models WHERE model_id = ? AND is_active = 1'
+        ).bind(fallbackModel).first<{ model_id: string }>().catch(() => null)
+        if (!fallbackRow) continue
+        const fallbackResult = await routeRequest(providers, { ...routeOpts, model: fallbackModel }).catch(() => null)
+        if (fallbackResult?.response.ok) {
+          result = fallbackResult
+          resolvedModel = fallbackModel
+          // Re-fetch pricing for the model that actually handled the request
+          const fallbackModelRecord = await c.env.DB.prepare(
+            'SELECT * FROM models WHERE model_id = ? AND is_active = 1'
+          ).bind(fallbackModel).first<typeof model>().catch(() => null)
+          if (fallbackModelRecord) model = fallbackModelRecord
+          break
+        }
+      }
+    }
+
     const { response, provider_name, attempt_count, latency_ms } = result
 
     const extraHeaders: Record<string, string> = {
@@ -332,6 +395,7 @@ export function gatewayRoutes() {
       'x-hopcoderx-cache': 'MISS',
       'x-hopcoderx-resolved-model': resolvedModel,
       ...(resolvedModel !== body.model ? { 'x-hopcoderx-original-model': body.model } : {}),
+      ...(agentId ? { 'x-hopcoderx-agent-id': String(agentId), 'x-hopcoderx-agent-slug': agentSlug! } : {}),
       'X-RateLimit-Limit-Requests': String(rateLimit),
       'X-RateLimit-Remaining-Requests': String(Math.max(0, rateLimit - (rateCount?.count || 0) - 1)),
       'X-RateLimit-Reset': '60',
@@ -341,8 +405,8 @@ export function gatewayRoutes() {
     if (body.stream) {
       if (response.ok) {
         c.env.DB.prepare(
-          'INSERT INTO usage_logs (user_id, api_key_id, model, total_tokens, cost_cents, response_time_ms, provider, metadata, tag) VALUES (?, ?, ?, 0, 0, ?, ?, ?, ?)'
-        ).bind(userId, keyRecord?.id ?? null, resolvedModel, latency_ms, provider_name, requestMetadata ? JSON.stringify(requestMetadata) : null, requestTag).run().catch(() => {})
+          'INSERT INTO usage_logs (user_id, api_key_id, model, total_tokens, cost_cents, response_time_ms, provider, metadata, tag, agent_id) VALUES (?, ?, ?, 0, 0, ?, ?, ?, ?, ?)'
+        ).bind(userId, keyRecord?.id ?? null, resolvedModel, latency_ms, provider_name, requestMetadata ? JSON.stringify(requestMetadata) : null, requestTag, agentId).run().catch(() => {})
         if (keyRecord) c.env.DB.prepare('UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE id = ?').bind(keyRecord.id).run().catch(() => {})
       }
       const streamHeaders = new Headers(response.headers)
@@ -384,9 +448,9 @@ export function gatewayRoutes() {
     }
 
     c.env.DB.prepare(
-      `INSERT INTO usage_logs (user_id, api_key_id, model, prompt_tokens, completion_tokens, total_tokens, cost_cents, provider_cost_cents, gateway_cache_hit, response_time_ms, provider, metadata, tag)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`
-    ).bind(userId, keyRecord?.id ?? null, resolvedModel, promptT, completionT, totalT, charged_cost_cents, provider_cost_cents, latency_ms, provider_name, requestMetadata ? JSON.stringify(requestMetadata) : null, requestTag)
+      `INSERT INTO usage_logs (user_id, api_key_id, model, prompt_tokens, completion_tokens, total_tokens, cost_cents, provider_cost_cents, gateway_cache_hit, response_time_ms, provider, metadata, tag, agent_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`
+    ).bind(userId, keyRecord?.id ?? null, resolvedModel, promptT, completionT, totalT, charged_cost_cents, provider_cost_cents, latency_ms, provider_name, requestMetadata ? JSON.stringify(requestMetadata) : null, requestTag, agentId)
       .run().catch(() => {})
 
     if (keyRecord) c.env.DB.prepare('UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE id = ?').bind(keyRecord.id).run().catch(() => {})
@@ -394,6 +458,35 @@ export function gatewayRoutes() {
     if (cacheEnabled && cacheTtl > 0) await setToCache((c.env as any).CACHE, cacheKey, responseText, cacheTtl)
 
     return new Response(responseText, { status: 200, headers: { 'Content-Type': 'application/json', ...extraHeaders } })
+}
+
+// ── Route factory ────────────────────────────────────────────────────────────
+export function gatewayRoutes() {
+  const app = new Hono<{ Bindings: Env }>()
+
+  // Standard OpenAI-compatible endpoint; optionally selects an agent preset
+  // via the x-hopcoderx-agent header.
+  app.post('/chat/completions', (c) => chatHandler(c))
+
+  // Dedicated per-agent endpoint — slug is embedded in the URL path so the
+  // client doesn't need to know about headers at all.
+  // Usage: POST /v1/agents/coder/chat/completions
+  app.post('/agents/:slug/chat/completions', (c) => chatHandler(c, c.req.param('slug')))
+
+  // Public: list all active public agent presets
+  // Usage: GET /v1/agents
+  app.get('/agents', async (c) => {
+    const { results } = await c.env.DB.prepare(
+      'SELECT id,slug,name,description,model,tags,sort_order,metadata FROM agent_presets WHERE is_active=1 AND is_public=1 ORDER BY sort_order ASC, name ASC',
+    ).all()
+    return c.json({
+      object: 'list',
+      data: (results || []).map((r: any) => ({
+        ...r,
+        tags: r.tags ? (() => { try { return JSON.parse(r.tags) } catch { return [] } })() : [],
+        metadata: r.metadata ? (() => { try { return JSON.parse(r.metadata) } catch { return null } })() : null,
+      })),
+    })
   })
 
   app.get('/models', async (c) => {
