@@ -25,6 +25,8 @@ id = "5dd06c51b46d4c29b0a987eb2167c4ab"
 SITE_URL              = "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev"
 CLOUDFLARE_ACCOUNT_ID = "6b97f9ad3af6dde786bc87b42b31e8a0"
 CLOUDFLARE_GATEWAY_ID = "hopcoderx-bdr"
+# Constructed from the two above — the base URL for CF AI Gateway
+CLOUDFLARE_GATEWAY_URL = "https://gateway.ai.cloudflare.com/v1/6b97f9ad3af6dde786bc87b42b31e8a0/hopcoderx-bdr"
 
 # ─── Secrets (never put values here — use `wrangler secret put`) ──────────────
 # JWT_SECRET              – openssl rand -base64 32
@@ -43,3 +45,4 @@ CLOUDFLARE_GATEWAY_ID = "hopcoderx-bdr"
 JWT_SECRET            = "local-dev-secret-change-in-production-please"
 CLOUDFLARE_ACCOUNT_ID = "6b97f9ad3af6dde786bc87b42b31e8a0"
 CLOUDFLARE_GATEWAY_ID = "hopcoderx-bdr"
+CLOUDFLARE_GATEWAY_URL = "https://gateway.ai.cloudflare.com/v1/6b97f9ad3af6dde786bc87b42b31e8a0/hopcoderx-bdr"

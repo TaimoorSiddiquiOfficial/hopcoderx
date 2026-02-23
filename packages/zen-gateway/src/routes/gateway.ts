@@ -7,22 +7,30 @@ import { runInputGuardrails, runOutputGuardrails } from '../services/guardrails'
 import { makeCacheKey, getFromCache, setToCache } from '../services/cache'
 import type { ProviderConfig, ProviderType } from '../services/provider'
 
-async function loadProviders(db: any, settings: Record<string, string>): Promise<ProviderConfig[]> {
+// loadProviders returns DB-configured providers, or falls back to CF AI Gateway compat
+// endpoint so traffic always routes through your CF AI Gateway for observability/caching.
+async function loadProviders(db: any, settings: Record<string, string>, env?: Env): Promise<ProviderConfig[]> {
   try {
     const { results } = await db.prepare(
       'SELECT id, name, provider, api_key_encrypted as api_key, base_url, weight, priority FROM provider_configs WHERE is_active = 1 ORDER BY priority ASC, weight DESC'
     ).all()
     if (results && results.length > 0) return results as ProviderConfig[]
   } catch { /* table may not exist yet */ }
-  if (settings.openrouter_api_key) {
-    return [{
-      id: 0, name: 'OpenRouter (default)',
-      provider: 'openrouter' as ProviderType,
-      api_key: settings.openrouter_api_key,
-      base_url: null, weight: 100, priority: 0,
-    }]
-  }
-  return []
+
+  // Default: route through CF AI Gateway /compat endpoint.
+  // Model format must include provider prefix: "openai/gpt-4o", "anthropic/claude-3-5-sonnet", etc.
+  // Provider auth: set api_key on the provider record, or use BYOK/Unified Billing in CF Dashboard.
+  const gatewayUrl = env?.CLOUDFLARE_GATEWAY_URL ||
+    `https://gateway.ai.cloudflare.com/v1/${env?.CLOUDFLARE_ACCOUNT_ID ?? ''}/${env?.CLOUDFLARE_GATEWAY_ID ?? ''}`
+  return [{
+    id: 0,
+    name: 'CF AI Gateway (default)',
+    provider: 'cf-ai-gateway' as ProviderType,
+    api_key: settings.openrouter_api_key || '',  // upstream provider key forwarded as Authorization: Bearer
+    base_url: gatewayUrl,
+    weight: 100,
+    priority: 0,
+  }]
 }
 
 function ipToNum(ip: string): number {
@@ -278,7 +286,7 @@ export function gatewayRoutes() {
       }
     }
 
-    let providers = await loadProviders(c.env.DB, settings)
+    let providers = await loadProviders(c.env.DB, settings, c.env)
     if (!providers.length) {
       return c.json({ error: 'No providers configured. Add a provider in Admin → Providers.' }, 503)
     }
