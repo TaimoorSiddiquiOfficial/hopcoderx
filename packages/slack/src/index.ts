@@ -1,5 +1,5 @@
 import { App } from "@slack/bolt"
-import { createHopCoderX, type ToolPart } from "@hopcoderx/sdk"
+import { createHopCoderXClient, type ToolPart } from "@hopcoderx/sdk"
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -14,7 +14,7 @@ console.log("- Signing secret present:", !!process.env.SLACK_SIGNING_SECRET)
 console.log("- App token present:", !!process.env.SLACK_APP_TOKEN)
 
 console.log("🚀 Starting HopCoderX server...")
-const HopCoderX = await createHopCoderX({
+const HopCoderX = await createHopCoderXClient({
   port: 0,
 })
 console.log("✅ HopCoderX server ready")
