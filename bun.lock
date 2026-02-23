@@ -375,6 +375,39 @@
         "zod-to-json-schema": "3.24.5",
       },
     },
+    "packages/hopcoderx-bdr": {
+      "name": "@hopcoderx/bdr-gateway",
+      "version": "0.0.1",
+      "dependencies": {
+        "@hono/zod-validator": "^0.4.2",
+        "bcryptjs": "^2.4.3",
+        "hono": "^4.10.7",
+        "jsonwebtoken": "^9.0.2",
+        "stripe": "^14.22.0",
+        "zod": "^4.1.8",
+      },
+      "devDependencies": {
+        "@cloudflare/workers-types": "^4.20251008.0",
+        "@types/bcryptjs": "^2.4.6",
+        "@types/jsonwebtoken": "^9.0.5",
+        "typescript": "^5.8.2",
+        "wrangler": "4",
+      },
+      "peerDependencies": {
+        "typescript": "^5.8.2",
+      },
+    },
+    "packages/hopcoderx-bdr-provider": {
+      "name": "@hopcoderx/bdr-provider",
+      "version": "0.0.1",
+      "dependencies": {
+        "@ai-sdk/openai-compatible": "^2.0.0",
+      },
+      "devDependencies": {
+        "@types/node": "^22.13.9",
+        "typescript": "^5.8.2",
+      },
+    },
     "packages/hopcoderx-gitlab": {
       "name": "hopcoderx-gitlab",
       "version": "1.0.0",
@@ -523,43 +556,6 @@
         "@types/node": "catalog:",
         "hopcoderx": "workspace:*",
         "typescript": "catalog:",
-      },
-    },
-    "packages/zen-gateway": {
-      "name": "@hopcoderx/bdr-gateway",
-      "version": "0.0.1",
-      "dependencies": {
-        "@hono/zod-validator": "^0.4.2",
-        "bcryptjs": "^2.4.3",
-        "hono": "^4.10.7",
-        "jsonwebtoken": "^9.0.2",
-        "stripe": "^14.22.0",
-        "zod": "^4.1.8",
-      },
-      "devDependencies": {
-        "@cloudflare/workers-types": "^4.20251008.0",
-        "@types/bcryptjs": "^2.4.6",
-        "@types/jsonwebtoken": "^9.0.5",
-        "typescript": "^5.8.2",
-        "wrangler": "4",
-      },
-      "peerDependencies": {
-        "typescript": "^5.8.2",
-      },
-    },
-    "packages/zen-provider": {
-      "name": "@hopcoderx/bdr-provider",
-      "version": "0.0.1",
-      "dependencies": {
-        "@ai-sdk/openai-compatible": "^2.0.0",
-      },
-      "devDependencies": {
-        "@hopcoderx/sdk": "workspace:*",
-        "@types/node": "^22.13.9",
-        "typescript": "^5.8.2",
-      },
-      "peerDependencies": {
-        "@hopcoderx/sdk": "workspace:*",
       },
     },
   },
@@ -1094,9 +1090,9 @@
 
     "@hopcoderx/app": ["@hopcoderx/app@workspace:packages/app"],
 
-    "@hopcoderx/bdr-gateway": ["@hopcoderx/bdr-gateway@workspace:packages/zen-gateway"],
+    "@hopcoderx/bdr-gateway": ["@hopcoderx/bdr-gateway@workspace:packages/hopcoderx-bdr"],
 
-    "@hopcoderx/bdr-provider": ["@hopcoderx/bdr-provider@workspace:packages/zen-provider"],
+    "@hopcoderx/bdr-provider": ["@hopcoderx/bdr-provider@workspace:packages/hopcoderx-bdr-provider"],
 
     "@hopcoderx/console-app": ["@hopcoderx/console-app@workspace:packages/console/app"],
 
