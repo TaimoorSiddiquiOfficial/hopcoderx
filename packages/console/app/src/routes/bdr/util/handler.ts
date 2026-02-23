@@ -62,6 +62,8 @@ export async function handler(
     "wrk_01K46JDFR0E75SG2Q8K172KF3Y", // frank
     "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // opencode bench
   ]
+  // Provider IDs that use free-tier API keys — used to restrict free-plan routing
+  const FREE_PROVIDER_IDS = ["groq", "cerebras", "google_free", "together_free", "openrouter_free"]
 
   try {
     const url = input.request.url
@@ -90,6 +92,15 @@ export async function handler(
     const stickyProvider = await stickyTracker?.get()
     const authInfo = await authenticate(modelInfo)
     const billingSource = validateBilling(authInfo, modelInfo)
+    // Derive tier from subscription plan — "free" means free-provider-only routing
+    const currentTier: "free" | "mini" | "pro" | "engineer" = (() => {
+      const plan = authInfo?.billing.subscription?.plan
+      if (plan === "engineer") return "engineer"
+      if (plan === "pro" || plan === "200" || plan === "100") return "pro"
+      if (plan === "mini" || plan === "20") return "mini"
+      if (billingSource === "anonymous") return "free"
+      return "free"
+    })()
 
     const retriableRequest = async (retry: RetryOptions = { excludeProviders: [], retryCount: 0 }) => {
       const providerInfo = selectProvider(
@@ -101,6 +112,7 @@ export async function handler(
         isTrial ?? false,
         retry,
         stickyProvider,
+        currentTier,
       )
       validateModelSettings(authInfo)
       updateProviderKey(authInfo, providerInfo)
@@ -380,6 +392,7 @@ export async function handler(
     isTrial: boolean,
     retry: RetryOptions,
     stickyProvider: string | undefined,
+    tier: "free" | "mini" | "pro" | "engineer" = "free",
   ) {
     const modelProvider = (() => {
       if (authInfo?.provider?.credentials) {
@@ -399,6 +412,8 @@ export async function handler(
         const providers = modelInfo.providers
           .filter((provider) => !provider.disabled)
           .filter((provider) => !retry.excludeProviders.includes(provider.id))
+          // Free tier: restrict to free provider IDs only (never route to paid)
+          .filter((provider) => tier === "free" ? FREE_PROVIDER_IDS.includes(provider.id) : true)
           .flatMap((provider) => Array<typeof provider>(provider.weight ?? 1).fill(provider))
 
         // Use the last 4 characters of session ID to select a provider

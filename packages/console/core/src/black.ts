@@ -22,7 +22,27 @@ export namespace BlackData {
       rollingLimit: z.number().int(),
       rollingWindow: z.number().int(),
     }),
+    // Tiered plans: Mini ($9) / Pro ($29) / Engineer ($79)
+    free: z
+      .object({ fixedLimit: z.number().int(), rollingLimit: z.number().int(), rollingWindow: z.number().int() })
+      .optional(),
+    mini: z
+      .object({ fixedLimit: z.number().int(), rollingLimit: z.number().int(), rollingWindow: z.number().int() })
+      .optional(),
+    pro: z
+      .object({ fixedLimit: z.number().int(), rollingLimit: z.number().int(), rollingWindow: z.number().int() })
+      .optional(),
+    engineer: z
+      .object({ fixedLimit: z.number().int(), rollingLimit: z.number().int(), rollingWindow: z.number().int() })
+      .optional(),
   })
+
+  const TIER_DEFAULTS = {
+    free: { fixedLimit: 0, rollingLimit: 0, rollingWindow: 3600 },
+    mini: { fixedLimit: centsToMicroCents(500), rollingLimit: centsToMicroCents(100), rollingWindow: 3600 },
+    pro: { fixedLimit: centsToMicroCents(2000), rollingLimit: centsToMicroCents(500), rollingWindow: 3600 },
+    engineer: { fixedLimit: centsToMicroCents(6000), rollingLimit: centsToMicroCents(1500), rollingWindow: 3600 },
+  }
 
   export const validate = fn(Schema, (input) => {
     return input
@@ -34,7 +54,12 @@ export namespace BlackData {
     }),
     ({ plan }) => {
       const json = JSON.parse(Resource.BDR_BLACK_LIMITS.value)
-      return Schema.parse(json)[plan]
+      const parsed = Schema.parse(json)
+      const value = parsed[plan as keyof typeof parsed]
+      if (value) return value
+      // Default limits for new tier plans not yet in BDR_BLACK_LIMITS secret
+      if (plan in TIER_DEFAULTS) return TIER_DEFAULTS[plan as keyof typeof TIER_DEFAULTS]
+      return parsed["20"] // safe fallback
     },
   )
 
@@ -45,6 +70,9 @@ export namespace BlackData {
     ({ plan }) => {
       if (plan === "200") return Resource.BDR_BLACK_PRICE.plan200
       if (plan === "100") return Resource.BDR_BLACK_PRICE.plan100
+      if (plan === "mini") return Resource.BDR_BLACK_PRICE.planMini
+      if (plan === "pro") return Resource.BDR_BLACK_PRICE.planPro
+      if (plan === "engineer") return Resource.BDR_BLACK_PRICE.planEngineer
       return Resource.BDR_BLACK_PRICE.plan20
     },
   )
@@ -56,6 +84,9 @@ export namespace BlackData {
     ({ priceID }) => {
       if (priceID === Resource.BDR_BLACK_PRICE.plan200) return "200"
       if (priceID === Resource.BDR_BLACK_PRICE.plan100) return "100"
+      if (priceID === Resource.BDR_BLACK_PRICE.planMini) return "mini"
+      if (priceID === Resource.BDR_BLACK_PRICE.planPro) return "pro"
+      if (priceID === Resource.BDR_BLACK_PRICE.planEngineer) return "engineer"
       return "20"
     },
   )

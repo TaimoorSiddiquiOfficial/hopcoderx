@@ -127,6 +127,9 @@ declare module "sst" {
       "plan100": string
       "plan20": string
       "plan200": string
+      "planMini": string
+      "planPro": string
+      "planEngineer": string
       "product": string
       "type": "sst.sst.Linkable"
     }

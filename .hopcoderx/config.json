@@ -817,7 +817,7 @@
       "additionalProperties": false
     },
     "server": {
-      "description": "Server configuration for opencode serve and web commands",
+      "description": "Server configuration for hopcoderx serve and web commands",
       "ref": "ServerConfig",
       "type": "object",
       "properties": {

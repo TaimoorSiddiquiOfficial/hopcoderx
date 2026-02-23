@@ -25,7 +25,7 @@ export namespace Agent {
     .object({
       name: z.string(),
       description: z.string().optional(),
-      mode: z.enum(["subagent", "primary", "all"]),
+      mode: z.enum(["subagent", "primary", "all", "orchestrator"]),
       native: z.boolean().optional(),
       hidden: z.boolean().optional(),
       topP: z.number().optional(),

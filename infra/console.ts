@@ -114,12 +114,19 @@ const bdrPriceProps = {
 const bdrPrice200 = new stripe.Price("BdrBlackPrice", { ...bdrPriceProps, unitAmount: 20000 })
 const bdrPrice100 = new stripe.Price("BdrBlack100Price", { ...bdrPriceProps, unitAmount: 10000 })
 const bdrPrice20 = new stripe.Price("BdrBlack20Price", { ...bdrPriceProps, unitAmount: 2000 })
+// Tiered plans: Free ($0) / Mini ($9) / Pro ($29) / Engineer ($79)
+const bdrPriceMini = new stripe.Price("BdrMiniPrice", { ...bdrPriceProps, unitAmount: 900 })
+const bdrPricePro = new stripe.Price("BdrProPrice", { ...bdrPriceProps, unitAmount: 2900 })
+const bdrPriceEngineer = new stripe.Price("BdrEngineerPrice", { ...bdrPriceProps, unitAmount: 7900 })
 const BDR_BLACK_PRICE = new sst.Linkable("BDR_BLACK_PRICE", {
   properties: {
     product: bdrProduct.id,
     plan200: bdrPrice200.id,
     plan100: bdrPrice100.id,
     plan20: bdrPrice20.id,
+    planMini: bdrPriceMini.id,
+    planPro: bdrPricePro.id,
+    planEngineer: bdrPriceEngineer.id,
   },
 })
 const BDR_BLACK_LIMITS = new sst.Secret("BDR_BLACK_LIMITS")
