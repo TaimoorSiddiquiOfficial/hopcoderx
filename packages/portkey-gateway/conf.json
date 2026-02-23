@@ -1,0 +1,11 @@
+{
+  "log_store": "stdout",
+  "cache": {
+    "mode": "simple",
+    "max_age": 3600
+  },
+  "retry": {
+    "attempts": 3,
+    "on_status_codes": [429, 500, 502, 503, 504]
+  }
+}

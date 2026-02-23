@@ -50,6 +50,11 @@ Rules:
     steps: DecomposeResult["steps"],
     tier: AgentContext.Info["tier"] = "free",
   ): AgentContext.Step[] {
+    // Free tier: use OpenRouter Preset as single model — OR routes + retries internally
+    if (tier === "free") {
+      const preset = AgentContext.FREE_MODELS[0].model // "@preset/hopcoder-free"
+      return steps.map((step) => ({ ...step, model: preset, status: "pending" as const }))
+    }
     const tried: string[] = []
     return steps.map((step) => {
       const m = AgentContext.nextFreeModel(tried)?.model ?? AgentContext.FREE_MODELS[0].model

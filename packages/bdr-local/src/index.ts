@@ -1,13 +1,17 @@
 /**
  * BDR Local — local LLM gateway for HopCoderX development
  *
- * Runs a BDR-compatible (OpenAI) API server that proxies to Ollama.
- * Use this locally instead of the deployed BDR cloud gateway.
+ * Mode A (default): proxies to Ollama
+ *   OLLAMA_URL=http://localhost:11434  bun start
  *
- * Usage:
- *   bun start                   # start server
- *   OLLAMA_URL=http://...  bun start
- *   PORT=5000 bun start
+ * Mode B (Portkey): proxies through self-hosted Portkey AI Gateway
+ *   PORTKEY_GATEWAY_URL=https://your-portkey.up.railway.app bun start
+ *   BDR_PORTKEY_FREE_CONFIG=<base64-json>  # optional load-balance config
+ *
+ * Mode C (OpenRouter Preset): routes via OpenRouter preset — zero config load balancing
+ *   OPENROUTER_API_KEY=sk-or-xxx bun start
+ *   OPENROUTER_PRESET=hopcoder-free  # preset slug, default "hopcoder-free"
+ *   Create your preset at https://openrouter.ai/settings/presets
  *
  * Then add to hopcoderx.json:
  *   {
@@ -23,6 +27,10 @@
 
 const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
+const PORTKEY = Bun.env.PORTKEY_GATEWAY_URL?.replace(/\/$/, "")
+const PORTKEY_CONFIG = Bun.env.BDR_PORTKEY_FREE_CONFIG // base64-encoded routing config JSON
+const OPENROUTER_KEY = Bun.env.OPENROUTER_API_KEY
+const OPENROUTER_PRESET = Bun.env.OPENROUTER_PRESET ?? "hopcoder-free"
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -35,7 +43,20 @@ function normalize(pathname: string) {
   return pathname.replace(/^\/bdr/, "")
 }
 
+// Static free-provider model list for non-Ollama modes
+const FREE_MODEL_LIST = {
+  object: "list",
+  data: [
+    { id: "@preset/hopcoder-free", object: "model", created: 0, owned_by: "openrouter" },
+    { id: "llama-3.3-70b-versatile", object: "model", created: 0, owned_by: "groq" },
+    { id: "llama3.1-70b", object: "model", created: 0, owned_by: "cerebras" },
+    { id: "Qwen/Qwen2.5-72B-Instruct-Turbo", object: "model", created: 0, owned_by: "together-ai" },
+    { id: "gemini-2.0-flash-exp", object: "model", created: 0, owned_by: "google" },
+  ],
+}
+
 async function listModels() {
+  if (OPENROUTER_KEY || PORTKEY) return FREE_MODEL_LIST
   const res = await fetch(`${OLLAMA}/api/tags`)
   if (!res.ok) throw new Error(`Ollama unavailable (${res.status})`)
   const { models } = (await res.json()) as {
@@ -56,6 +77,52 @@ async function chat(req: Request) {
   const body = await req.json()
   const isStream = !!body.stream
 
+  // Mode C: OpenRouter Preset — use @preset/<slug> as model, OR routes internally
+  if (OPENROUTER_KEY) {
+    // If caller sent a generic model, replace with the preset
+    const model = (body.model as string)?.startsWith("@preset/")
+      ? body.model
+      : `@preset/${OPENROUTER_PRESET}`
+    const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_KEY}`,
+        "HTTP-Referer": "https://hopcoder.dev",
+        "X-Title": "HopCoderX BDR",
+      },
+      body: JSON.stringify({ ...body, model }),
+    })
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers: {
+        "Content-Type": isStream ? "text/event-stream" : "application/json",
+        "Cache-Control": "no-cache",
+        ...CORS,
+      },
+    })
+  }
+
+  // Mode B: Portkey Gateway — load-balanced across free providers
+  if (PORTKEY) {
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (PORTKEY_CONFIG) headers["x-portkey-config"] = PORTKEY_CONFIG
+    const upstream = await fetch(`${PORTKEY}/v1/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    })
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers: {
+        "Content-Type": isStream ? "text/event-stream" : "application/json",
+        "Cache-Control": "no-cache",
+        ...CORS,
+      },
+    })
+  }
+
+  // Ollama mode (default)
   const upstream = await fetch(`${OLLAMA}/v1/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -71,6 +138,7 @@ async function chat(req: Request) {
     },
   })
 }
+
 
 Bun.serve({
   port: PORT,
@@ -93,7 +161,9 @@ Bun.serve({
 
     // Health / root
     if (path === "/" || path === "/health") {
-      return Response.json({ ok: true, ollama: OLLAMA }, { headers: CORS })
+      const mode = OPENROUTER_KEY ? "openrouter" : PORTKEY ? "portkey" : "ollama"
+      const upstream = OPENROUTER_KEY ? `openrouter/@preset/${OPENROUTER_PRESET}` : PORTKEY ?? OLLAMA
+      return Response.json({ ok: true, mode, upstream }, { headers: CORS })
     }
 
     return Response.json({ error: "not_found", path }, { status: 404, headers: CORS })
@@ -106,14 +176,24 @@ Bun.serve({
 
 // Print startup info
 const models = await listModels().catch(() => null)
+const mode = OPENROUTER_KEY ? "openrouter" : PORTKEY ? "portkey" : "ollama"
 console.log(`\n  BDR Local`)
 console.log(`  ─────────────────────────────────────`)
 console.log(`  API    http://localhost:${PORT}/v1`)
-console.log(`  Ollama ${OLLAMA}`)
-if (models) {
-  console.log(`  Models ${models.data.length > 0 ? models.data.map((m) => m.id).join(", ") : "(none pulled yet)"}`)
+if (mode === "openrouter") {
+  console.log(`  Mode   OpenRouter Preset (@preset/${OPENROUTER_PRESET})`)
+  console.log(`  Preset https://openrouter.ai/settings/presets`)
+} else if (mode === "portkey") {
+  console.log(`  Mode   Portkey Gateway`)
+  console.log(`  Gate   ${PORTKEY}`)
 } else {
-  console.log(`  Models ⚠  Ollama not reachable — run: ollama serve`)
+  console.log(`  Mode   Ollama`)
+  console.log(`  Ollama ${OLLAMA}`)
+}
+if (models) {
+  console.log(`  Models ${models.data.map((m) => m.id).join(", ") || "(none)"}`)
+} else {
+  console.log(`  Models ⚠  upstream not reachable`)
 }
 console.log(`\n  hopcoderx.json provider snippet:`)
 console.log(`  ─────────────────────────────────────`)

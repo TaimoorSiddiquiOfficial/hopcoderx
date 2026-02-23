@@ -29,8 +29,13 @@ export namespace AgentContext {
   })
   export type Info = z.infer<typeof Info>
 
-  // Free model rotation order — most reliable free APIs first
+  // Free model rotation order.
+  // First entry is an OpenRouter Preset (@preset/hopcoder-free) — create it at
+  // https://openrouter.ai/settings/presets and add Groq/Cerebras/Gemini/Together
+  // as targets. OpenRouter handles load-balancing + fallbacks automatically.
+  // Remaining entries are direct-provider fallbacks (used when no OR key is set).
   export const FREE_MODELS = [
+    { provider: "openrouter", model: "@preset/hopcoder-free", rpm: 0 },
     { provider: "groq", model: "llama-3.3-70b-versatile", rpm: 30 },
     { provider: "cerebras", model: "llama3.1-70b", rpm: 30 },
     { provider: "google", model: "gemini-2.0-flash-exp", rpm: 15 },

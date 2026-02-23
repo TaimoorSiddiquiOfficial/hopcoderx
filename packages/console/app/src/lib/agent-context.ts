@@ -27,7 +27,11 @@ export namespace AgentContext {
     created_at: number
   }
 
+  // First entry: OpenRouter Preset — create at https://openrouter.ai/settings/presets
+  // Name it "hopcoder-free" and add free providers (Groq, Cerebras, Gemini, Together).
+  // OpenRouter handles load-balancing + fallback + rate-limit retry automatically.
   export const FREE_MODELS = [
+    { provider: "openrouter", model: "@preset/hopcoder-free", rpm: 0 },
     { provider: "groq", model: "groq/llama-3.3-70b-versatile", rpm: 30 },
     { provider: "cerebras", model: "cerebras/llama3.1-70b", rpm: 30 },
     { provider: "google", model: "google/gemini-2.0-flash-exp", rpm: 15 },

@@ -46,12 +46,19 @@ export namespace Orchestrator {
     context: AgentContext.Info["context"]
   }
 
-  // Select the cheapest eligible model for the tier, avoiding tried providers
+  // Select the cheapest eligible model for the tier, avoiding tried providers.
+  // For free tier: uses OpenRouter Preset (@preset/hopcoder-free) by default —
+  // OpenRouter handles routing, fallbacks, and rate-limit retries across providers.
   export function assignModels(
     steps: DecomposeResult["steps"],
     tier: AgentContext.Info["tier"] = "free",
     triedModels: string[] = [],
   ): AgentContext.Step[] {
+    // Free tier: all steps use the same preset — OR handles load balancing
+    if (tier === "free") {
+      const preset = AgentContext.FREE_MODELS[0].model // "@preset/hopcoder-free"
+      return steps.map((step) => ({ ...step, model: preset, status: "pending" as const }))
+    }
     return steps.map((step) => {
       const model = AgentContext.nextFreeModel(triedModels)?.model ?? AgentContext.FREE_MODELS[0].model
       return {

@@ -1,0 +1,44 @@
+{
+  "_comment": "Option A (recommended): Use an OpenRouter Preset instead — create at https://openrouter.ai/settings/presets, name it 'hopcoder-free', add Groq/Cerebras/Gemini/Together as free providers. Then set OPENROUTER_API_KEY in bdr-local and skip Portkey entirely.",
+  "_comment_b": "Option B (this file): Portkey load-balance config. Fill in your API keys, base64-encode, set as BDR_PORTKEY_FREE_CONFIG env var.",
+  "strategy": { "mode": "loadbalance" },
+  "retry": {
+    "attempts": 3,
+    "on_status_codes": [429, 500, 502, 503, 504]
+  },
+  "targets": [
+    {
+      "provider": "openai",
+      "api_key": "YOUR_OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api/v1",
+      "override_params": {
+        "model": "@preset/hopcoder-free"
+      },
+      "weight": 3
+    },
+    {
+      "provider": "groq",
+      "api_key": "YOUR_GROQ_API_KEY",
+      "override_params": { "model": "llama-3.3-70b-versatile" },
+      "weight": 2
+    },
+    {
+      "provider": "cerebras",
+      "api_key": "YOUR_CEREBRAS_API_KEY",
+      "override_params": { "model": "llama3.1-70b" },
+      "weight": 2
+    },
+    {
+      "provider": "together-ai",
+      "api_key": "YOUR_TOGETHER_API_KEY",
+      "override_params": { "model": "Qwen/Qwen2.5-72B-Instruct-Turbo" },
+      "weight": 1
+    },
+    {
+      "provider": "google",
+      "api_key": "YOUR_GOOGLE_API_KEY",
+      "override_params": { "model": "gemini-2.0-flash-exp" },
+      "weight": 1
+    }
+  ]
+}
