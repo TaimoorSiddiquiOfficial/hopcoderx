@@ -73,6 +73,7 @@ export namespace BdrData {
 
   const ModelsSchema = z.object({
     models: z.record(z.string(), z.union([ModelSchema, z.array(ModelSchema.extend({ formatFilter: FormatSchema }))])),
+    liteModels: z.record(z.string(), ModelSchema),
     providers: z.record(z.string(), ProviderSchema),
     providerFamilies: z.record(z.string(), ProviderFamilySchema),
   })
@@ -81,7 +82,7 @@ export namespace BdrData {
     return input
   })
 
-  export const list = fn(z.void(), () => {
+  export const list = fn(z.enum(["lite", "full"]), (modelList) => {
     const json = JSON.parse(
       Resource.BDR_MODELS1.value +
         Resource.BDR_MODELS2.value +
@@ -114,9 +115,9 @@ export namespace BdrData {
         Resource.BDR_MODELS29.value +
         Resource.BDR_MODELS30.value,
     )
-    const { models, providers, providerFamilies } = ModelsSchema.parse(json)
+    const { models, liteModels, providers, providerFamilies } = ModelsSchema.parse(json)
     return {
-      models,
+      models: modelList === "lite" ? liteModels : models,
       providers: Object.fromEntries(
         Object.entries(providers).map(([id, provider]) => [
           id,

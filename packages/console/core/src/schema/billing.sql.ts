@@ -93,8 +93,9 @@ export const UsageTable = mysqlTable(
     cacheWrite1hTokens: int("cache_write_1h_tokens"),
     cost: bigint("cost", { mode: "number" }).notNull(),
     keyID: ulid("key_id"),
+    sessionID: varchar("session_id", { length: 30 }),
     enrichment: json("enrichment").$type<{
-      plan: "sub"
+      plan: "sub" | "byok" | "lite"
     }>(),
   },
   (table) => [...workspaceIndexes(table), index("usage_time_created").on(table.workspaceID, table.timeCreated)],
