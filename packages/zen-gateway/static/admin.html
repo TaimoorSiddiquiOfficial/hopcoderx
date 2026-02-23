@@ -137,6 +137,9 @@
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-sm" onclick="openModelBrowser('workers-ai')">Browse Workers AI</button>
             <button class="btn btn-sm" onclick="openModelBrowser('openrouter')">Browse OpenRouter</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModelBrowser('openai')">Sync OpenAI</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModelBrowser('anthropic')">Sync Anthropic</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModelBrowser('gemini')">Sync Gemini</button>
             <button class="btn btn-ghost btn-sm" onclick="syncPrices()">&#8635; Sync Prices</button>
           </div>
         </div>
@@ -1033,7 +1036,13 @@ async function openModelBrowser(source) {
   catalogSource = source;
   catalogData = [];
   catalogFiltered = [];
-  document.getElementById('catalog-modal-title').textContent = source === 'workers-ai' ? 'Browse Workers AI Catalog' : 'Browse OpenRouter Models';
+  document.getElementById('catalog-modal-title').textContent =
+    source === 'workers-ai' ? 'Browse Workers AI Catalog' :
+    source === 'openrouter' ? 'Browse OpenRouter Models' :
+    source === 'openai'     ? 'Sync OpenAI BYOK Models' :
+    source === 'anthropic'  ? 'Sync Anthropic BYOK Models' :
+    source === 'gemini'     ? 'Sync Gemini BYOK Models' :
+    'Browse Models';
   document.getElementById('catalog-table').innerHTML = '<tr><td colspan="5" class="tbl-empty">Loading&#8230;</td></tr>';
   document.getElementById('catalog-search').value = '';
   document.getElementById('catalog-filter').innerHTML = '<option value="">All tasks</option>';
@@ -1074,7 +1083,8 @@ function filterCatalog() {
   catalogFiltered = catalogData.filter(m => {
     if (task && (m.task || m.provider || '') !== task) return false;
     if (!q) return true;
-    return (m.model_id || '').toLowerCase().includes(q) || (m.name || '').toLowerCase().includes(q) || (m.task || m.provider || '').toLowerCase().includes(q);
+    const mid = m.id || m.model_id || '';
+    return mid.toLowerCase().includes(q) || (m.name || '').toLowerCase().includes(q) || (m.task || m.provider || '').toLowerCase().includes(q);
   });
   renderCatalog();
 }
@@ -1083,13 +1093,13 @@ function renderCatalog() {
   const tbody = document.getElementById('catalog-table');
   document.getElementById('catalog-count').textContent = catalogFiltered.length;
   if (!catalogFiltered.length) { tbody.innerHTML = '<tr><td colspan="5" class="tbl-empty">No models match.</td></tr>'; return; }
-  tbody.innerHTML = catalogFiltered.map(m => `<tr>
-    <td><input type="checkbox" class="cat-cb" value="${m.model_id}"${m.is_imported ? ' disabled' : ''}></td>
-    <td style="font-size:10px;max-width:280px;word-break:break-all">${m.model_id}</td>
+  tbody.innerHTML = catalogFiltered.map(m => { const mid = m.id || m.model_id || ''; return `<tr>
+    <td><input type="checkbox" class="cat-cb" value="${mid}"${m.is_imported ? ' disabled' : ''}></td>
+    <td style="font-size:10px;max-width:280px;word-break:break-all">${mid}</td>
     <td style="font-size:10px;color:var(--muted)">${m.name || ''}<br><span style="color:var(--gold-dim);font-size:9px">${m.task || m.provider || ''}</span></td>
     <td class="r" style="font-size:10px;white-space:nowrap">${m.context_length ? (m.context_length >= 1000 ? Math.round(m.context_length / 1000) + 'k' : m.context_length) : '&mdash;'}</td>
     <td class="c">${m.is_imported ? '<span class="bdg bdg-green" style="font-size:9px">imported</span>' : ''}</td>
-  </tr>`).join('');
+  </tr>`; }).join('');
   document.querySelectorAll('.cat-cb').forEach(cb => cb.addEventListener('change', updateSelectedCount));
   updateSelectedCount();
 }

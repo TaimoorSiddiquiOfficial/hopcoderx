@@ -60,6 +60,31 @@ const WORKERS_AI_CATALOG: Array<{ id: string; name: string; task: string; contex
 
 export { WORKERS_AI_CATALOG }
 
+// ── Anthropic model catalog (no public list API) ─────────────────────────────
+const ANTHROPIC_CATALOG = [
+  { model_id: 'claude-opus-4-5',               name: 'Claude Opus 4.5',              task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-sonnet-4-5',             name: 'Claude Sonnet 4.5',            task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-haiku-4-5',              name: 'Claude Haiku 4.5',             task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-opus-4-0',               name: 'Claude Opus 4.0',              task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-sonnet-4-0',             name: 'Claude Sonnet 4.0',            task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-3-5-sonnet-20241022',    name: 'Claude 3.5 Sonnet (Oct 2024)', task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-3-5-haiku-20241022',     name: 'Claude 3.5 Haiku (Oct 2024)',  task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-3-opus-20240229',        name: 'Claude 3 Opus',                task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-3-sonnet-20240229',      name: 'Claude 3 Sonnet',              task: 'anthropic', context_length: 200000 },
+  { model_id: 'claude-3-haiku-20240307',       name: 'Claude 3 Haiku',               task: 'anthropic', context_length: 200000 },
+]
+
+// ── Gemini model catalog ──────────────────────────────────────────────────────
+const GEMINI_CATALOG = [
+  { model_id: 'gemini-2.5-pro',        name: 'Gemini 2.5 Pro',           task: 'gemini', context_length: 1000000 },
+  { model_id: 'gemini-2.5-flash',      name: 'Gemini 2.5 Flash',         task: 'gemini', context_length: 1000000 },
+  { model_id: 'gemini-2.0-flash',      name: 'Gemini 2.0 Flash',         task: 'gemini', context_length: 1000000 },
+  { model_id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite',    task: 'gemini', context_length: 1000000 },
+  { model_id: 'gemini-1.5-pro',        name: 'Gemini 1.5 Pro',           task: 'gemini', context_length: 1000000 },
+  { model_id: 'gemini-1.5-flash',      name: 'Gemini 1.5 Flash',         task: 'gemini', context_length: 1000000 },
+  { model_id: 'gemini-1.5-flash-8b',   name: 'Gemini 1.5 Flash 8B',      task: 'gemini', context_length: 1000000 },
+]
+
 // ── Fetch live CF Workers AI catalog from Cloudflare API ─────────────────────
 // Requires 'AI: Read' permission on the API token.
 // Returns null when the token is missing or the request fails.
@@ -215,6 +240,100 @@ export function adminRoutes() {
         is_imported: imported.has(m.id),
       })),
     });
+  });
+
+  // ── BYOK Provider Catalogs ────────────────────────────────────────────────
+
+  // GET /admin/models/catalog/openai — fetch live from OpenAI using stored BYOK key
+  admin.get('/models/catalog/openai', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const config = await c.env.DB.prepare(
+      "SELECT api_key_encrypted as api_key FROM provider_configs WHERE provider = 'openai' AND is_active = 1 ORDER BY priority ASC LIMIT 1"
+    ).first<{ api_key: string }>();
+    if (!config?.api_key) return c.json({ error: 'No active OpenAI BYOK provider configured. Add one in the Providers tab.' }, 400);
+    let models: any[] = [];
+    try {
+      const res = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: `Bearer ${config.api_key}` } });
+      if (!res.ok) throw new Error(`OpenAI API ${res.status}: ${await res.text().catch(() => '')}`);
+      const data: any = await res.json();
+      models = (data.data || [])
+        .filter((m: any) => /^(gpt-|o[1-9]|chatgpt-)/.test(m.id) && !m.id.endsWith('-preview') && !m.id.includes('instruct'))
+        .map((m: any) => ({ model_id: m.id, name: m.id, task: 'openai', context_length: 0 }))
+        .sort((a: any, b: any) => a.model_id.localeCompare(b.model_id));
+    } catch (e: any) {
+      return c.json({ error: `Failed to fetch OpenAI models: ${e.message}` }, 502);
+    }
+    const { results: existing } = await c.env.DB.prepare("SELECT model_id FROM models WHERE provider = 'openai'").all<{ model_id: string }>();
+    const imported = new Set((existing || []).map(r => r.model_id));
+    return c.json({ total: models.length, models: models.map(m => ({ ...m, is_imported: imported.has(m.model_id) })) });
+  });
+
+  // GET /admin/models/catalog/anthropic — built-in catalog, key presence check
+  admin.get('/models/catalog/anthropic', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const config = await c.env.DB.prepare(
+      "SELECT api_key_encrypted as api_key FROM provider_configs WHERE provider = 'anthropic' AND is_active = 1 ORDER BY priority ASC LIMIT 1"
+    ).first<{ api_key: string }>();
+    if (!config?.api_key) return c.json({ error: 'No active Anthropic BYOK provider configured. Add one in the Providers tab.' }, 400);
+    const { results: existing } = await c.env.DB.prepare("SELECT model_id FROM models WHERE provider = 'anthropic'").all<{ model_id: string }>();
+    const imported = new Set((existing || []).map(r => r.model_id));
+    return c.json({ total: ANTHROPIC_CATALOG.length, models: ANTHROPIC_CATALOG.map(m => ({ ...m, is_imported: imported.has(m.model_id) })) });
+  });
+
+  // GET /admin/models/catalog/gemini — built-in catalog, key presence check
+  admin.get('/models/catalog/gemini', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const config = await c.env.DB.prepare(
+      "SELECT api_key_encrypted as api_key FROM provider_configs WHERE provider = 'gemini' AND is_active = 1 ORDER BY priority ASC LIMIT 1"
+    ).first<{ api_key: string }>();
+    if (!config?.api_key) return c.json({ error: 'No active Gemini BYOK provider configured. Add one in the Providers tab.' }, 400);
+    const { results: existing } = await c.env.DB.prepare("SELECT model_id FROM models WHERE provider = 'gemini'").all<{ model_id: string }>();
+    const imported = new Set((existing || []).map(r => r.model_id));
+    return c.json({ total: GEMINI_CATALOG.length, models: GEMINI_CATALOG.map(m => ({ ...m, is_imported: imported.has(m.model_id) })) });
+  });
+
+  // POST /admin/models/import/openai
+  admin.post('/models/import/openai', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const { model_ids } = await c.req.json<{ model_ids: string[] }>();
+    for (const id of model_ids) {
+      await c.env.DB.prepare(
+        'INSERT OR REPLACE INTO models (provider,model_id,name,description,context_length,pricing_input_cents_per_m,pricing_output_cents_per_m,is_featured,is_active) VALUES (?,?,?,?,0,0,0,0,1)'
+      ).bind('openai', id, id, '').run();
+    }
+    return c.json({ imported: model_ids.length });
+  });
+
+  // POST /admin/models/import/anthropic
+  admin.post('/models/import/anthropic', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const { model_ids } = await c.req.json<{ model_ids: string[] }>();
+    for (const id of model_ids) {
+      const meta = ANTHROPIC_CATALOG.find(m => m.model_id === id);
+      await c.env.DB.prepare(
+        'INSERT OR REPLACE INTO models (provider,model_id,name,description,context_length,pricing_input_cents_per_m,pricing_output_cents_per_m,is_featured,is_active) VALUES (?,?,?,?,?,0,0,0,1)'
+      ).bind('anthropic', id, meta?.name ?? id, '', meta?.context_length ?? 200000).run();
+    }
+    return c.json({ imported: model_ids.length });
+  });
+
+  // POST /admin/models/import/gemini
+  admin.post('/models/import/gemini', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const { model_ids } = await c.req.json<{ model_ids: string[] }>();
+    for (const id of model_ids) {
+      const meta = GEMINI_CATALOG.find(m => m.model_id === id);
+      await c.env.DB.prepare(
+        'INSERT OR REPLACE INTO models (provider,model_id,name,description,context_length,pricing_input_cents_per_m,pricing_output_cents_per_m,is_featured,is_active) VALUES (?,?,?,?,?,0,0,0,1)'
+      ).bind('gemini', id, meta?.name ?? id, '', meta?.context_length ?? 1000000).run();
+    }
+    return c.json({ imported: model_ids.length });
   });
 
   // Sync OpenRouter model pricing to latest values
