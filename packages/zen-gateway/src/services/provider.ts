@@ -23,13 +23,16 @@ export interface CallOptions {
 }
 
 function stripPrefix(provider: ProviderType, modelId: string): string {
-  const prefixes: Partial<Record<ProviderType, string>> = {
-    openai: 'openai/',
-    anthropic: 'anthropic/',
-    gemini: 'google/',
+  const prefixes: Partial<Record<ProviderType, string[]>> = {
+    openai:    ['openai/'],
+    anthropic: ['anthropic/'],
+    // CF AI Gateway unified uses google/, but some callers send gemini/ — strip both
+    gemini:    ['google/', 'gemini/'],
   }
-  const p = prefixes[provider]
-  return p && modelId.startsWith(p) ? modelId.slice(p.length) : modelId
+  const ps = prefixes[provider]
+  if (!ps) return modelId
+  const match = ps.find(p => modelId.startsWith(p))
+  return match ? modelId.slice(match.length) : modelId
 }
 
 export async function callProvider(config: ProviderConfig, opts: CallOptions): Promise<Response> {

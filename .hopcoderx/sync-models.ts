@@ -1,84 +1,168 @@
 #!/usr/bin/env bun
 /**
- * sync-models.ts
- * Fetches the featured model list from the HopCoderX BDR gateway API
- * and rewrites the models block in hopcoderx.json.
+ * sync-models.ts — HopCoderX BDR model sync
  *
- * Usage:
- *   bun G:\HopCoderX\.hopcoderx\sync-models.ts [--gateway=<url>]
+ * Fetches active models from the gateway API and rewrites the `models`
+ * block in hopcoderx.json so the CLI always reflects what the gateway serves.
  *
- * Requires CF_AIG_TOKEN env var (or --token=<key> arg).
+ * Usage (virtual key — Mode A via worker, recommended):
+ *   HOPCODERX_API_KEY=<vk-...> bun .hopcoderx/sync-models.ts
+ *
+ * Usage (owner/admin — Mode B via CF AI Gateway token):
+ *   CF_AIG_TOKEN=<cf-token> bun .hopcoderx/sync-models.ts
+ *
+ * Flags:
+ *   --gateway=<url>   Override gateway base URL
+ *   --all             Sync all active models (default: featured only)
+ *   --dry-run         Print without writing
  */
 
 import { resolve } from "path"
 
-const GATEWAY_URL = process.env.BDR_GATEWAY_URL ?? "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev"
-const TOKEN = process.env.CF_AIG_TOKEN ?? ""
-const CONFIG_PATH = resolve(import.meta.dir, "hopcoderx.json")
+// ── Config ──────────────────────────────────────────────────────────────────
 
-// Parse CLI overrides
+const GATEWAY = "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev"
+const CONFIG   = resolve(import.meta.dir, "hopcoderx.json")
+
+let featuredOnly = true
+let dryRun = false
 for (const arg of process.argv.slice(2)) {
-  if (arg.startsWith("--gateway=")) process.env.BDR_GATEWAY_URL = arg.slice("--gateway=".length)
-  if (arg.startsWith("--token=")) process.env.CF_AIG_TOKEN = arg.slice("--token=".length)
+  if (arg.startsWith("--gateway=")) process.env.BDR_GATEWAY_URL = arg.slice(10)
+  if (arg.startsWith("--token="))   process.env.CF_AIG_TOKEN     = arg.slice(8)
+  if (arg === "--all")              featuredOnly = false
+  if (arg === "--dry-run")          dryRun = true
 }
 
-const gatewayUrl = process.env.BDR_GATEWAY_URL ?? GATEWAY_URL
-const apiToken = process.env.CF_AIG_TOKEN ?? TOKEN
+const base  = process.env.BDR_GATEWAY_URL ?? GATEWAY
+const token = process.env.HOPCODERX_API_KEY ?? process.env.CF_AIG_TOKEN ?? ""
 
-if (!apiToken) {
-  console.error("❌  CF_AIG_TOKEN not set. Run: CF_AIG_TOKEN=<key> bun sync-models.ts")
+if (!token) {
+  console.error("❌  No API key. Set HOPCODERX_API_KEY (virtual key) or CF_AIG_TOKEN.")
   process.exit(1)
 }
 
-console.log(`🔄  Fetching models from ${gatewayUrl}/v1/models?featured=1 …`)
+// ── Fetch ───────────────────────────────────────────────────────────────────
 
-const res = await fetch(`${gatewayUrl}/v1/models?featured=1`, {
-  headers: { Authorization: `Bearer ${apiToken}` },
-})
+const url = `${base}/v1/models${featuredOnly ? "?featured=1" : ""}`
+console.log(`🔄  Fetching ${featuredOnly ? "featured" : "all"} models from ${url} …`)
 
+const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
 if (!res.ok) {
   const body = await res.text().catch(() => "")
-  console.error(`❌  Gateway returned ${res.status}: ${body.slice(0, 200)}`)
+  console.error(`❌  ${res.status} ${res.statusText}: ${body.slice(0, 300)}`)
   process.exit(1)
 }
 
-const data = await res.json() as { data?: any[] }
-const models: any[] = data.data ?? []
-
+const { data: models = [] } = await res.json() as { data: any[] }
 if (!models.length) {
-  console.warn("⚠️  No featured models returned — hopcoderx.json not updated.")
+  console.warn("⚠️  Gateway returned 0 models — hopcoderx.json not changed.")
+  process.exit(0)
+}
+console.log(`✅  ${models.length} model(s): ${models.map((m: any) => m.id).join(", ")}`)
+
+// ── Capability helpers ───────────────────────────────────────────────────────
+
+// CF AI Gateway unified format uses google/ for Gemini (other providers match their name)
+const PREFIX: Record<string, string> = {
+  openai: "openai", anthropic: "anthropic",
+  gemini: "google",  // CF AI Gateway unified convention
+  "workers-ai": "workers-ai", openrouter: "openrouter",
+}
+
+function unifiedId(ownedBy: string, rawId: string): string {
+  const prefix = PREFIX[ownedBy] ?? ownedBy
+  if (rawId.startsWith(`${prefix}/`)) return rawId
+  return `${prefix}/${rawId}`
+}
+
+function prov(id: string) {
+  return id.split("/")[0]
+}
+
+function isReasoning(id: string) {
+  return /\bo[1-9]\b|o3|o4|thinking|reasoning|r1/i.test(id)
+}
+
+function hasVision(id: string, p: string) {
+  if (["openai", "anthropic", "gemini", "google"].includes(p)) return true
+  return /vision|vl\b|pixtral|llava/i.test(id)
+}
+
+function hasTools(id: string, p: string) {
+  if (["openai", "anthropic", "gemini", "google", "openrouter"].includes(p)) return true
+  return /llama-3\.[123]|mistral|qwen|hermes/i.test(id)
+}
+
+function ctxLen(m: any, p: string): number {
+  if (m.context_length) return m.context_length
+  if (p === "anthropic") return 200000
+  if (p === "gemini" || p === "google") return 1000000
+  if (p === "openai") return 128000
+  return 8192
+}
+
+function outLen(id: string, ctx: number): number {
+  if (/gpt-4o|gpt-4\.5|claude-3-5|claude-sonnet-4|claude-opus-4/i.test(id)) return 16384
+  if (/gemini-2/i.test(id)) return 8192
+  return Math.min(ctx, 4096)
+}
+
+function releaseDate(m: any): string | undefined {
+  if (m.created) return new Date(m.created * 1000).toISOString().slice(0, 10)
+  const known: Record<string, string> = {
+    "gpt-4o": "2024-05-13", "gpt-4o-mini": "2024-07-18",
+    "o1": "2024-09-12", "o3": "2025-04-16",
+    "claude-3-5-sonnet-20241022": "2024-10-22",
+    "claude-sonnet-4-5": "2025-07-22", "claude-opus-4-5": "2025-07-22",
+    "gemini-2.5-pro": "2025-03-25", "gemini-2.0-flash": "2025-01-21",
+  }
+  const short = (m.id as string).split("/").pop() ?? ""
+  return known[short]
+}
+
+// ── Build models block ───────────────────────────────────────────────────────
+
+const block: Record<string, any> = {}
+
+for (const m of models) {
+  // m.id = bare model_id (e.g. "gpt-4o", "@cf/meta/llama-3.1-8b-instruct")
+  // m.owned_by = provider type (e.g. "openai", "workers-ai", "gemini")
+  // Build the unified key: "openai/gpt-4o", "google/gemini-2.5-pro", etc.
+  const id: string = unifiedId(m.owned_by ?? prov(m.id), m.id)
+  const p   = prov(id)
+  const ctx = ctxLen(m, p)
+  const out = outLen(id, ctx)
+  const date = releaseDate(m)
+
+  const entry: Record<string, any> = {
+    name:        m.name ?? id,
+    attachment:  hasVision(id, p),
+    reasoning:   isReasoning(id),
+    temperature: !isReasoning(id),   // o1/o3 ignore temperature
+    tool_call:   hasTools(id, p),
+    limit:       { context: ctx, output: out },
+    options:     {},
+  }
+  if (date) entry.release_date = date
+  if (m.pricing?.prompt || m.pricing?.completion) {
+    entry.cost = { input: m.pricing.prompt ?? 0, output: m.pricing.completion ?? 0 }
+  }
+
+  block[id] = entry
+}
+
+// ── Write ────────────────────────────────────────────────────────────────────
+
+if (dryRun) {
+  console.log("\n📋  Dry run — would write:\n")
+  console.log(JSON.stringify({ "hopcoderx-bdr": { models: block } }, null, 2))
   process.exit(0)
 }
 
-console.log(`✅  Got ${models.length} model(s): ${models.map((m: any) => m.id).join(", ")}`)
-
-// Build the models object for hopcoderx.json
-const modelsEntry: Record<string, any> = {}
-
-for (const m of models) {
-  const id: string = m.id           // e.g. "openai/gpt-4o"
-  const ctx = m.context_window as number ?? m.context_length as number ?? 128000
-  const maxOut = m.max_completion_tokens as number ?? 4096
-
-  modelsEntry[id] = {
-    name: m.name ?? id,
-    release_date: m.created ? new Date((m.created as number) * 1000).toISOString().slice(0, 10) : undefined,
-    attachment: !!(m.vision ?? false),
-    reasoning: !!(m.reasoning ?? false),
-    temperature: true,
-    tool_call: !!(m.function_calling ?? true),
-    limit: { context: ctx, output: maxOut },
-    options: {},
-  }
-  // Strip undefined keys
-  for (const k of Object.keys(modelsEntry[id]))
-    if (modelsEntry[id][k] === undefined) delete modelsEntry[id][k]
-}
-
-// Read + patch hopcoderx.json
-const cfg = await Bun.file(CONFIG_PATH).json() as any
+const cfg = await Bun.file(CONFIG).json() as any
+cfg.provider        ??= {}
 cfg.provider["hopcoderx-bdr"] ??= {}
-cfg.provider["hopcoderx-bdr"].models = modelsEntry
+cfg.provider["hopcoderx-bdr"].models = block
 
-await Bun.write(CONFIG_PATH, JSON.stringify(cfg, null, 2) + "\n")
-console.log(`📝  Updated ${CONFIG_PATH} with ${Object.keys(modelsEntry).length} model(s).`)
+await Bun.write(CONFIG, JSON.stringify(cfg, null, 2) + "\n")
+console.log(`📝  Wrote ${Object.keys(block).length} model(s) to ${CONFIG}`)
