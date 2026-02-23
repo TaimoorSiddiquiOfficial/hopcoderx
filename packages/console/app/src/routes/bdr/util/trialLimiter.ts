@@ -1,7 +1,7 @@
-import { Database, eq, sql } from "@opencode-ai/console-core/drizzle/index.js"
-import { IpTable } from "@opencode-ai/console-core/schema/ip.sql.js"
+import { Database, eq, sql } from "@hopcoderx/console-core/drizzle/index.js"
+import { IpTable } from "@hopcoderx/console-core/schema/ip.sql.js"
 import { UsageInfo } from "./provider/provider"
-import { BdrData } from "@opencode-ai/console-core/model.js"
+import { BdrData } from "@hopcoderx/console-core/model.js"
 
 export function createTrialLimiter(trial: BdrData.Trial | undefined, ip: string, client: string) {
   if (!trial) return

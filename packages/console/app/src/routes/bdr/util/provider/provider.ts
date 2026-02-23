@@ -1,4 +1,4 @@
-import { BdrData } from "@opencode-ai/console-core/model.js"
+import { BdrData } from "@hopcoderx/console-core/model.js"
 import {
   fromAnthropicChunk,
   fromAnthropicRequest,

@@ -1,8 +1,8 @@
-import { Database, eq, and, sql, inArray } from "@opencode-ai/console-core/drizzle/index.js"
-import { IpRateLimitTable } from "@opencode-ai/console-core/schema/ip.sql.js"
+import { Database, eq, and, sql, inArray } from "@hopcoderx/console-core/drizzle/index.js"
+import { IpRateLimitTable } from "@hopcoderx/console-core/schema/ip.sql.js"
 import { FreeUsageLimitError } from "./error"
 import { logger } from "./logger"
-import { BdrData } from "@opencode-ai/console-core/model.js"
+import { BdrData } from "@hopcoderx/console-core/model.js"
 
 export function createRateLimiter(limit: BdrData.RateLimit | undefined, rawIp: string, headers: Headers) {
   if (!limit) return
