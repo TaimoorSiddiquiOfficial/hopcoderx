@@ -1,0 +1,16 @@
+{
+  "name": "@hopcoderx/bdr-local",
+  "version": "0.0.1",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}
