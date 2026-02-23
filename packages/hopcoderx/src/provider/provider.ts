@@ -845,6 +845,66 @@ export namespace Provider {
 
     const configProviders = Object.entries(config.provider ?? {})
 
+    // ── HopCoderX BDR — always-available native gateway provider ───────────────
+    // Registered directly in code (not from models.dev) so every user sees it
+    // in `auth login` and the CUSTOM_LOADER can always resolve it.
+    // Users supply HOPCODERX_API_KEY (virtual key from the web panel) or
+    // CF_AIG_TOKEN (admin direct path). The configProviders loop below can
+    // extend or override the model list from hopcoderx.json.
+    if (!database["hopcoderx-bdr"]) {
+      const bdrProv = "hopcoderx-bdr"
+      const bdrBase = "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev/v1"
+      function bdrModel(
+        id: string,
+        name: string,
+        releaseDate: string,
+        ctx: number,
+        out: number,
+        attachment: boolean,
+        toolcall: boolean,
+        reasoning = false,
+      ): Model {
+        return {
+          id,
+          providerID: bdrProv,
+          name,
+          family: id.split("/")[0],
+          api: { id, url: bdrBase, npm: "@ai-sdk/openai-compatible" },
+          status: "active",
+          headers: {},
+          options: {},
+          cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+          limit: { context: ctx, output: out },
+          capabilities: {
+            temperature: !reasoning,
+            reasoning,
+            attachment,
+            toolcall,
+            input: { text: true, audio: false, image: attachment, video: false, pdf: attachment },
+            output: { text: true, audio: false, image: false, video: false, pdf: false },
+            interleaved: false,
+          },
+          release_date: releaseDate,
+          variants: {},
+        }
+      }
+      database["hopcoderx-bdr"] = {
+        id: bdrProv,
+        name: "HopCoderX BDR",
+        source: "custom",
+        env: ["HOPCODERX_API_KEY", "CF_AIG_TOKEN"],
+        options: {},
+        models: {
+          "openai/gpt-4o":              bdrModel("openai/gpt-4o",              "GPT-4o",               "2024-05-13", 128000, 16384, true,  true),
+          "openai/gpt-4o-mini":         bdrModel("openai/gpt-4o-mini",         "GPT-4o mini",          "2024-07-18", 128000,  4096, true,  true),
+          "anthropic/claude-sonnet-4-5":bdrModel("anthropic/claude-sonnet-4-5","Claude Sonnet 4.5",    "2025-07-22", 200000, 16384, true,  true),
+          "anthropic/claude-haiku-3-5": bdrModel("anthropic/claude-haiku-3-5", "Claude Haiku 3.5",     "2024-11-04", 200000,  4096, true,  true),
+          "workers-ai/@cf/meta/llama-3.1-70b-instruct":
+            bdrModel("workers-ai/@cf/meta/llama-3.1-70b-instruct", "Llama 3.1 70B", "2024-09-01", 128000, 4096, false, true),
+        },
+      }
+    }
+
     // Add GitHub Copilot Enterprise provider that inherits from GitHub Copilot
     if (database["github-copilot"]) {
       const githubCopilot = database["github-copilot"]

@@ -320,6 +320,11 @@ export const AuthLoginCommand = cmd({
           message: "Select provider",
           maxItems: 8,
           options: [
+            {
+              value: "hopcoderx-bdr",
+              label: "HopCoderX BDR",
+              hint: "recommended · unified AI gateway",
+            },
             ...pipe(
               providers,
               values(),
@@ -385,6 +390,13 @@ export const AuthLoginCommand = cmd({
               "  2. AWS credential chain (profile, access keys, IAM roles, EKS IRSA)\n\n" +
               "Configure via hopcoderx.json options (profile, region, endpoint) or\n" +
               "AWS environment variables (AWS_PROFILE, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_WEB_IDENTITY_TOKEN_FILE).",
+          )
+        }
+
+        if (provider === "hopcoderx-bdr") {
+          prompts.log.info(
+            "HopCoderX BDR is your unified AI gateway — one key, every model.\n" +
+            "Get your API key from the dashboard: https://hopcoderx-bdr.taimoorrehman-sid.workers.dev/dashboard",
           )
         }
 
