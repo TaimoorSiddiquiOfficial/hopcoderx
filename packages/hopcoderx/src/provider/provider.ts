@@ -589,11 +589,22 @@ export namespace Provider {
       }
     },
     "hopcoderx-bdr": async (input) => {
-      // Mode A — user virtual key → route through the HopCoderX BDR worker.
-      //   Set HOPCODERX_API_KEY to a virtual key generated in the admin panel.
-      //   All requests go through billing/auth on the worker, which then calls
-      //   CF AI Gateway with the appropriate BYOK keys.
-      const workerKey = await (async () => {
+      // HopCoderX BDR is an API gateway (similar to Kong) that sits in front of
+      // multiple AI providers. Clients authenticate to the gateway with a virtual
+      // key; the gateway owns routing, billing, rate-limiting, and BYOK provider
+      // selection internally. Callers never interact with OpenAI/Anthropic/etc.
+      // directly — they only talk to the gateway endpoint.
+      //
+      // Primary path — virtual key (HOPCODERX_API_KEY or stored auth):
+      //   POST https://hopcoderx-bdr.taimoorrehman-sid.workers.dev/v1/chat/completions
+      //   Authorization: Bearer <virtual-key>
+      //   { model: "openai/gpt-4o" | "anthropic/claude-sonnet-4-5" | "workers-ai/@cf/..." }
+      //
+      // Admin escape hatch — direct CF AI Gateway (CF_AIG_TOKEN):
+      //   Bypasses the gateway worker entirely; no billing tracked in D1.
+      //   Only useful for gateway admins testing upstream connectivity.
+
+      const virtualKey = await (async () => {
         const env = Env.get("HOPCODERX_API_KEY")
         if (env) return env
         const auth = await Auth.get("hopcoderx-bdr")
@@ -601,28 +612,23 @@ export namespace Provider {
         return undefined
       })()
 
-      if (workerKey) {
-        const workerUrl = "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev/v1"
+      if (virtualKey) {
         return {
           autoload: true,
           options: {
-            baseURL: workerUrl,
-            apiKey: workerKey,
+            baseURL: "https://hopcoderx-bdr.taimoorrehman-sid.workers.dev/v1",
+            apiKey: virtualKey,
           },
-          // SDK is openai-compatible; use sdk.chat(modelID) for standard chat
+          // Model IDs are forwarded as-is to the gateway (e.g. "openai/gpt-4o").
+          // The gateway resolves routing to the underlying provider from its DB.
           async getModel(sdk: any, modelID: string) {
-            // Strip provider prefix for standard OpenAI-compat call (gpt-4o not openai/gpt-4o)
-            // Workers AI models keep their full ID
-            return sdk.chat(modelID)
+            return sdk.languageModel(modelID)
           },
         }
       }
 
-      // Mode B — admin/dev: direct CF AI Gateway via ai-gateway-provider.
-      //   Set CF_AIG_TOKEN to your Cloudflare API token with AI Gateway permission.
-      //   Bypasses the worker; no billing tracked in D1.
+      // Admin escape hatch — direct CF AI Gateway via ai-gateway-provider.
       const accountId = Env.get("CLOUDFLARE_ACCOUNT_ID") || "6b97f9ad3af6dde786bc87b42b31e8a0"
-      const gateway = "hopcoderx-bdr"
 
       const cfToken = await (async () => {
         const env = Env.get("CLOUDFLARE_API_TOKEN") || Env.get("CF_AIG_TOKEN")
@@ -636,18 +642,15 @@ export namespace Provider {
 
       const { createAiGateway } = await import("ai-gateway-provider")
       const { createUnified } = await import("ai-gateway-provider/providers/unified")
-
-      const aigateway = createAiGateway({ accountId, gateway, apiKey: cfToken })
+      const aigateway = createAiGateway({ accountId, gateway: "hopcoderx-bdr", apiKey: cfToken })
       const unified = createUnified()
 
       return {
         autoload: true,
+        options: {},
         async getModel(_sdk: any, modelID: string) {
-          // Unified format: "provider/model"
-          // e.g. "openai/gpt-4o", "anthropic/claude-sonnet-4-5", "workers-ai/@cf/meta/llama-3.1-8b-instruct"
           return aigateway(unified(modelID))
         },
-        options: {},
       }
     },
   }
