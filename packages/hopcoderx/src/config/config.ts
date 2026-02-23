@@ -44,11 +44,11 @@ export namespace Config {
   function getManagedConfigDir(): string {
     switch (process.platform) {
       case "darwin":
-        return "/Library/Application Support/opencode"
+        return "/Library/Application Support/hopcoderx"
       case "win32":
-        return path.join(process.env.ProgramData || "C:\\ProgramData", "opencode")
+        return path.join(process.env.ProgramData || "C:\\ProgramData", "hopcoderx")
       default:
-        return "/etc/opencode"
+        return "/etc/hopcoderx"
     }
   }
 
@@ -69,32 +69,33 @@ export namespace Config {
   export const state = Instance.state(async () => {
     const auth = await Auth.all()
 
-    // Config loading order (low -> high precedence): https://opencode.ai/docs/config#precedence-order
-    // 1) Remote .well-known/opencode (org defaults)
-    // 2) Global config (~/.config/opencode/opencode.json{,c})
+    // Config loading order (low -> high precedence): https://hopcoder.dev/docs/config#precedence-order
+    // 1) Remote .well-known/hopcoderx (org defaults)
+    // 2) Global config (~/.config/hopcoderx/hopcoderx.json{,c})
     // 3) Custom config (OPENCODE_CONFIG)
-    // 4) Project config (opencode.json{,c})
-    // 5) .opencode directories (.opencode/agents/, .opencode/commands/, .opencode/plugins/, .opencode/opencode.json{,c})
+    // 4) Project config (hopcoderx.json{,c})
+    // 5) .hopcoderx directories (.hopcoderx/agents/, .hopcoderx/commands/, .hopcoderx/plugins/, .hopcoderx/hopcoderx.json{,c})
     // 6) Inline config (OPENCODE_CONFIG_CONTENT)
     // Managed config directory is enterprise-only and always overrides everything above.
     let result: Info = {}
     for (const [key, value] of Object.entries(auth)) {
       if (value.type === "wellknown") {
         process.env[value.key] = value.token
-        log.debug("fetching remote config", { url: `${key}/.well-known/opencode` })
-        const response = await fetch(`${key}/.well-known/opencode`)
+        log.debug("fetching remote config", { url: `${key}/.well-known/hopcoderx` })
+        const response = await fetch(`${key}/.well-known/hopcoderx`)
         if (!response.ok) {
           throw new Error(`failed to fetch remote config from ${key}: ${response.status}`)
         }
         const wellknown = (await response.json()) as any
         const remoteConfig = wellknown.config ?? {}
         // Add $schema to prevent load() from trying to write back to a non-existent file
-        if (!remoteConfig.$schema) remoteConfig.$schema = "https://opencode.ai/config.json"
+        // TODO: replace with "https://hopcoderx.dev/config.json" once domain is live
+        if (!remoteConfig.$schema) remoteConfig.$schema = ".hopcoderx/config.json"
         result = merge(
           result,
           await load(JSON.stringify(remoteConfig), {
-            dir: path.dirname(`${key}/.well-known/opencode`),
-            source: `${key}/.well-known/opencode`,
+            dir: path.dirname(`${key}/.well-known/hopcoderx`),
+            source: `${key}/.well-known/hopcoderx`,
           }),
         )
         log.debug("loaded remote config from well-known", { url: key })
@@ -948,7 +949,7 @@ export namespace Config {
       port: z.number().int().positive().optional().describe("Port to listen on"),
       hostname: z.string().optional().describe("Hostname to listen on"),
       mdns: z.boolean().optional().describe("Enable mDNS service discovery"),
-      mdnsDomain: z.string().optional().describe("Custom domain name for mDNS service (default: opencode.local)"),
+      mdnsDomain: z.string().optional().describe("Custom domain name for mDNS service (default: hopcoderx.local)"),
       cors: z.array(z.string()).optional().describe("Additional domains to allow for CORS"),
     })
     .strict()
@@ -1021,11 +1022,11 @@ export namespace Config {
       keybinds: Keybinds.optional().describe("Custom keybind configurations"),
       logLevel: Log.Level.optional().describe("Log level"),
       tui: TUI.optional().describe("TUI specific settings"),
-      server: Server.optional().describe("Server configuration for opencode serve and web commands"),
+      server: Server.optional().describe("Server configuration for hopcoderx serve and web commands"),
       command: z
         .record(z.string(), Command)
         .optional()
-        .describe("Command configuration, see https://opencode.ai/docs/commands"),
+        .describe("Command configuration, see https://hopcoder.dev/docs/commands"),
       skills: Skills.optional().describe("Additional skill folder paths"),
       watcher: z
         .object({
@@ -1092,7 +1093,7 @@ export namespace Config {
         })
         .catchall(Agent)
         .optional()
-        .describe("Agent configuration, see https://opencode.ai/docs/agents"),
+        .describe("Agent configuration, see https://hopcoder.dev/docs/agents"),
       provider: z
         .record(z.string(), Provider)
         .optional()
@@ -1229,7 +1230,8 @@ export namespace Config {
         .then(async (mod) => {
           const { provider, model, ...rest } = mod.default
           if (provider && model) result.model = `${provider}/${model}`
-          result["$schema"] = "https://opencode.ai/config.json"
+          // TODO: replace with "https://hopcoderx.dev/config.json" once domain is live
+          result["$schema"] = ".hopcoderx/config.json"
           result = mergeDeep(result, rest)
           await Filesystem.writeJson(path.join(Global.Path.config, "config.json"), result)
           await fs.unlink(legacy)
@@ -1322,8 +1324,9 @@ export namespace Config {
     const parsed = Info.safeParse(data)
     if (parsed.success) {
       if (!parsed.data.$schema && isFile) {
-        parsed.data.$schema = "https://opencode.ai/config.json"
-        const updated = original.replace(/^\s*\{/, '{\n  "$schema": "https://opencode.ai/config.json",')
+        // TODO: replace with "https://hopcoderx.dev/config.json" once domain is live
+        parsed.data.$schema = ".hopcoderx/config.json"
+        const updated = original.replace(/^\s*\{/, '{\n  "$schema": ".hopcoderx/config.json",')
         await Bun.write(options.path, updated).catch(() => {})
       }
       const data = parsed.data
