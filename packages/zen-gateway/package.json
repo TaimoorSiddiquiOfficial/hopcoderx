@@ -8,7 +8,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:push": "wrangler d1 execute hopcoderx-bdr --file src/db/schema.sql",
-    "typecheck": "bun typecheck"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.10.7",
