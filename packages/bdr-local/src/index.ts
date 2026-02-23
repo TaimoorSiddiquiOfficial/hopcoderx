@@ -52,7 +52,7 @@ async function listModels() {
   }
 }
 
-async function chat(req: Request, path: string) {
+async function chat(req: Request) {
   const body = await req.json()
   const isStream = !!body.stream
 
@@ -74,7 +74,7 @@ async function chat(req: Request, path: string) {
 
 Bun.serve({
   port: PORT,
-  async fetch(req) {
+  async fetch(req: Request) {
     const { pathname } = new URL(req.url)
     const path = normalize(pathname)
 
@@ -88,7 +88,7 @@ Bun.serve({
     }
 
     if (req.method === "POST" && path.startsWith("/v1/chat/completions")) {
-      return chat(req, path)
+      return chat(req)
     }
 
     // Health / root
@@ -98,7 +98,7 @@ Bun.serve({
 
     return Response.json({ error: "not_found", path }, { status: 404, headers: CORS })
   },
-  error(err) {
+  error(err: Error) {
     console.error("[error]", err.message)
     return Response.json({ error: err.message }, { status: 500, headers: CORS })
   },
