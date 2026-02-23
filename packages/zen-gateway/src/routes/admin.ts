@@ -5,15 +5,88 @@ import { getSettings, setSettings } from '../services/settings';
 import { getAnalytics } from '../services/analytics';
 import { getAllCircuitStates, resetCircuit } from '../services/circuit_breaker';
 
-const WORKERS_AI_MODELS = [
-  { id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B Instruct', context_length: 128000, pricing_input: 0, pricing_output: 0 },
-  { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B Instruct', context_length: 128000, pricing_input: 0, pricing_output: 0 },
-  { id: '@cf/microsoft/phi-3.5-mini-instruct', name: 'Phi-3.5 Mini Instruct', context_length: 4096, pricing_input: 0, pricing_output: 0 },
-  { id: '@cf/google/gemma-7b-it', name: 'Gemma 7B IT', context_length: 8192, pricing_input: 0, pricing_output: 0 },
-  { id: '@cf/mistral/mistral-7b-instruct-v0.2', name: 'Mistral 7B Instruct v0.2', context_length: 32768, pricing_input: 0, pricing_output: 0 },
-  { id: '@cf/qwen/qwen1.5-14b-chat-awq', name: 'Qwen 1.5 14B Chat', context_length: 32768, pricing_input: 0, pricing_output: 0 },
-];
-export { WORKERS_AI_MODELS };
+// ── Cloudflare Workers AI model catalog ─────────────────────────────────────
+// Used as a fallback when no CF API token is configured.
+// Keep in sync with https://developers.cloudflare.com/workers-ai/models/
+const WORKERS_AI_CATALOG: Array<{ id: string; name: string; task: string; context_length: number }> = [
+  // Text generation – Meta Llama
+  { id: '@cf/meta/llama-3.1-8b-instruct',          name: 'Llama 3.1 8B Instruct',                task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-3.1-8b-instruct-fast',      name: 'Llama 3.1 8B Instruct (Fast)',         task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-3.1-70b-instruct',          name: 'Llama 3.1 70B Instruct',               task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-3.2-1b-instruct',           name: 'Llama 3.2 1B Instruct',                task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-3.2-3b-instruct',           name: 'Llama 3.2 3B Instruct',                task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-3.2-11b-vision-instruct',   name: 'Llama 3.2 11B Vision Instruct',        task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', name: 'Llama 3.3 70B Instruct FP8 Fast',      task: 'text-generation', context_length: 128000 },
+  { id: '@cf/meta/llama-4-scout-17b-16e-instruct',  name: 'Llama 4 Scout 17B 16E Instruct',       task: 'text-generation', context_length: 340000 },
+  // Text generation – Mistral / Mixtral
+  { id: '@cf/mistral/mistral-7b-instruct-v0.2',     name: 'Mistral 7B Instruct v0.2',             task: 'text-generation', context_length: 32768 },
+  { id: '@cf/mistral/mistral-7b-instruct-v0.1',     name: 'Mistral 7B Instruct v0.1',             task: 'text-generation', context_length: 8192  },
+  // Text generation – Microsoft Phi
+  { id: '@cf/microsoft/phi-2',                      name: 'Phi-2',                                task: 'text-generation', context_length: 2048  },
+  { id: '@cf/microsoft/phi-3-mini-128k-instruct',   name: 'Phi-3 Mini 128K Instruct',             task: 'text-generation', context_length: 128000 },
+  { id: '@cf/microsoft/phi-3.5-mini-instruct',      name: 'Phi-3.5 Mini Instruct',                task: 'text-generation', context_length: 128000 },
+  // Text generation – Google
+  { id: '@cf/google/gemma-2b-it-lora',              name: 'Gemma 2B IT (LoRA)',                   task: 'text-generation', context_length: 8192  },
+  { id: '@cf/google/gemma-7b-it',                   name: 'Gemma 7B IT',                          task: 'text-generation', context_length: 8192  },
+  { id: '@cf/google/gemma-7b-it-lora',              name: 'Gemma 7B IT (LoRA)',                   task: 'text-generation', context_length: 8192  },
+  // Text generation – Qwen
+  { id: '@cf/qwen/qwen1.5-0.5b-chat',               name: 'Qwen 1.5 0.5B Chat',                  task: 'text-generation', context_length: 32768 },
+  { id: '@cf/qwen/qwen1.5-1.8b-chat',               name: 'Qwen 1.5 1.8B Chat',                  task: 'text-generation', context_length: 32768 },
+  { id: '@cf/qwen/qwen1.5-7b-chat-awq',             name: 'Qwen 1.5 7B Chat (AWQ)',               task: 'text-generation', context_length: 32768 },
+  { id: '@cf/qwen/qwen1.5-14b-chat-awq',            name: 'Qwen 1.5 14B Chat (AWQ)',              task: 'text-generation', context_length: 32768 },
+  { id: '@cf/qwen/qwq-32b',                         name: 'QwQ 32B (Reasoning)',                  task: 'text-generation', context_length: 131072 },
+  { id: '@cf/qwen/qwen2.5-coder-32b-instruct',      name: 'Qwen 2.5 Coder 32B Instruct',         task: 'text-generation', context_length: 131072 },
+  // Text generation – Deepseek
+  { id: '@cf/deepseek-ai/deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 Distill Llama 70B', task: 'text-generation', context_length: 128000 },
+  { id: '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',  name: 'DeepSeek R1 Distill Qwen 32B',  task: 'text-generation', context_length: 128000 },
+  // Text generation – Hermes / OpenHermes
+  { id: '@cf/nousresearch/hermes-2-pro-mistral-7b', name: 'Hermes 2 Pro Mistral 7B',             task: 'text-generation', context_length: 4096  },
+  // Text generation – TinyLlama
+  { id: '@cf/tinyllama/tinyllama-1.1b-chat-v1.0',   name: 'TinyLlama 1.1B Chat v1.0',            task: 'text-generation', context_length: 2048  },
+  // Text generation – Llama guard / safety
+  { id: '@cf/meta/llama-guard-3-8b',                name: 'Llama Guard 3 8B',                    task: 'text-generation', context_length: 128000 },
+  // Code generation
+  { id: '@cf/defog/sqlcoder-7b-2',                  name: 'SQLCoder 7B-2',                       task: 'text-generation', context_length: 4096  },
+  // Hugging Face hub models available on Workers AI
+  { id: '@hf/google/gemma-7b-it',                   name: 'Gemma 7B IT (HF)',                    task: 'text-generation', context_length: 8192  },
+  { id: '@hf/mistral/mistral-7b-instruct-v0.2',     name: 'Mistral 7B Instruct v0.2 (HF)',       task: 'text-generation', context_length: 32768 },
+  { id: '@hf/nexusflow/starling-lm-7b-beta',        name: 'Starling LM 7B Beta (HF)',            task: 'text-generation', context_length: 4096  },
+  { id: '@hf/thebloke/deepseek-coder-6.7b-instruct-awq', name: 'DeepSeek Coder 6.7B Instruct (HF)', task: 'text-generation', context_length: 16384 },
+  { id: '@hf/thebloke/llama-2-13b-chat-awq',        name: 'Llama 2 13B Chat (HF)',               task: 'text-generation', context_length: 4096  },
+  { id: '@hf/thebloke/neural-chat-7b-v3-1-awq',     name: 'Neural Chat 7B v3.1 (HF)',            task: 'text-generation', context_length: 4096  },
+  { id: '@hf/thebloke/openhermes-2.5-mistral-7b-awq', name: 'OpenHermes 2.5 Mistral 7B (HF)',   task: 'text-generation', context_length: 4096  },
+  { id: '@hf/thebloke/zephyr-7b-beta-awq',          name: 'Zephyr 7B β (HF)',                   task: 'text-generation', context_length: 4096  },
+]
+
+export { WORKERS_AI_CATALOG }
+
+// ── Fetch live CF Workers AI catalog from Cloudflare API ─────────────────────
+// Requires 'AI: Read' permission on the API token.
+// Returns null when the token is missing or the request fails.
+async function fetchWorkersAICatalog(
+  accountId: string,
+  apiToken: string,
+): Promise<Array<{ id: string; name: string; task: string; description: string; context_length: number }> | null> {
+  try {
+    const params = new URLSearchParams({ per_page: '100' })
+    const res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/models/search?${params}`,
+      { headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' } },
+    )
+    if (!res.ok) return null
+    const data = await res.json() as any
+    if (!data.success) return null
+    return (data.result as any[]).map(m => ({
+      id: m.id as string,
+      name: m.name as string,
+      task: m.task?.name ?? 'text-generation',
+      description: m.description ?? '',
+      context_length: (m.properties as any[])?.find((p: any) => p.property_id === 'context_window')?.value ?? 4096,
+    }))
+  } catch {
+    return null
+  }
+}
 
 export function adminRoutes() {
   const admin = new Hono<{ Bindings: Env }>();
@@ -34,7 +107,7 @@ export function adminRoutes() {
         }));
       } catch (e) { console.error('OpenRouter fetch failed:', e); }
     }
-    return c.json({ curated, openrouter: openrouterModels, workers_ai: WORKERS_AI_MODELS.map(m => ({ ...m, provider: 'workers-ai' })) });
+    return c.json({ curated, openrouter: openrouterModels, workers_ai: WORKERS_AI_CATALOG.map(m => ({ ...m, provider: 'workers-ai' })) });
   });
 
   admin.post('/models/import/openrouter', async (c) => {
@@ -57,12 +130,91 @@ export function adminRoutes() {
   admin.post('/models/import/workers-ai', async (c) => {
     const adminUser = await requireAuth(c);
     if (!adminUser) return c.json({ error: 'Admin only' }, 403);
-    for (const model of WORKERS_AI_MODELS) {
-      await c.env.DB.prepare(
-        'INSERT OR REPLACE INTO models (provider,model_id,name,description,context_length,pricing_input_cents_per_m,pricing_output_cents_per_m,is_featured,is_active) VALUES (?,?,?,?,?,?,?,?,?)'
-      ).bind('workers-ai', model.id, model.name, '', model.context_length, model.pricing_input, model.pricing_output, 0, 1).run();
+    // Accept optional list of model IDs; if empty → import everything from catalog
+    const body = await c.req.json<{ model_ids?: string[] }>().catch(() => ({} as any));
+    const settings = await getSettings(c.env.DB);
+
+    // Try live catalog first, fall back to built-in list
+    const catalogToken = settings.cloudflare_api_token;
+    let catalog: Array<{ id: string; name: string; task: string; description: string; context_length: number }> | null = null
+    if (catalogToken && c.env.CLOUDFLARE_ACCOUNT_ID) {
+      catalog = await fetchWorkersAICatalog(c.env.CLOUDFLARE_ACCOUNT_ID, catalogToken)
     }
-    return c.json({ imported: WORKERS_AI_MODELS.length });
+    const source = catalog ?? WORKERS_AI_CATALOG.map(m => ({ ...m, description: '' }))
+
+    // Filter to text-generation tasks only (gateway speaks chat completions)
+    const textGen = source.filter(m =>
+      m.task.toLowerCase().includes('text') || m.task.toLowerCase().includes('generation')
+    )
+    const toImport = body.model_ids?.length
+      ? textGen.filter(m => body.model_ids!.includes(m.id))
+      : textGen
+
+    for (const m of toImport) {
+      await c.env.DB.prepare(
+        'INSERT OR REPLACE INTO models (provider,model_id,name,description,context_length,pricing_input_cents_per_m,pricing_output_cents_per_m,is_featured,is_active,catalog_synced_at) VALUES (?,?,?,?,?,0,0,0,1,CURRENT_TIMESTAMP)'
+      ).bind('workers-ai', m.id, m.name, m.description || '', m.context_length).run();
+    }
+    // Update sync timestamp
+    await c.env.DB.prepare("UPDATE settings SET value=CURRENT_TIMESTAMP WHERE key='workers_ai_catalog_synced_at'").run().catch(() => {});
+    return c.json({ imported: toImport.length, from_live_catalog: !!catalog });
+  });
+
+  // ── Catalog browsing (returns live list without importing) ─────────────────
+  // GET /admin/models/catalog/workers-ai  — browse CF Workers AI catalog
+  admin.get('/models/catalog/workers-ai', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const settings = await getSettings(c.env.DB);
+
+    const catalogToken = settings.cloudflare_api_token;
+    let catalog: typeof WORKERS_AI_CATALOG | null = null
+    if (catalogToken && c.env.CLOUDFLARE_ACCOUNT_ID) {
+      const live = await fetchWorkersAICatalog(c.env.CLOUDFLARE_ACCOUNT_ID, catalogToken)
+      if (live) catalog = live.map(m => ({ id: m.id, name: m.name, task: m.task, context_length: m.context_length }))
+    }
+
+    const source = catalog ?? WORKERS_AI_CATALOG
+    // Annotate with already-imported status
+    const { results: existing } = await c.env.DB.prepare(
+      "SELECT model_id FROM models WHERE provider = 'workers-ai'"
+    ).all<{ model_id: string }>()
+    const imported = new Set((existing || []).map(r => r.model_id))
+
+    return c.json({
+      from_live_catalog: !!catalog,
+      has_api_token: !!catalogToken,
+      total: source.length,
+      models: source.map(m => ({ ...m, is_imported: imported.has(m.id) })),
+    })
+  });
+
+  // GET /admin/models/catalog/openrouter  — browse OpenRouter catalog
+  admin.get('/models/catalog/openrouter', async (c) => {
+    const adminUser = await requireAuth(c);
+    if (!adminUser) return c.json({ error: 'Admin only' }, 403);
+    const settings = await getSettings(c.env.DB);
+    if (!settings.openrouter_api_key) return c.json({ error: 'OpenRouter API key not configured. Add it in Settings → Routing.' }, 400);
+
+    const all = await fetchOpenRouterModels(settings.openrouter_api_key);
+    // Annotate with already-imported status
+    const { results: existing } = await c.env.DB.prepare(
+      "SELECT model_id FROM models WHERE provider = 'openrouter'"
+    ).all<{ model_id: string }>()
+    const imported = new Set((existing || []).map(r => r.model_id))
+
+    return c.json({
+      total: all.length,
+      models: all.map(m => ({
+        id: m.id,
+        name: m.name,
+        description: m.description || '',
+        context_length: m.context_length || 0,
+        pricing_input: m.pricing?.prompt || 0,
+        pricing_output: m.pricing?.completion || 0,
+        is_imported: imported.has(m.id),
+      })),
+    });
   });
 
   // Sync OpenRouter model pricing to latest values
@@ -250,6 +402,8 @@ export function adminRoutes() {
     'ip_allowlist','request_logging_enabled','log_retention_days',
     'maintenance_mode','custom_system_prompt',
     'retry_attempts','request_timeout_ms','cb_failure_threshold','cb_cooldown_ms',
+    // Model catalog sync
+    'cloudflare_api_token',
   ]);
 
   const BOOL_KEYS = new Set([
@@ -305,6 +459,10 @@ export function adminRoutes() {
       request_timeout_ms: parseInt(s.request_timeout_ms || '30000'),
       cb_failure_threshold: parseInt(s.cb_failure_threshold || '5'),
       cb_cooldown_ms: parseInt(s.cb_cooldown_ms || '60000'),
+      // Cloudflare API (Workers AI catalog sync)
+      has_cloudflare_api_token: !!s.cloudflare_api_token,
+      workers_ai_catalog_synced_at: s.workers_ai_catalog_synced_at || null,
+      openrouter_catalog_synced_at: s.openrouter_catalog_synced_at || null,
     });
   });
 

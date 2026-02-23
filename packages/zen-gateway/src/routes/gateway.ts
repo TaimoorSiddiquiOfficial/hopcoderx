@@ -490,15 +490,31 @@ export function gatewayRoutes() {
   })
 
   app.get('/models', async (c) => {
+    // featured=1 → only featured models (for user dashboards / pickers)
+    // provider=openai → filter by provider prefix
+    const featuredOnly = c.req.query('featured') === '1'
+    const providerFilter = c.req.query('provider') || null
+
+    const conditions = ['is_active = 1']
+    if (featuredOnly) conditions.push('is_featured = 1')
+    if (providerFilter) conditions.push(`provider = '${providerFilter.replace(/'/g, "''")}'`)
+
     const { results } = await c.env.DB.prepare(
-      'SELECT model_id, name, description, context_length, pricing_input_cents_per_m, pricing_output_cents_per_m FROM models WHERE is_active = 1 ORDER BY sort_order ASC, name ASC'
+      `SELECT model_id, name, description, provider, context_length,
+              pricing_input_cents_per_m, pricing_output_cents_per_m, is_featured
+       FROM models
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY is_featured DESC, sort_order ASC, name ASC`
     ).all()
     return c.json({
       object: 'list',
       data: (results || []).map((m: any) => ({
         id: m.model_id, object: 'model', created: 0,
-        owned_by: (m.model_id as string).split('/')[0] || 'hopcoderx',
-        name: m.name, description: m.description, context_length: m.context_length,
+        owned_by: m.provider || (m.model_id as string).split('/')[0] || 'hopcoderx',
+        name: m.name,
+        description: m.description,
+        context_length: m.context_length,
+        is_featured: !!m.is_featured,
         pricing: {
           prompt: (m.pricing_input_cents_per_m as number) / 100,
           completion: (m.pricing_output_cents_per_m as number) / 100,

@@ -80,6 +80,16 @@
       font-size: 12px; padding: 12px 16px; border-radius: 2px; margin-bottom: 20px; display: none; }
     .alert-err { background: var(--danger-dim); border-color: rgba(192,57,43,.3); color: #e74c3c; }
     .view { display: none; } .view.active { display: block; }
+    .model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .model-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; padding: 14px; position: relative; }
+    .model-card:hover { border-color: var(--gold-dim); }
+    .model-card-id { font-size: 9px; color: var(--gold-dim); letter-spacing: .08em; margin-bottom: 5px; word-break: break-all; }
+    .model-card-name { font-size: 12px; color: var(--text); margin-bottom: 6px; font-weight: 600; }
+    .model-card-meta { font-size: 10px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .model-card-star { position: absolute; top: 10px; right: 11px; color: var(--gold); font-size: 12px; }
+    .provider-badge { background: rgba(201,162,39,.08); border: 1px solid var(--gold-dim); color: var(--gold-dim); font-size: 9px; padding: 2px 6px; border-radius: 2px; text-transform: uppercase; letter-spacing: .1em; }
+    .restricted-badge { background: rgba(192,57,43,.08); border: 1px solid rgba(192,57,43,.3); color: #e74c3c; font-size: 9px; padding: 2px 6px; border-radius: 2px; letter-spacing: .1em; }
+    .toggle-models-btn.active { border-color: var(--gold); color: var(--gold); }
   </style>
 </head>
 <body>
@@ -135,6 +145,16 @@
             <tbody id="usage-list"><tr><td colspan="5" class="tbl-empty">No usage yet.</td></tr></tbody>
           </table>
         </div>
+      </div>
+      <div class="card" style="margin-top:20px">
+        <div class="section-hdr" style="margin-bottom:14px">
+          <div class="section-title">Available Models</div>
+          <div style="display:flex;gap:8px">
+            <button id="toggle-models-btn" class="btn btn-ghost toggle-models-btn" style="font-size:10px" onclick="toggleModelFilter()">All Models</button>
+          </div>
+        </div>
+        <div id="models-hint" style="font-size:11px;color:var(--muted);margin-bottom:14px">Showing featured models. Use these IDs in your API requests as the <code style="color:var(--gold-dim)">model</code> parameter.</div>
+        <div id="models-grid" class="model-grid"><div class="tbl-empty">Loading&#8230;</div></div>
       </div>
     </div>
 
@@ -208,7 +228,7 @@
     function hide(id) { document.getElementById(id).style.display = 'none'; }
     function showView(id) { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
-    async function loadDashboard() { await Promise.all([loadBalance(), loadApiKeys(), loadUsage()]); }
+    async function loadDashboard() { await Promise.all([loadBalance(), loadApiKeys(), loadUsage(), loadModels()]); }
     async function loadBalance() {
       const res = await fetch(`${API}/user/balance`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) return;
@@ -252,6 +272,45 @@
       if (!confirm('Revoke this API key?')) return;
       const res = await fetch(`${API}/user/api-keys/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) { toast('Key revoked'); loadApiKeys(); } else toast('Failed to revoke key');
+    }
+    let showAllModels = false;
+    async function loadModels() {
+      const grid = document.getElementById('models-grid');
+      const hint = document.getElementById('models-hint');
+      const url = `${API}/user/models${showAllModels ? '?all=1' : ''}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) { grid.innerHTML = '<div class="tbl-empty">Unable to load models.</div>'; return; }
+      const d = await res.json();
+      const models = d.data || [];
+      hint.textContent = showAllModels
+        ? `All active models (${models.length}). Use the model ID in your API requests.`
+        : `Featured models (${models.length}). Click \u201cAll Models\u201d to see every active model.`;
+      if (!models.length) { grid.innerHTML = '<div class="tbl-empty">No models available.</div>'; return; }
+      grid.innerHTML = models.map(m => {
+        const ctx = m.context_length ? (m.context_length >= 1000 ? Math.round(m.context_length / 1000) + 'k ctx' : m.context_length + ' ctx') : '';
+        const inp = m.pricing?.input_per_1m != null ? '$' + Number(m.pricing.input_per_1m).toFixed(4) + '/1M in' : '';
+        const out = m.pricing?.output_per_1m != null ? '$' + Number(m.pricing.output_per_1m).toFixed(4) + '/1M out' : '';
+        const restricted = m.allowed === false ? `<span class="restricted-badge">key restricted</span>` : '';
+        return `<div class="model-card">
+          ${m.is_featured ? '<span class="model-card-star">&#9733;</span>' : ''}
+          <div class="model-card-id">${m.id}</div>
+          <div class="model-card-name">${m.name || m.id}</div>
+          <div class="model-card-meta">
+            <span class="provider-badge">${m.provider || 'ai'}</span>
+            ${ctx ? `<span>${ctx}</span>` : ''}
+            ${inp ? `<span>${inp}</span>` : ''}
+            ${out ? `<span>${out}</span>` : ''}
+            ${restricted}
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function toggleModelFilter() {
+      showAllModels = !showAllModels;
+      const btn = document.getElementById('toggle-models-btn');
+      btn.textContent = showAllModels ? 'Featured Only' : 'All Models';
+      btn.classList.toggle('active', showAllModels);
+      loadModels();
     }
     async function loadUsage() {
       const res = await fetch(`${API}/user/usage?limit=20`, { headers: { Authorization: `Bearer ${token}` } });

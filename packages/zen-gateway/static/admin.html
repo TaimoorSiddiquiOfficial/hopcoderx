@@ -135,8 +135,8 @@
         <div class="card-header">
           <div class="card-title">Model Management</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost btn-sm" onclick="importWorkersAI()">Import Workers AI</button>
-            <button class="btn btn-sm" onclick="importOpenRouter()">Import OpenRouter</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModelBrowser('workers-ai')">Browse Workers AI</button>
+            <button class="btn btn-sm" onclick="openModelBrowser('openrouter')">Browse OpenRouter</button>
             <button class="btn btn-ghost btn-sm" onclick="syncPrices()">&#8635; Sync Prices</button>
           </div>
         </div>
@@ -361,6 +361,11 @@
             <div class="form-group">
               <label class="form-label">OpenRouter API Key</label>
               <input type="password" id="s-or-key" placeholder="sk-or-&#8230; (set to update)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cloudflare API Token <span id="s-cf-key-status" style="font-size:10px;color:var(--muted)"></span></label>
+              <input type="password" id="s-cf-key" placeholder="(set to update) &#8212; needs Workers AI: Read permission">
+              <div class="form-hint">Used to sync the live Workers AI model catalog from Cloudflare API.</div>
             </div>
             <div class="form-row form-group">
               <div>
@@ -895,6 +900,44 @@
   </div>
 </div>
 
+<!-- Model Catalog Browser Modal -->
+<div id="catalog-modal" class="modal-overlay">
+  <div class="modal" style="max-width:780px;height:82vh;display:flex;flex-direction:column">
+    <div class="modal-title" id="catalog-modal-title">Browse Models</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="catalog-search" placeholder="Search by ID, name, task…"
+        style="flex:1;padding:6px 10px;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--mono)"
+        oninput="filterCatalog()">
+      <select id="catalog-filter"
+        style="padding:6px 10px;font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--mono)"
+        onchange="filterCatalog()">
+        <option value="">All tasks</option>
+      </select>
+    </div>
+    <div style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:2px">
+      <table class="tbl" style="font-size:11px">
+        <thead style="position:sticky;top:0;z-index:1;background:var(--surface2)">
+          <tr>
+            <th style="width:32px"><input type="checkbox" id="catalog-select-all" onchange="toggleAllCatalog(this.checked)"></th>
+            <th>Model ID</th><th>Name / Task</th><th class="r">Context</th><th class="c">Status</th>
+          </tr>
+        </thead>
+        <tbody id="catalog-table"><tr><td colspan="5" class="tbl-empty">Loading&#8230;</td></tr></tbody>
+      </table>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:11px;color:var(--muted)">
+        <span id="catalog-count">0</span> models &bull; <span id="catalog-selected">0</span> selected
+        <span id="catalog-sync-hint" style="margin-left:10px"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeModelBrowser()">Cancel</button>
+        <button class="btn btn-sm" id="catalog-import-btn" onclick="importSelected()">Import Selected</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = '/api';
 let token = localStorage.getItem('token');
@@ -980,26 +1023,110 @@ async function deleteModel(id) {
   if (res.ok) loadModels();
   else { const e = await res.json().catch(() => ({})); alert('Delete failed: ' + (e.error || res.status)); }
 }
-async function importOpenRouter() {
-  const res = await fetch(`${API}/admin/models`, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) return alert('Failed to load models');
-  const data = await res.json();
-  const available = (data.openrouter || []).slice(0, 60);
-  if (!available.length) return alert('No OpenRouter models available. Set OpenRouter API Key in Settings > Routing first.');
-  const preview = available.map(m => m.model_id).join('\n');
-  const raw = prompt('Available (' + available.length + '):\n' + preview + '\n\nEnter model IDs (one per line):');
-  if (!raw) return;
-  const ids = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  const r = await fetch(`${API}/admin/models/import/openrouter`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ model_ids: ids }) });
-  alert(r.ok ? 'Imported ' + ids.length + ' model(s)' : 'Import failed');
-  if (r.ok) loadModels();
+async function importOpenRouter() { openModelBrowser('openrouter'); }
+async function importWorkersAI() { openModelBrowser('workers-ai'); }
+
+// ── Model Catalog Browser ─────────────────────────────────────────────
+let catalogSource = null, catalogData = [], catalogFiltered = [];
+
+async function openModelBrowser(source) {
+  catalogSource = source;
+  catalogData = [];
+  catalogFiltered = [];
+  document.getElementById('catalog-modal-title').textContent = source === 'workers-ai' ? 'Browse Workers AI Catalog' : 'Browse OpenRouter Models';
+  document.getElementById('catalog-table').innerHTML = '<tr><td colspan="5" class="tbl-empty">Loading&#8230;</td></tr>';
+  document.getElementById('catalog-search').value = '';
+  document.getElementById('catalog-filter').innerHTML = '<option value="">All tasks</option>';
+  document.getElementById('catalog-count').textContent = '0';
+  document.getElementById('catalog-selected').textContent = '0';
+  document.getElementById('catalog-select-all').checked = false;
+  document.getElementById('catalog-sync-hint').textContent = '';
+  document.getElementById('catalog-modal').classList.add('show');
+
+  const res = await fetch(`${API}/admin/models/catalog/${source}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    document.getElementById('catalog-table').innerHTML = `<tr><td colspan="5" class="tbl-empty" style="color:var(--danger)">${e.error || 'Failed to load catalog'}</td></tr>`;
+    return;
+  }
+  const d = await res.json();
+  catalogData = d.models || [];
+
+  // Populate task/provider filter dropdown
+  const tasks = [...new Set(catalogData.map(m => m.task || m.provider || '').filter(Boolean))].sort();
+  const filter = document.getElementById('catalog-filter');
+  filter.innerHTML = '<option value="">All (' + catalogData.length + ')</option>' + tasks.map(t => `<option value="${t}">${t}</option>`).join('');
+
+  // Sync hint
+  const hint = document.getElementById('catalog-sync-hint');
+  if (d.source === 'fallback') {
+    hint.innerHTML = '<span style="color:var(--gold-dim)">&#9888; Built-in catalog &mdash; add CF API token in Settings for live sync</span>';
+  } else if (d.total) {
+    hint.textContent = 'Live from CF API \u00b7 ' + d.total + ' models';
+  }
+
+  filterCatalog();
 }
-async function importWorkersAI() {
-  showConfirm('Import Workers AI', 'Import all Cloudflare Workers AI models?', async () => {
-    const r = await fetch(`${API}/admin/models/import/workers-ai`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-    alert(r.ok ? 'Workers AI models imported' : 'Import failed');
-    if (r.ok) loadModels();
+
+function filterCatalog() {
+  const q = document.getElementById('catalog-search').value.toLowerCase();
+  const task = document.getElementById('catalog-filter').value;
+  catalogFiltered = catalogData.filter(m => {
+    if (task && (m.task || m.provider || '') !== task) return false;
+    if (!q) return true;
+    return (m.model_id || '').toLowerCase().includes(q) || (m.name || '').toLowerCase().includes(q) || (m.task || m.provider || '').toLowerCase().includes(q);
   });
+  renderCatalog();
+}
+
+function renderCatalog() {
+  const tbody = document.getElementById('catalog-table');
+  document.getElementById('catalog-count').textContent = catalogFiltered.length;
+  if (!catalogFiltered.length) { tbody.innerHTML = '<tr><td colspan="5" class="tbl-empty">No models match.</td></tr>'; return; }
+  tbody.innerHTML = catalogFiltered.map(m => `<tr>
+    <td><input type="checkbox" class="cat-cb" value="${m.model_id}"${m.is_imported ? ' disabled' : ''}></td>
+    <td style="font-size:10px;max-width:280px;word-break:break-all">${m.model_id}</td>
+    <td style="font-size:10px;color:var(--muted)">${m.name || ''}<br><span style="color:var(--gold-dim);font-size:9px">${m.task || m.provider || ''}</span></td>
+    <td class="r" style="font-size:10px;white-space:nowrap">${m.context_length ? (m.context_length >= 1000 ? Math.round(m.context_length / 1000) + 'k' : m.context_length) : '&mdash;'}</td>
+    <td class="c">${m.is_imported ? '<span class="bdg bdg-green" style="font-size:9px">imported</span>' : ''}</td>
+  </tr>`).join('');
+  document.querySelectorAll('.cat-cb').forEach(cb => cb.addEventListener('change', updateSelectedCount));
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const checked = document.querySelectorAll('.cat-cb:checked').length;
+  const avail = document.querySelectorAll('.cat-cb:not(:disabled)').length;
+  document.getElementById('catalog-selected').textContent = checked;
+  document.getElementById('catalog-select-all').checked = avail > 0 && checked === avail;
+}
+
+function toggleAllCatalog(checked) {
+  document.querySelectorAll('.cat-cb:not(:disabled)').forEach(cb => { cb.checked = checked; });
+  updateSelectedCount();
+}
+
+async function importSelected() {
+  const ids = [...document.querySelectorAll('.cat-cb:checked')].map(cb => cb.value);
+  if (!ids.length) return alert('Select at least one model to import.');
+  const btn = document.getElementById('catalog-import-btn');
+  btn.textContent = 'Importing\u2026';
+  btn.disabled = true;
+  const r = await fetch(`${API}/admin/models/import/${catalogSource}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ model_ids: ids }),
+  });
+  const d = await r.json().catch(() => ({}));
+  btn.textContent = 'Import Selected';
+  btn.disabled = false;
+  if (r.ok) { alert(`Imported ${d.imported ?? ids.length} model(s)`); closeModelBrowser(); loadModels(); }
+  else alert('Import failed: ' + (d.error || r.status));
+}
+
+function closeModelBrowser() {
+  document.getElementById('catalog-modal').classList.remove('show');
+  catalogSource = null; catalogData = []; catalogFiltered = [];
 }
 async function syncPrices() {
   showConfirm('Sync Prices', 'Fetch latest pricing from OpenRouter and update all OpenRouter models?', async () => {
@@ -1237,6 +1364,9 @@ async function loadSettings() {
   document.getElementById('s-github-id').value = s.github_client_id || '';
   // Routing
   document.getElementById('s-or-key').value = '';
+  document.getElementById('s-cf-key').value = '';
+  const cfStatus = document.getElementById('s-cf-key-status');
+  if (cfStatus) cfStatus.textContent = s.has_cloudflare_api_token ? '(set)' : '(not set)';
   document.getElementById('s-markup-type').value = s.markup_type || 'none';
   document.getElementById('s-markup-val').value = s.markup_value || '0';
   document.getElementById('s-monthly-limit').value = s.default_monthly_limit_cents || '10000';
@@ -1321,6 +1451,8 @@ document.getElementById('form-routing').addEventListener('submit', async e => {
   };
   const orKey = document.getElementById('s-or-key').value.trim();
   if (orKey) u.openrouter_api_key = orKey;
+  const cfKey = document.getElementById('s-cf-key').value.trim();
+  if (cfKey) u.cloudflare_api_token = cfKey;
   await saveSettings(u, 'routing');
 });
 
