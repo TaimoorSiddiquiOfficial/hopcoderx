@@ -5,6 +5,7 @@ import { hash, compare } from 'bcryptjs';
 import { verify } from 'jsonwebtoken';
 import { isFirstUser, createToken } from '../auth/middleware';
 import { getSettings } from '../services/settings';
+import { sendEmail } from '../services/email';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -71,7 +72,14 @@ export function authRoutes() {
       const vToken = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
       const expiresAt = new Date(Date.now() + 24 * 3600000).toISOString();
       await c.env.DB.prepare('INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)').bind(id, vToken, expiresAt).run();
-      // TODO: send email via SMTP when configured
+      const siteUrl = settings.site_url || c.env.SITE_URL || '';
+      const verifyLink = `${siteUrl}/api/auth/verify-email/${vToken}`;
+      await sendEmail(settings, {
+        to: body.email,
+        subject: 'Verify your email — HopCoderX BDR',
+        text: `Click the link below to verify your email:\n\n${verifyLink}\n\nThis link expires in 24 hours.`,
+        html: `<p>Click the link below to verify your email:</p><p><a href="${verifyLink}">${verifyLink}</a></p><p>This link expires in 24 hours.</p>`,
+      });
     }
 
     const token = createToken({ id, email: body.email, role }, c.env);
@@ -120,8 +128,16 @@ export function authRoutes() {
     const expiresAt = new Date(Date.now() + 24 * 3600000).toISOString();
     await c.env.DB.prepare('DELETE FROM email_verification_tokens WHERE user_id = ?').bind(payload.id).run();
     await c.env.DB.prepare('INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)').bind(payload.id, vToken, expiresAt).run();
-    // TODO: send email
-    return c.json({ success: true, message: 'Verification email sent (configure SMTP to deliver)' });
+    const rsettings = await getSettings(c.env.DB);
+    const rSiteUrl = rsettings.site_url || c.env.SITE_URL || '';
+    const vLink = `${rSiteUrl}/api/auth/verify-email/${vToken}`;
+    await sendEmail(rsettings, {
+      to: (await c.env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(payload.id).first<{ email: string }>())?.email || '',
+      subject: 'Verify your email — HopCoderX BDR',
+      text: `Click the link below to verify your email:\n\n${vLink}\n\nThis link expires in 24 hours.`,
+      html: `<p>Click the link below to verify your email:</p><p><a href="${vLink}">${vLink}</a></p><p>This link expires in 24 hours.</p>`,
+    });
+    return c.json({ success: true, message: 'Verification email sent' });
   });
 
   // Password reset request
@@ -135,7 +151,15 @@ export function authRoutes() {
       const expiresAt = new Date(Date.now() + 2 * 3600000).toISOString();
       await c.env.DB.prepare('DELETE FROM password_reset_tokens WHERE user_id = ?').bind((user as any).id).run();
       await c.env.DB.prepare('INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)').bind((user as any).id, rToken, expiresAt).run();
-      // TODO: send email
+      const fsettings = await getSettings(c.env.DB);
+      const fSiteUrl = fsettings.site_url || c.env.SITE_URL || '';
+      const resetLink = `${fSiteUrl}/reset-password?token=${rToken}`;
+      await sendEmail(fsettings, {
+        to: email,
+        subject: 'Reset your password — HopCoderX BDR',
+        text: `Click the link below to reset your password:\n\n${resetLink}\n\nThis link expires in 2 hours.`,
+        html: `<p>Click the link below to reset your password:</p><p><a href="${resetLink}">${resetLink}</a></p><p>This link expires in 2 hours.</p>`,
+      });
     }
     return c.json({ success: true, message: 'If that account exists, a reset link has been sent.' });
   });
