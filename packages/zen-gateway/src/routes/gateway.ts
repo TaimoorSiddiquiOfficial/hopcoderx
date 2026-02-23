@@ -36,7 +36,7 @@ function cidrMatch(ip: string, cidr: string): boolean {
 }
 
 export function gatewayRoutes() {
-  const app = new Hono()
+  const app = new Hono<{ Bindings: Env }>()
 
   app.post('/chat/completions', async (c) => {
     const settings = await getSettings(c.env.DB)
@@ -126,7 +126,7 @@ export function gatewayRoutes() {
     }
 
     // TPM (tokens-per-minute) enforcement
-    if (keyRecord?.tpm_limit > 0) {
+    if (keyRecord && keyRecord.tpm_limit > 0) {
       const tpmRow = await c.env.DB.prepare(
         'SELECT COALESCE(SUM(total_tokens),0) as tokens FROM usage_logs WHERE api_key_id=? AND created_at>?'
       ).bind(keyRecord.id, minuteAgo).first<{ tokens: number }>()
@@ -313,7 +313,7 @@ export function gatewayRoutes() {
       kv: (c.env as any).CACHE,
       cb_threshold: parseInt(settings.cb_failure_threshold || '5'),
       cb_cooldown_ms: parseInt(settings.cb_cooldown_ms || '60000'),
-      env: c.env as Record<string, unknown>,
+      env: c.env as unknown as Record<string, unknown>,
     })
     const { response, provider_name, attempt_count, latency_ms } = result
 
@@ -327,7 +327,7 @@ export function gatewayRoutes() {
       'X-RateLimit-Limit-Requests': String(rateLimit),
       'X-RateLimit-Remaining-Requests': String(Math.max(0, rateLimit - (rateCount?.count || 0) - 1)),
       'X-RateLimit-Reset': '60',
-      ...(keyRecord?.tpm_limit > 0 ? { 'X-RateLimit-Limit-Tokens': String(keyRecord.tpm_limit) } : {}),
+      ...(keyRecord && keyRecord.tpm_limit > 0 ? { 'X-RateLimit-Limit-Tokens': String(keyRecord.tpm_limit) } : {}),
     }
 
     if (body.stream) {
@@ -369,7 +369,7 @@ export function gatewayRoutes() {
     }
 
     // Increment per-key budget spend
-    if (keyRecord?.max_budget_cents > 0 && charged_cost_cents > 0) {
+    if (keyRecord && keyRecord.max_budget_cents > 0 && charged_cost_cents > 0) {
       c.env.DB.prepare(
         'UPDATE api_keys SET budget_used_cents = budget_used_cents + ?, budget_start_at = COALESCE(budget_start_at, CURRENT_TIMESTAMP) WHERE id = ?'
       ).bind(charged_cost_cents, keyRecord.id).run().catch(() => {})

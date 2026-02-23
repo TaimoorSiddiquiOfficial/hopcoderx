@@ -4,7 +4,7 @@ import { createStripe, createCheckoutSession, handleStripeWebhook } from '../ser
 import { getSettings } from '../services/settings';
 
 export function billingRoutes() {
-  const billing = new Hono();
+  const billing = new Hono<{ Bindings: Env }>();
 
   // Get billing packages (public)
   billing.get('/packages', async (c) => {

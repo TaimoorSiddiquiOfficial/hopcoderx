@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'crypto'
 import { requireAuth } from '../auth/middleware'
 
 export function virtualKeyRoutes() {
-  const app = new Hono()
+  const app = new Hono<{ Bindings: Env }>()
 
   // List user's virtual keys
   app.get('/', async (c) => {

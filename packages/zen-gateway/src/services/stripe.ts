@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 export function createStripe(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: '2025-02-24' });
+  return new Stripe(secretKey, { apiVersion: '2023-10-16' });
 }
 
 /**

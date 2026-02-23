@@ -152,7 +152,7 @@ export async function callProvider(config: ProviderConfig, opts: CallOptions): P
       const url = opts.model.includes('/')
         ? `${gatewayBase}/compat/chat/completions`
         : `${gatewayBase}/chat/completions`
-      const aigBody = { ...body, model: opts.model }
+      const aigBody: Record<string, any> = { ...body, model: opts.model }
       if (opts.stream) aigBody.stream = true
       const aigHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
       // Upstream provider key (passed through by CF AI Gateway to the provider)

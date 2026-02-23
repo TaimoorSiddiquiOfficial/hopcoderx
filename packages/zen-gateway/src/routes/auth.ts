@@ -18,7 +18,7 @@ const loginSchema = z.object({
 });
 
 export function authRoutes() {
-  const app = new Hono();
+  const app = new Hono<{ Bindings: Env }>();
 
   // Register
   app.post('/register', zValidator('json', registerSchema), async (c) => {

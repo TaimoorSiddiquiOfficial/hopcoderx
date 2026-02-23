@@ -29,7 +29,7 @@ function rpcResult(id: any, result: any) {
 }
 
 export function mcpRoutes() {
-  const app = new Hono()
+  const app = new Hono<{ Bindings: Env }>()
 
   app.post('/', async (c) => {
     // Auth
@@ -58,7 +58,7 @@ export function mcpRoutes() {
       const { results } = await c.env.DB.prepare(
         'SELECT * FROM mcp_servers WHERE is_active = 1 ORDER BY id ASC'
       ).all()
-      servers = (results || []) as McpServer[]
+      servers = (results || []) as unknown as McpServer[]
     } catch { /* table may not exist yet */ }
 
     if (method === 'initialize') {

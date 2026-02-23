@@ -4,7 +4,7 @@ import { callProvider } from '../services/provider'
 import type { ProviderType } from '../services/provider'
 
 export function providerRoutes() {
-  const app = new Hono()
+  const app = new Hono<{ Bindings: Env }>()
 
   // List all provider configs
   app.get('/', async (c) => {

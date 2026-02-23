@@ -1,5 +1,6 @@
 import { verify, sign } from 'jsonwebtoken';
 import { compare, hash } from 'bcryptjs';
+import type { Context } from 'hono';
 
 export interface AuthUser {
   id: string;
@@ -7,7 +8,9 @@ export interface AuthUser {
   role: 'admin' | 'user';
 }
 
-export async function requireAuth(c: any): Promise<AuthUser | undefined> {
+type HonoCtx = Context<{ Bindings: Env }>
+
+export async function requireAuth(c: HonoCtx): Promise<AuthUser | undefined> {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return undefined;
 
@@ -23,15 +26,15 @@ export async function requireAuth(c: any): Promise<AuthUser | undefined> {
   }
 }
 
-export async function requireAdmin(c: any): Promise<AuthUser | undefined> {
+export async function requireAdmin(c: HonoCtx): Promise<AuthUser | undefined> {
   const user = await requireAuth(c);
   if (!user || user.role !== 'admin') return undefined;
   return user;
 }
 
-export async function isFirstUser(env: any): Promise<boolean> {
-  const result = await env.DB.prepare('SELECT COUNT(*) as count FROM users').first<{ count: number }>();
-  return result.count === 0;
+export async function isFirstUser(env: Env): Promise<boolean> {
+  const result = await env.DB.prepare('SELECT COUNT(*) as count FROM users').first() as { count: number } | null;
+  return (result?.count ?? 0) === 0;
 }
 
 export function createToken(user: AuthUser, env: { JWT_SECRET: string }): string {
@@ -41,7 +44,7 @@ export function createToken(user: AuthUser, env: { JWT_SECRET: string }): string
   );
 }
 
-export async function verifyAndGetUser(c: any): Promise<AuthUser | null> {
+export async function verifyAndGetUser(c: HonoCtx): Promise<AuthUser | null> {
   const user = await requireAuth(c);
   if (!user) return null;
   return user;

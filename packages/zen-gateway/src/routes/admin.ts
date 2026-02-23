@@ -16,7 +16,7 @@ const WORKERS_AI_MODELS = [
 export { WORKERS_AI_MODELS };
 
 export function adminRoutes() {
-  const admin = new Hono();
+  const admin = new Hono<{ Bindings: Env }>();
 
   // ── Models ────────────────────────────────────────────────────────────
   admin.get('/models', async (c) => {
@@ -488,7 +488,7 @@ export function adminRoutes() {
       }
     }))
 
-    const healthy = results.filter(r => r.status === 'healthy').length
+    const healthy = results.filter((r: { status: string }) => r.status === 'healthy').length
     return c.json({ status: healthy > 0 ? 'ok' : 'degraded', healthy, total: results.length, providers: results, checked_at: new Date().toISOString() })
   });
 
@@ -610,5 +610,5 @@ async function fetchOpenRouterModels(apiKey: string): Promise<any[]> {
   const res = await fetch('https://openrouter.ai/api/v1/models', { headers: { Authorization: `Bearer ${apiKey}` } });
   if (!res.ok) throw new Error(`OpenRouter API error: ${res.status}`);
   const data = await res.json();
-  return data.data || [];
+  return (data as any).data || [];
 }

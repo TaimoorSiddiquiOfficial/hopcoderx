@@ -12,7 +12,7 @@ import adminHtml from '../static/admin.html';
 import dashboardHtml from '../static/dashboard.html';
 import loginHtml from '../static/login.html';
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Env }>();
 
 // CORS
 app.use('*', cors({
@@ -32,7 +32,7 @@ app.get('/dashboard', (c) => new Response(dashboardHtml, { headers: { 'Content-T
 app.get('/login', (c) => new Response(loginHtml, { headers: { 'Content-Type': 'text/html' } }));
 
 // API routes
-const api = new Hono();
+const api = new Hono<{ Bindings: Env }>();
 
 // Auth (public)
 api.route('/auth', authRoutes());

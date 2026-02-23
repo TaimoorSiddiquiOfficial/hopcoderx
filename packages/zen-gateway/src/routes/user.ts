@@ -4,7 +4,7 @@ import { requireAuth } from '../auth/middleware';
 import { createHash } from 'crypto';
 
 export function userRoutes() {
-  const user = new Hono();
+  const user = new Hono<{ Bindings: Env }>();
 
   // List user's API keys
   user.get('/api-keys', async (c) => {
@@ -119,7 +119,7 @@ export function userRoutes() {
 
     const user = await c.env.DB.prepare(
       'SELECT balance_cents, monthly_limit_cents FROM users WHERE id = ?'
-    ).bind(auth.id).first();
+    ).bind(auth.id).first<{ balance_cents: number; monthly_limit_cents: number }>();
 
     // Current month usage
     const now = new Date();
@@ -131,7 +131,7 @@ export function userRoutes() {
         COUNT(*) as requests
       FROM usage_logs
       WHERE user_id = ? AND created_at >= ?
-    `).bind(auth.id, monthStart).first();
+    `).bind(auth.id, monthStart).first<{ spent: number; requests: number }>();
 
     return c.json({
       balance_cents: user?.balance_cents || 0,
