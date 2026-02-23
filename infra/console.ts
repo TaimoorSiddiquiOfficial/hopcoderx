@@ -100,61 +100,61 @@ export const stripeWebhook = new stripe.WebhookEndpoint("StripeWebhookEndpoint",
   ],
 })
 
-const zenProduct = new stripe.Product("ZenBlack", {
+const bdrProduct = new stripe.Product("BdrBlack", {
   name: "HopCoderX Black",
 })
-const zenPriceProps = {
-  product: zenProduct.id,
+const bdrPriceProps = {
+  product: bdrProduct.id,
   currency: "usd",
   recurring: {
     interval: "month",
     intervalCount: 1,
   },
 }
-const zenPrice200 = new stripe.Price("ZenBlackPrice", { ...zenPriceProps, unitAmount: 20000 })
-const zenPrice100 = new stripe.Price("ZenBlack100Price", { ...zenPriceProps, unitAmount: 10000 })
-const zenPrice20 = new stripe.Price("ZenBlack20Price", { ...zenPriceProps, unitAmount: 2000 })
-const ZEN_BLACK_PRICE = new sst.Linkable("ZEN_BLACK_PRICE", {
+const bdrPrice200 = new stripe.Price("BdrBlackPrice", { ...bdrPriceProps, unitAmount: 20000 })
+const bdrPrice100 = new stripe.Price("BdrBlack100Price", { ...bdrPriceProps, unitAmount: 10000 })
+const bdrPrice20 = new stripe.Price("BdrBlack20Price", { ...bdrPriceProps, unitAmount: 2000 })
+const BDR_BLACK_PRICE = new sst.Linkable("BDR_BLACK_PRICE", {
   properties: {
-    product: zenProduct.id,
-    plan200: zenPrice200.id,
-    plan100: zenPrice100.id,
-    plan20: zenPrice20.id,
+    product: bdrProduct.id,
+    plan200: bdrPrice200.id,
+    plan100: bdrPrice100.id,
+    plan20: bdrPrice20.id,
   },
 })
-const ZEN_BLACK_LIMITS = new sst.Secret("ZEN_BLACK_LIMITS")
+const BDR_BLACK_LIMITS = new sst.Secret("BDR_BLACK_LIMITS")
 
-const ZEN_MODELS = [
-  new sst.Secret("ZEN_MODELS1"),
-  new sst.Secret("ZEN_MODELS2"),
-  new sst.Secret("ZEN_MODELS3"),
-  new sst.Secret("ZEN_MODELS4"),
-  new sst.Secret("ZEN_MODELS5"),
-  new sst.Secret("ZEN_MODELS6"),
-  new sst.Secret("ZEN_MODELS7"),
-  new sst.Secret("ZEN_MODELS8"),
-  new sst.Secret("ZEN_MODELS9"),
-  new sst.Secret("ZEN_MODELS10"),
-  new sst.Secret("ZEN_MODELS11"),
-  new sst.Secret("ZEN_MODELS12"),
-  new sst.Secret("ZEN_MODELS13"),
-  new sst.Secret("ZEN_MODELS14"),
-  new sst.Secret("ZEN_MODELS15"),
-  new sst.Secret("ZEN_MODELS16"),
-  new sst.Secret("ZEN_MODELS17"),
-  new sst.Secret("ZEN_MODELS18"),
-  new sst.Secret("ZEN_MODELS19"),
-  new sst.Secret("ZEN_MODELS20"),
-  new sst.Secret("ZEN_MODELS21"),
-  new sst.Secret("ZEN_MODELS22"),
-  new sst.Secret("ZEN_MODELS23"),
-  new sst.Secret("ZEN_MODELS24"),
-  new sst.Secret("ZEN_MODELS25"),
-  new sst.Secret("ZEN_MODELS26"),
-  new sst.Secret("ZEN_MODELS27"),
-  new sst.Secret("ZEN_MODELS28"),
-  new sst.Secret("ZEN_MODELS29"),
-  new sst.Secret("ZEN_MODELS30"),
+const BDR_MODELS = [
+  new sst.Secret("BDR_MODELS1"),
+  new sst.Secret("BDR_MODELS2"),
+  new sst.Secret("BDR_MODELS3"),
+  new sst.Secret("BDR_MODELS4"),
+  new sst.Secret("BDR_MODELS5"),
+  new sst.Secret("BDR_MODELS6"),
+  new sst.Secret("BDR_MODELS7"),
+  new sst.Secret("BDR_MODELS8"),
+  new sst.Secret("BDR_MODELS9"),
+  new sst.Secret("BDR_MODELS10"),
+  new sst.Secret("BDR_MODELS11"),
+  new sst.Secret("BDR_MODELS12"),
+  new sst.Secret("BDR_MODELS13"),
+  new sst.Secret("BDR_MODELS14"),
+  new sst.Secret("BDR_MODELS15"),
+  new sst.Secret("BDR_MODELS16"),
+  new sst.Secret("BDR_MODELS17"),
+  new sst.Secret("BDR_MODELS18"),
+  new sst.Secret("BDR_MODELS19"),
+  new sst.Secret("BDR_MODELS20"),
+  new sst.Secret("BDR_MODELS21"),
+  new sst.Secret("BDR_MODELS22"),
+  new sst.Secret("BDR_MODELS23"),
+  new sst.Secret("BDR_MODELS24"),
+  new sst.Secret("BDR_MODELS25"),
+  new sst.Secret("BDR_MODELS26"),
+  new sst.Secret("BDR_MODELS27"),
+  new sst.Secret("BDR_MODELS28"),
+  new sst.Secret("BDR_MODELS29"),
+  new sst.Secret("BDR_MODELS30"),
 ]
 const STRIPE_SECRET_KEY = new sst.Secret("STRIPE_SECRET_KEY")
 const STRIPE_PUBLISHABLE_KEY = new sst.Secret("STRIPE_PUBLISHABLE_KEY")
@@ -170,8 +170,8 @@ const gatewayKv = new sst.cloudflare.Kv("GatewayKv")
 // CONSOLE
 ////////////////
 
-const bucket = new sst.cloudflare.Bucket("ZenData")
-const bucketNew = new sst.cloudflare.Bucket("ZenDataNew")
+const bucket = new sst.cloudflare.Bucket("BdrData")
+const bucketNew = new sst.cloudflare.Bucket("BdrDataNew")
 
 const AWS_SES_ACCESS_KEY_ID = new sst.Secret("AWS_SES_ACCESS_KEY_ID")
 const AWS_SES_SECRET_ACCESS_KEY = new sst.Secret("AWS_SES_SECRET_ACCESS_KEY")
@@ -194,10 +194,10 @@ new sst.cloudflare.x.SolidStart("Console", {
     EMAILOCTOPUS_API_KEY,
     AWS_SES_ACCESS_KEY_ID,
     AWS_SES_SECRET_ACCESS_KEY,
-    ZEN_BLACK_PRICE,
-    ZEN_BLACK_LIMITS,
-    new sst.Secret("ZEN_SESSION_SECRET"),
-    ...ZEN_MODELS,
+    BDR_BLACK_PRICE,
+    BDR_BLACK_LIMITS,
+    new sst.Secret("BDR_SESSION_SECRET"),
+    ...BDR_MODELS,
     ...($dev
       ? [
           new sst.Secret("CLOUDFLARE_DEFAULT_ACCOUNT_ID", process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID!),

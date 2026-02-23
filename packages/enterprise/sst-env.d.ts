@@ -119,138 +119,138 @@ declare module "sst" {
       "type": "sst.cloudflare.StaticSite"
       "url": string
     }
-    "ZEN_BLACK_LIMITS": {
+    "BDR_BLACK_LIMITS": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_BLACK_PRICE": {
+    "BDR_BLACK_PRICE": {
       "plan100": string
       "plan20": string
       "plan200": string
       "product": string
       "type": "sst.sst.Linkable"
     }
-    "ZEN_MODELS1": {
+    "BDR_MODELS1": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS10": {
+    "BDR_MODELS10": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS11": {
+    "BDR_MODELS11": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS12": {
+    "BDR_MODELS12": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS13": {
+    "BDR_MODELS13": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS14": {
+    "BDR_MODELS14": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS15": {
+    "BDR_MODELS15": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS16": {
+    "BDR_MODELS16": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS17": {
+    "BDR_MODELS17": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS18": {
+    "BDR_MODELS18": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS19": {
+    "BDR_MODELS19": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS2": {
+    "BDR_MODELS2": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS20": {
+    "BDR_MODELS20": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS21": {
+    "BDR_MODELS21": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS22": {
+    "BDR_MODELS22": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS23": {
+    "BDR_MODELS23": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS24": {
+    "BDR_MODELS24": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS25": {
+    "BDR_MODELS25": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS26": {
+    "BDR_MODELS26": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS27": {
+    "BDR_MODELS27": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS28": {
+    "BDR_MODELS28": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS29": {
+    "BDR_MODELS29": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS3": {
+    "BDR_MODELS3": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS30": {
+    "BDR_MODELS30": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS4": {
+    "BDR_MODELS4": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS5": {
+    "BDR_MODELS5": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS6": {
+    "BDR_MODELS6": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS7": {
+    "BDR_MODELS7": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS8": {
+    "BDR_MODELS8": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_MODELS9": {
+    "BDR_MODELS9": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ZEN_SESSION_SECRET": {
+    "BDR_SESSION_SECRET": {
       "type": "sst.sst.Secret"
       "value": string
     }
@@ -267,8 +267,8 @@ declare module "sst" {
     "EnterpriseStorage": cloudflare.R2Bucket
     "GatewayKv": cloudflare.KVNamespace
     "LogProcessor": cloudflare.Service
-    "ZenData": cloudflare.R2Bucket
-    "ZenDataNew": cloudflare.R2Bucket
+    "BdrData": cloudflare.R2Bucket
+    "BdrDataNew": cloudflare.R2Bucket
   }
 }
 
