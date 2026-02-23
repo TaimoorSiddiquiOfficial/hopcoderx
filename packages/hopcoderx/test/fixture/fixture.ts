@@ -26,7 +26,7 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
     await Bun.write(
       path.join(dirpath, "hopcoderx.json"),
       JSON.stringify({
-        $schema: ".hopcoderx/config.json",
+        $schema: "https://hopcoder.dev/config.json",
         ...options.config,
       }),
     )

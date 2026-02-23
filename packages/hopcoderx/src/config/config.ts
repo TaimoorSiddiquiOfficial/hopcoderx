@@ -89,8 +89,7 @@ export namespace Config {
         const wellknown = (await response.json()) as any
         const remoteConfig = wellknown.config ?? {}
         // Add $schema to prevent load() from trying to write back to a non-existent file
-        // TODO: replace with "https://hopcoderx.dev/config.json" once domain is live
-        if (!remoteConfig.$schema) remoteConfig.$schema = ".hopcoderx/config.json"
+        if (!remoteConfig.$schema) remoteConfig.$schema = "https://hopcoder.dev/config.json"
         result = merge(
           result,
           await load(JSON.stringify(remoteConfig), {
@@ -1230,8 +1229,7 @@ export namespace Config {
         .then(async (mod) => {
           const { provider, model, ...rest } = mod.default
           if (provider && model) result.model = `${provider}/${model}`
-          // TODO: replace with "https://hopcoderx.dev/config.json" once domain is live
-          result["$schema"] = ".hopcoderx/config.json"
+          result["$schema"] = "https://hopcoder.dev/config.json"
           result = mergeDeep(result, rest)
           await Filesystem.writeJson(path.join(Global.Path.config, "config.json"), result)
           await fs.unlink(legacy)
@@ -1324,9 +1322,8 @@ export namespace Config {
     const parsed = Info.safeParse(data)
     if (parsed.success) {
       if (!parsed.data.$schema && isFile) {
-        // TODO: replace with "https://hopcoderx.dev/config.json" once domain is live
-        parsed.data.$schema = ".hopcoderx/config.json"
-        const updated = original.replace(/^\s*\{/, '{\n  "$schema": ".hopcoderx/config.json",')
+        parsed.data.$schema = "https://hopcoder.dev/config.json"
+        const updated = original.replace(/^\s*\{/, '{\n  "$schema": "https://hopcoder.dev/config.json",')
         await Bun.write(options.path, updated).catch(() => {})
       }
       const data = parsed.data

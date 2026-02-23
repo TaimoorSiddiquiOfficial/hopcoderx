@@ -246,7 +246,7 @@ describe("session.llm.stream", () => {
         await Bun.write(
           path.join(dir, "hopcoderx.json"),
           JSON.stringify({
-            $schema: ".hopcoderx/config.json",
+            $schema: "https://hopcoder.dev/config.json",
             enabled_providers: [providerID],
             provider: {
               [providerID]: {
@@ -369,7 +369,7 @@ describe("session.llm.stream", () => {
         await Bun.write(
           path.join(dir, "hopcoderx.json"),
           JSON.stringify({
-            $schema: ".hopcoderx/config.json",
+            $schema: "https://hopcoder.dev/config.json",
             enabled_providers: ["openai"],
             provider: {
               openai: {
@@ -498,7 +498,7 @@ describe("session.llm.stream", () => {
         await Bun.write(
           path.join(dir, "hopcoderx.json"),
           JSON.stringify({
-            $schema: ".hopcoderx/config.json",
+            $schema: "https://hopcoder.dev/config.json",
             enabled_providers: [providerID],
             provider: {
               [providerID]: {
@@ -599,7 +599,7 @@ describe("session.llm.stream", () => {
         await Bun.write(
           path.join(dir, "hopcoderx.json"),
           JSON.stringify({
-            $schema: ".hopcoderx/config.json",
+            $schema: "https://hopcoder.dev/config.json",
             enabled_providers: [providerID],
             provider: {
               [providerID]: {
