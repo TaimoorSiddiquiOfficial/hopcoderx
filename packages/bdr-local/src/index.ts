@@ -27,6 +27,8 @@
  *   }
  */
 
+import { handlePanel } from "./panel"
+
 const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
 // Live Portkey Gateway on Railway — hop to https://hopcoderx-bdr.up.railway.app/public/ for logs
@@ -188,11 +190,16 @@ Bun.serve({
       return chat(req)
     }
 
+    // Panel — web UI at /panel (and /panel/*)
+    if (path.startsWith("/panel")) {
+      return handlePanel(req, path).catch((e: Error) => Response.json({ error: e.message }, { status: 500 }))
+    }
+
     // Health / root
     if (path === "/" || path === "/health") {
       const mode = OPENROUTER_KEY ? "openrouter" : PORTKEY ? "portkey" : "ollama"
       const upstream = OPENROUTER_KEY ? `openrouter/@preset/${OPENROUTER_PRESET}` : PORTKEY ?? OLLAMA
-      return Response.json({ ok: true, mode, upstream }, { headers: CORS })
+      return Response.json({ ok: true, mode, upstream, panel: `http://localhost:${PORT}/panel` }, { headers: CORS })
     }
 
     return Response.json({ error: "not_found", path }, { status: 404, headers: CORS })
@@ -209,6 +216,7 @@ const mode = OPENROUTER_KEY ? "openrouter" : PORTKEY ? "portkey" : "ollama"
 console.log(`\n  BDR Local`)
 console.log(`  ─────────────────────────────────────`)
 console.log(`  API    http://localhost:${PORT}/v1`)
+console.log(`  Panel  http://localhost:${PORT}/panel`)
 if (mode === "openrouter") {
   console.log(`  Mode   OpenRouter Preset (@preset/${OPENROUTER_PRESET})`)
   console.log(`  Preset https://openrouter.ai/settings/presets`)
