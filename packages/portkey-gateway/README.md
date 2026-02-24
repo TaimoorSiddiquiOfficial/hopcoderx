@@ -21,7 +21,9 @@ railway up
 railway domain        # get your .up.railway.app URL
 ```
 
-Gateway runs at: `https://YOUR-DOMAIN.up.railway.app/v1`
+**Live gateway:** `https://hopcoderx-bdr.up.railway.app/v1`  
+**Gateway console (logs & traces):** `https://hopcoderx-bdr.up.railway.app/public/`  
+Custom gateway runs at: `https://YOUR-DOMAIN.up.railway.app/v1`
 
 ---
 
@@ -48,15 +50,19 @@ railway variables set BDR_PORTKEY_FREE_CONFIG=<base64-string>
 
 ## Wire into BDR Local
 
-Set `PORTKEY_GATEWAY_URL` in `packages/bdr-local`:
+BDR Local defaults to the live gateway — no env var needed:
 
 ```bash
-# .env in packages/bdr-local
-PORTKEY_GATEWAY_URL=https://YOUR-DOMAIN.up.railway.app
+# Portkey mode is auto-active when no OPENROUTER_API_KEY is set
+# Default: PORTKEY_GATEWAY_URL=https://hopcoderx-bdr.up.railway.app
+bun --cwd packages/bdr-local start
+
+# Override with your own deployment:
+PORTKEY_GATEWAY_URL=https://YOUR-DOMAIN.up.railway.app bun start
 BDR_PORTKEY_FREE_CONFIG=<base64 of config/free-providers.json>
 ```
 
-BDR Local automatically proxies `/v1/chat/completions` through Portkey when `PORTKEY_GATEWAY_URL` is set.
+BDR Local automatically proxies `/v1/chat/completions` through the gateway.
 
 ---
 
@@ -79,14 +85,14 @@ The gateway is OpenAI-compatible. Pass a routing config via header:
 
 ```bash
 # Simple request with provider selection
-curl https://YOUR-DOMAIN.up.railway.app/v1/chat/completions \
+curl https://hopcoderx-bdr.up.railway.app/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "x-portkey-provider: groq" \
   -H "Authorization: Bearer sk-groq-xxx" \
   -d '{"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":"hi"}]}'
 
 # Load-balanced across free providers (base64 config)
-curl https://YOUR-DOMAIN.up.railway.app/v1/chat/completions \
+curl https://hopcoderx-bdr.up.railway.app/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "x-portkey-config: $(cat config/free-providers.json | base64 -w0)" \
   -d '{"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":"hi"}]}'
@@ -95,6 +101,8 @@ curl https://YOUR-DOMAIN.up.railway.app/v1/chat/completions \
 ---
 
 ## Gateway console
+
+**Live (Railway):** https://hopcoderx-bdr.up.railway.app/public/
 
 View logs, traces, and metrics locally:
 

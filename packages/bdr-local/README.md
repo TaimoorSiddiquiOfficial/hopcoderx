@@ -53,8 +53,11 @@ All agent steps automatically use `@preset/hopcoder-free` as the model string �
 See [`../portkey-gateway/README.md`](../portkey-gateway/README.md).
 
 ```bash
-PORTKEY_GATEWAY_URL=https://your-portkey.up.railway.app bun start
-# optionally with load-balance config:
+# Portkey is live at https://hopcoderx-bdr.up.railway.app (default — no env var needed)
+bun start
+# Override with a different gateway:
+PORTKEY_GATEWAY_URL=https://other-portkey.up.railway.app bun start
+# Optionally with load-balance config:
 BDR_PORTKEY_FREE_CONFIG=<base64-json> bun start
 ```
 
@@ -95,7 +98,7 @@ railway domain        # get your .up.railway.app URL
 | `PORT` | `4999` | HTTP port (Railway overrides automatically) |
 | `OPENROUTER_API_KEY` | — | Enables OpenRouter preset mode |
 | `OPENROUTER_PRESET` | `hopcoder-free` | OpenRouter preset slug |
-| `PORTKEY_GATEWAY_URL` | — | Enables Portkey mode (overridden by OPENROUTER_API_KEY) |
+| `PORTKEY_GATEWAY_URL` | `https://hopcoderx-bdr.up.railway.app` | Portkey gateway URL (active by default when no OPENROUTER_API_KEY) |
 | `BDR_PORTKEY_FREE_CONFIG` | — | Base64 Portkey routing JSON |
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama URL (used in default mode) |
 

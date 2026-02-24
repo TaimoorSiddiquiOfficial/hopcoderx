@@ -4,8 +4,10 @@
  * Mode A (default): proxies to Ollama
  *   OLLAMA_URL=http://localhost:11434  bun start
  *
- * Mode B (Portkey): proxies through self-hosted Portkey AI Gateway
- *   PORTKEY_GATEWAY_URL=https://your-portkey.up.railway.app bun start
+ * Mode B (Portkey): proxies through live Railway Portkey AI Gateway (default when no OPENROUTER_API_KEY)
+ *   Gateway URL: https://hopcoderx-bdr.up.railway.app
+ *   Console:     https://hopcoderx-bdr.up.railway.app/public/
+ *   Override:    PORTKEY_GATEWAY_URL=https://other-host.up.railway.app bun start
  *   BDR_PORTKEY_FREE_CONFIG=<base64-json>  # optional load-balance config
  *
  * Mode C (OpenRouter Preset): routes via OpenRouter preset — zero config load balancing
@@ -27,7 +29,8 @@
 
 const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
-const PORTKEY = Bun.env.PORTKEY_GATEWAY_URL?.replace(/\/$/, "")
+// Live Portkey Gateway on Railway — hop to https://hopcoderx-bdr.up.railway.app/public/ for logs
+const PORTKEY = (Bun.env.PORTKEY_GATEWAY_URL ?? "https://hopcoderx-bdr.up.railway.app").replace(/\/$/, "")
 const PORTKEY_CONFIG = Bun.env.BDR_PORTKEY_FREE_CONFIG // base64-encoded routing config JSON
 const OPENROUTER_KEY = Bun.env.OPENROUTER_API_KEY
 const OPENROUTER_PRESET = Bun.env.OPENROUTER_PRESET ?? "hopcoder-free"
