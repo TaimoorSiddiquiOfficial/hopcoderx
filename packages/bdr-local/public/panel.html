@@ -132,6 +132,40 @@
     <!-- Dashboard -->
     <div id="page-dashboard" class="hidden space-y-6">
       <h1 class="text-xl font-semibold">Dashboard</h1>
+
+      <!-- Quota card -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[#8b949e] text-xs font-medium uppercase tracking-wider">Today's Usage</div>
+          <span id="quota-badge" class="badge badge-free">free</span>
+        </div>
+        <div class="flex items-end gap-2 mb-2">
+          <span id="quota-used" class="text-2xl font-bold">—</span>
+          <span id="quota-limit" class="text-[#8b949e] text-sm mb-1">/ — requests</span>
+        </div>
+        <div class="w-full bg-[#21262d] rounded-full h-2">
+          <div id="quota-bar" class="bg-indigo-600 h-2 rounded-full transition-all" style="width:0%"></div>
+        </div>
+        <div id="quota-hint" class="mt-2 text-xs text-[#8b949e]">Resets daily at midnight UTC</div>
+      </div>
+
+      <!-- BDR API Key -->
+      <div class="card space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="font-medium text-sm">BDR API Key</div>
+            <div class="text-xs text-[#8b949e] mt-0.5">Use this key in your hopcoderx.json to route through the gateway</div>
+          </div>
+          <button class="btn btn-primary text-xs" onclick="generateToken()">+ Generate Key</button>
+        </div>
+        <div id="token-list" class="space-y-2"></div>
+        <div id="token-snippet" class="hidden">
+          <div class="text-xs text-[#8b949e] mb-1">Add to your <code class="text-indigo-400">hopcoderx.json</code>:</div>
+          <pre class="bg-[#0d1117] border border-[#30363d] rounded-lg p-3 text-xs font-mono text-[#e6edf3] overflow-x-auto" id="token-snippet-code"></pre>
+        </div>
+      </div>
+
+      <!-- Gateway status -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="card">
           <div class="text-[#8b949e] text-xs font-medium uppercase tracking-wider mb-2">Mode</div>
@@ -425,13 +459,81 @@
 
   // --- Dashboard ---
   async function loadDashboard() {
-    const h = await api('/gateway/health')
-    if (!h) return
-    document.getElementById('gw-mode').textContent = h.mode
-    document.getElementById('gw-upstream').textContent = h.upstream
-    const link = document.getElementById('gw-console')
-    link.href = h.portkey_console
-    link.textContent = h.portkey_console
+    const [h, usage, tokens] = await Promise.all([
+      api('/gateway/health'),
+      api('/usage'),
+      api('/tokens'),
+    ])
+    // Gateway status
+    if (h) {
+      document.getElementById('gw-mode').textContent = h.mode
+      document.getElementById('gw-upstream').textContent = h.upstream
+      const link = document.getElementById('gw-console')
+      link.href = h.portkey_console
+      link.textContent = h.portkey_console
+    }
+    // Quota
+    if (usage) {
+      const { today, quota, plan, role } = usage
+      const unlimited = quota === -1
+      document.getElementById('quota-used').textContent = today
+      document.getElementById('quota-limit').textContent = unlimited ? '/ ∞  requests' : `/ ${quota} requests`
+      document.getElementById('quota-bar').style.width = unlimited ? '5%' : `${Math.min(100, Math.round(today / quota * 100))}%`
+      document.getElementById('quota-bar').className = `h-2 rounded-full transition-all ${today >= quota && !unlimited ? 'bg-red-500' : today / quota > 0.8 ? 'bg-amber-500' : 'bg-indigo-600'}`
+      const badge = document.getElementById('quota-badge')
+      badge.textContent = role === 'admin' ? 'admin' : plan
+      badge.className = `badge badge-${role === 'admin' ? 'admin' : plan}`
+      document.getElementById('quota-hint').textContent = unlimited ? 'Unlimited — admin account' : `Resets daily at midnight UTC · ${quota - today} remaining`
+    }
+    // Tokens
+    if (tokens) renderTokens(tokens)
+  }
+
+  function renderTokens(tokens) {
+    const gwUrl = window.location.origin
+    const list = document.getElementById('token-list')
+    const snippet = document.getElementById('token-snippet')
+    if (!tokens.length) {
+      list.innerHTML = '<p class="text-xs text-[#8b949e]">No API keys yet — generate one to use the gateway from HopCoderX</p>'
+      snippet.classList.add('hidden')
+      return
+    }
+    list.innerHTML = tokens.map(t => `
+      <div class="flex items-center gap-2 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2">
+        <code class="flex-1 text-xs font-mono text-indigo-300 truncate">${t.id}</code>
+        <button class="text-xs text-[#8b949e] hover:text-white transition-colors px-1" onclick="copyText('${t.id}'); toast('Copied!')">Copy</button>
+        <button class="text-xs text-red-400 hover:text-red-300 transition-colors px-1" onclick="removeToken('${t.id}')">Delete</button>
+      </div>`).join('')
+    // Show snippet for first key
+    snippet.classList.remove('hidden')
+    document.getElementById('token-snippet-code').textContent = JSON.stringify({
+      provider: {
+        "bdr-gateway": {
+          name: "BDR Gateway",
+          npm: "@ai-sdk/openai-compatible",
+          api: { url: `${gwUrl}/v1`, key: tokens[0].id }
+        }
+      }
+    }, null, 2)
+  }
+
+  async function generateToken() {
+    const t = await api('/tokens', { method: 'POST', body: JSON.stringify({ label: 'hopcoderx' }) })
+    if (!t) return
+    toast('API key generated!')
+    const tokens = await api('/tokens')
+    if (tokens) renderTokens(tokens)
+  }
+
+  async function removeToken(id) {
+    await api(`/tokens/${id}`, { method: 'DELETE' })
+    toast('Key deleted')
+    const tokens = await api('/tokens')
+    if (tokens) renderTokens(tokens)
+  }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text).catch(() => {})
   }
 
   // --- API Keys ---

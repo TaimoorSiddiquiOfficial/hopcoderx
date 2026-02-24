@@ -1,5 +1,5 @@
 import { join } from "path"
-import { getSession, deleteSession, listSettings, setSetting, listApiKeys, saveApiKey, deleteApiKey, listUsers, updateUser } from "./db"
+import { getSession, deleteSession, listSettings, setSetting, listApiKeys, saveApiKey, deleteApiKey, listUsers, updateUser, getUsageToday, getUsageMonth, getAdminUsageStats, PLAN_QUOTA, createUserToken, listUserTokens, deleteUserToken } from "./db"
 import { signupEmail, loginEmail, githubAuthUrl, githubCallback } from "./auth"
 
 const PANEL_HTML = join(import.meta.dir, "../public/panel.html")
@@ -146,6 +146,47 @@ export async function handlePanel(req: Request, path: string): Promise<Response>
     if (!user) return err("Unauthorized", 401)
     deleteApiKey(keyMatch[1], user.id)
     return json({ ok: true })
+  }
+
+  // --- BDR API Tokens ---
+
+  if (api === "/tokens" && method === "GET") {
+    const user = requireAuth(req)
+    if (!user) return err("Unauthorized", 401)
+    return json(listUserTokens(user.id))
+  }
+
+  if (api === "/tokens" && method === "POST") {
+    const user = requireAuth(req)
+    if (!user) return err("Unauthorized", 401)
+    const body = (await req.json().catch(() => ({}))) as { label?: string }
+    const id = createUserToken(user.id, body.label)
+    return json({ id })
+  }
+
+  const tokenMatch = api.match(/^\/tokens\/([^/]+)$/)
+  if (tokenMatch && method === "DELETE") {
+    const user = requireAuth(req)
+    if (!user) return err("Unauthorized", 401)
+    deleteUserToken(tokenMatch[1], user.id)
+    return json({ ok: true })
+  }
+
+  // --- Usage ---
+
+  if (api === "/usage" && method === "GET") {
+    const user = requireAuth(req)
+    if (!user) return err("Unauthorized", 401)
+    const quota = PLAN_QUOTA[user.role === "admin" ? "admin" : user.plan] ?? PLAN_QUOTA.free
+    const today = getUsageToday(user.id)
+    const month = getUsageMonth(user.id)
+    return json({ today, month, quota, plan: user.plan, role: user.role })
+  }
+
+  if (api === "/usage/admin" && method === "GET") {
+    const user = requireAdmin(req)
+    if (!user) return err("Forbidden", 403)
+    return json(getAdminUsageStats())
   }
 
   // --- Users (admin) ---

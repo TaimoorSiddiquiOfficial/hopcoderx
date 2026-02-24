@@ -53,6 +53,35 @@ db.run(`
   )
 `)
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS usage (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    model TEXT,
+    ts INTEGER NOT NULL
+  )
+`)
+db.run(`CREATE INDEX IF NOT EXISTS usage_user_ts ON usage (user_id, ts)`)
+
+db.run(`
+  CREATE TABLE IF NOT EXISTS user_tokens (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    label TEXT,
+    created_at INTEGER NOT NULL
+  )
+`)
+db.run(`CREATE INDEX IF NOT EXISTS user_tokens_id ON user_tokens (id)`)
+
+// Daily quota per plan (requests/day). -1 = unlimited.
+export const PLAN_QUOTA: Record<string, number> = {
+  free: 20,
+  mini: 100,
+  pro: 500,
+  engineer: 2000,
+  admin: -1,
+}
+
 export type User = {
   id: string
   email: string | null
@@ -155,4 +184,60 @@ export function deleteApiKey(id: string, user_id: string) {
 // All provider keys (for building Portkey config at runtime)
 export function getAllProviderKeys() {
   return db.query("SELECT provider, value FROM api_keys ORDER BY created_at ASC").all() as { provider: string; value: string }[]
+}
+
+// --- User API tokens (bdrk_ keys used in hopcoderx.json) ---
+
+export function createUserToken(user_id: string, label?: string) {
+  const id = `bdrk_${randomUUID().replace(/-/g, "")}`
+  db.run("INSERT INTO user_tokens (id, user_id, label, created_at) VALUES (?, ?, ?, ?)", [id, user_id, label ?? null, Date.now()])
+  return id
+}
+
+export function getUserByToken(token: string) {
+  return db
+    .query(
+      `SELECT u.id, u.email, u.github_login, u.avatar_url, u.role, u.plan, u.created_at
+       FROM user_tokens t JOIN users u ON t.user_id = u.id
+       WHERE t.id = ?`,
+    )
+    .get(token) as User | null
+}
+
+export function listUserTokens(user_id: string) {
+  return db.query("SELECT id, label, created_at FROM user_tokens WHERE user_id = ? ORDER BY created_at ASC").all(user_id) as { id: string; label: string | null; created_at: number }[]
+}
+
+export function deleteUserToken(id: string, user_id: string) {
+  db.run("DELETE FROM user_tokens WHERE id = ? AND user_id = ?", [id, user_id])
+}
+
+// --- Usage tracking ---
+
+export function recordUsage(user_id: string, model: string | null) {
+  db.run("INSERT INTO usage (id, user_id, model, ts) VALUES (?, ?, ?, ?)", [randomUUID(), user_id, model ?? null, Date.now()])
+}
+
+export function getUsageToday(user_id: string) {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  return (db.query("SELECT COUNT(*) as c FROM usage WHERE user_id = ? AND ts >= ?").get(user_id, start.getTime()) as { c: number }).c
+}
+
+export function getUsageMonth(user_id: string) {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+  return (db.query("SELECT COUNT(*) as c FROM usage WHERE user_id = ? AND ts >= ?").get(user_id, start) as { c: number }).c
+}
+
+export function getAdminUsageStats() {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  const today = (db.query("SELECT COUNT(*) as c FROM usage WHERE ts >= ?").get(start.getTime()) as { c: number }).c
+  const total = (db.query("SELECT COUNT(*) as c FROM usage").get() as { c: number }).c
+  return { today, total }
+}
+
+export function hasUsers() {
+  return (db.query("SELECT COUNT(*) as c FROM users").get() as { c: number }).c > 0
 }

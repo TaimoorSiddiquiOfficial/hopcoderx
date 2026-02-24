@@ -28,7 +28,7 @@
  */
 
 import { handlePanel } from "./panel"
-import { getAllProviderKeys } from "./db"
+import { getAllProviderKeys, getSession, getUserByToken, recordUsage, getUsageToday, PLAN_QUOTA, hasUsers } from "./db"
 
 const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
@@ -208,6 +208,21 @@ Bun.serve({
     }
 
     if (req.method === "POST" && path.startsWith("/v1/chat/completions")) {
+      // Auth + quota gate — users pass their BDR API key (bdrk_…) from hopcoderx.json
+      const raw = req.headers.get("authorization")?.replace(/^Bearer /, "") ?? ""
+      const user = raw.startsWith("bdrk_") ? getUserByToken(raw) : raw ? getSession(raw) : null
+
+      // Only enforce auth once someone has registered — dev setups with no users pass through
+      if (hasUsers()) {
+        if (!user) return Response.json({ error: "unauthorized", message: "Set your BDR API key in hopcoderx.json: provider.bdr-local.api.key = \"bdrk_…\"" }, { status: 401, headers: CORS })
+        const quota = PLAN_QUOTA[user.role === "admin" ? "admin" : user.plan] ?? PLAN_QUOTA.free
+        if (quota !== -1) {
+          const used = getUsageToday(user.id)
+          if (used >= quota)
+            return Response.json({ error: "quota_exceeded", message: `Daily limit reached (${used}/${quota} requests). Upgrade your plan at the BDR panel.`, used, quota }, { status: 429, headers: CORS })
+        }
+        recordUsage(user.id, (await req.clone().json().catch(() => ({}))).model ?? null)
+      }
       return chat(req)
     }
 
