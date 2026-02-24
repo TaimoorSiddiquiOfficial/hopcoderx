@@ -11,15 +11,16 @@ import { CodexAuthPlugin } from "./codex"
 import { Session } from "../session"
 import { NamedError } from "@hopcoderx/util/error"
 import { CopilotAuthPlugin } from "./copilot"
-import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
+import { gitlabAuthPlugin as GitlabAuthPlugin } from "@hopcoderx/gitlab-auth"
+import { anthropicAuthPlugin as AnthropicAuthPlugin } from "@hopcoderx/anthropic-auth"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
 
-  const BUILTIN = ["opencode-anthropic-auth@0.0.13"]
+  const BUILTIN: string[] = []
 
   // Built-in plugins that are directly imported (not installed from npm)
-  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin]
+  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin, AnthropicAuthPlugin]
 
   const state = Instance.state(async () => {
     const client = createHopCoderXClient({
