@@ -8,9 +8,11 @@ import path from "path"
 
 import { createClient } from "@hey-api/openapi-ts"
 
-await $`bun dev generate > ${dir}/openapi.json`.cwd(path.resolve(dir, "../../hopcoderx"))
+// In CI, skip OpenAPI regeneration - generated files are already committed
+if (!process.env.CI) {
+  await $`bun dev generate > ${dir}/openapi.json`.cwd(path.resolve(dir, "../../hopcoderx"))
 
-await createClient({
+  await createClient({
   input: "./openapi.json",
   output: {
     path: "./src/v2/gen",
@@ -35,10 +37,12 @@ await createClient({
       baseUrl: "http://localhost:4096",
     },
   ],
-})
+  })
 
-await $`bun prettier --write src/gen`
-await $`bun prettier --write src/v2`
+  await $`bun prettier --write src/gen`
+  await $`bun prettier --write src/v2`
+  await $`rm -f openapi.json`
+}
+
 await $`rm -rf dist`
 await $`bun tsc`
-await $`rm openapi.json`

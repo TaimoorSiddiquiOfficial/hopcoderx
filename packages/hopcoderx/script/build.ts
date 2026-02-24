@@ -144,8 +144,17 @@ await $`rm -rf dist`
 
 const binaries: Record<string, string> = {}
 if (!skipInstall) {
-  await $`bun install --os="*" --cpu="*" @opentui/core@${pkg.dependencies["@opentui/core"]}`
-  await $`bun install --os="*" --cpu="*" @parcel/watcher@${pkg.dependencies["@parcel/watcher"]}`
+  const platforms = [
+    { os: "linux", cpu: "arm64" },
+    { os: "linux", cpu: "x64" },
+    { os: "darwin", cpu: "arm64" },
+    { os: "darwin", cpu: "x64" },
+    { os: "windows", cpu: "x64" },
+  ]
+  for (const { os, cpu } of platforms) {
+    await $`bun install --os=${os} --cpu=${cpu} @opentui/core@${pkg.dependencies["@opentui/core"]}`.nothrow()
+    await $`bun install --os=${os} --cpu=${cpu} @parcel/watcher@${pkg.dependencies["@parcel/watcher"]}`.nothrow()
+  }
 }
 for (const item of targets) {
   const name = [
