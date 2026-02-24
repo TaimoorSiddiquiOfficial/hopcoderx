@@ -211,9 +211,12 @@ for (const item of targets) {
     continue
   }
   if (!buildResult.success) {
-    const msg = buildResult.logs.map((l) => l.message).join(" | ")
-    console.error(`build failed for ${name}:`, msg)
-    if (process.env.GITHUB_ACTIONS) console.log(`::error title=Bun.build ${name}::${msg}`)
+    for (const log of buildResult.logs) {
+      const pos = log.position ? ` at ${log.position.file}:${log.position.line}:${log.position.column}` : ""
+      const detail = `[${name}] ${log.message}${pos}`
+      console.error(detail)
+      if (process.env.GITHUB_ACTIONS) console.log(`::error title=Bun.build ${name}::${detail}`)
+    }
     continue
   }
 
