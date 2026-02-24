@@ -1,6 +1,18 @@
 import { join } from "path"
-import { getSession, deleteSession, listSettings, setSetting, listApiKeys, saveApiKey, deleteApiKey, listUsers, updateUser, getUsageToday, getUsageMonth, getAdminUsageStats, PLAN_QUOTA, createUserToken, listUserTokens, deleteUserToken } from "./db"
+import { getSession, deleteSession, listSettings, setSetting, listApiKeys, saveApiKey, deleteApiKey, listUsers, updateUser, getUsageToday, getUsageMonth, getAdminUsageStats, PLAN_QUOTA, createUserToken, listUserTokens, deleteUserToken, getAllProviderKeys } from "./db"
 import { signupEmail, loginEmail, githubAuthUrl, githubCallback } from "./auth"
+
+// Merged key lookup (env wins over DB) — mirrors index.ts logic
+function gatewayMode() {
+  const preset = Bun.env.OPENROUTER_PRESET ?? "hopcoder-free"
+  const hasOR = !!(Bun.env.OPENROUTER_API_KEY || getAllProviderKeys().find(k => k.provider === "openrouter"))
+  const portkey = (Bun.env.PORTKEY_GATEWAY_URL ?? "https://hopcoderx-bdr.up.railway.app").replace(/\/$/, "")
+  return {
+    mode: hasOR ? "openrouter" : "portkey",
+    upstream: hasOR ? `openrouter/@preset/${preset}` : portkey,
+    portkey_console: `${portkey}/public/`,
+  }
+}
 
 const PANEL_HTML = join(import.meta.dir, "../public/panel.html")
 
@@ -211,9 +223,7 @@ export async function handlePanel(req: Request, path: string): Promise<Response>
   if (api === "/gateway/health" && method === "GET") {
     const user = requireAuth(req)
     if (!user) return err("Unauthorized", 401)
-    const mode = Bun.env.OPENROUTER_API_KEY ? "openrouter" : "portkey"
-    const upstream = mode === "openrouter" ? `openrouter/@preset/${Bun.env.OPENROUTER_PRESET ?? "hopcoder-free"}` : (Bun.env.PORTKEY_GATEWAY_URL ?? "https://hopcoderx-bdr.up.railway.app")
-    return json({ mode, upstream, portkey_console: "https://hopcoderx-bdr.up.railway.app/public/" })
+    return json(gatewayMode())
   }
 
   return json({ error: "not_found" }, 404)

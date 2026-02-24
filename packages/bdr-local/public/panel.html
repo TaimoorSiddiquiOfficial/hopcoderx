@@ -288,7 +288,7 @@
       <h1 class="text-xl font-semibold">Billing &amp; Plan</h1>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Free -->
-        <div class="card border-[#30363d]">
+        <div id="plan-free" class="card border-[#30363d]">
           <div class="text-xs text-[#8b949e] mb-1 uppercase tracking-wider">Free</div>
           <div class="text-2xl font-bold mb-4">$0<span class="text-sm font-normal text-[#8b949e]">/mo</span></div>
           <ul class="text-sm text-[#8b949e] space-y-2 mb-6">
@@ -300,7 +300,7 @@
           <button class="btn btn-ghost w-full" id="plan-free-btn" onclick="">Current plan</button>
         </div>
         <!-- Mini -->
-        <div class="card border-blue-600/30">
+        <div id="plan-mini" class="card border-blue-600/30">
           <div class="text-xs text-blue-400 mb-1 uppercase tracking-wider">Mini</div>
           <div class="text-2xl font-bold mb-4">$9<span class="text-sm font-normal text-[#8b949e]">/mo</span></div>
           <ul class="text-sm text-[#8b949e] space-y-2 mb-6">
@@ -312,7 +312,7 @@
           <a href="https://hopcoder.dev/billing/mini" target="_blank" class="btn btn-ghost w-full border border-blue-600/30 text-blue-400 hover:bg-blue-600/10 block text-center no-underline">Upgrade</a>
         </div>
         <!-- Pro -->
-        <div class="card border-purple-600/30">
+        <div id="plan-pro" class="card border-purple-600/30">
           <div class="text-xs text-purple-400 mb-1 uppercase tracking-wider">Pro</div>
           <div class="text-2xl font-bold mb-4">$29<span class="text-sm font-normal text-[#8b949e]">/mo</span></div>
           <ul class="text-sm text-[#8b949e] space-y-2 mb-6">
@@ -324,7 +324,7 @@
           <a href="https://hopcoder.dev/billing/pro" target="_blank" class="btn btn-ghost w-full border border-purple-600/30 text-purple-400 hover:bg-purple-600/10 block text-center no-underline">Upgrade</a>
         </div>
         <!-- Engineer -->
-        <div class="card border-amber-600/30">
+        <div id="plan-engineer" class="card border-amber-600/30">
           <div class="text-xs text-amber-400 mb-1 uppercase tracking-wider">Engineer</div>
           <div class="text-2xl font-bold mb-4">$79<span class="text-sm font-normal text-[#8b949e]">/mo</span></div>
           <ul class="text-sm text-[#8b949e] space-y-2 mb-6">
@@ -343,7 +343,10 @@
 
     <!-- Users -->
     <div id="page-users" class="hidden space-y-6">
-      <h1 class="text-xl font-semibold">Users</h1>
+      <div class="flex items-center justify-between">
+        <h1 class="text-xl font-semibold">Users</h1>
+        <div id="admin-stats" class="text-xs text-[#8b949e] flex gap-4"></div>
+      </div>
       <div class="card p-0 overflow-hidden">
         <table class="w-full">
           <thead class="bg-[#0d1117]"><tr><th>User</th><th>Role</th><th>Plan</th><th>Joined</th><th>Actions</th></tr></thead>
@@ -371,14 +374,16 @@
 
   // --- Fetch wrapper ---
   async function api(path, opts = {}) {
-    const res = await fetch(API + path, {
-      ...opts,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts.headers ?? {}) }
-    })
-    const data = await res.json().catch(() => ({}))
-    if (res.status === 401) { logout(); return null }
-    if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
-    return data
+    try {
+      const res = await fetch(API + path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts.headers ?? {}) }
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 401) { logout(); return null }
+      if (!res.ok) { toast(data.error ?? `HTTP ${res.status}`, 'error'); return null }
+      return data
+    } catch (e) { return null }
   }
 
   // --- Toast ---
@@ -454,15 +459,16 @@
     if (page === 'dashboard') await loadDashboard()
     else if (page === 'keys') await loadKeys()
     else if (page === 'settings') await loadSettings()
+    else if (page === 'billing') await loadBilling()
     else if (page === 'users') await loadUsers()
   }
 
   // --- Dashboard ---
   async function loadDashboard() {
     const [h, usage, tokens] = await Promise.all([
-      api('/gateway/health'),
-      api('/usage'),
-      api('/tokens'),
+      api('/gateway/health').catch(() => null),
+      api('/usage').catch(() => null),
+      api('/tokens').catch(() => null),
     ])
     // Gateway status
     if (h) {
@@ -536,6 +542,27 @@
     navigator.clipboard.writeText(text).catch(() => {})
   }
 
+  // --- Billing ---
+  async function loadBilling() {
+    const usage = await api('/usage')
+    if (!usage) return
+    const { plan, role } = usage
+    const current = role === 'admin' ? 'admin' : plan
+    // Highlight the active plan card
+    const planMap = { free: 'plan-free', mini: 'plan-mini', pro: 'plan-pro', engineer: 'plan-engineer' }
+    Object.entries(planMap).forEach(([p, id]) => {
+      const card = document.getElementById(id)
+      if (!card) return
+      if (p === current || (current === 'admin' && p === 'engineer')) {
+        card.classList.add('ring-2', 'ring-indigo-500')
+        const btn = card.querySelector('button, a')
+        if (btn) { btn.textContent = 'Current plan'; btn.className = 'btn btn-ghost w-full opacity-50 cursor-default block text-center no-underline' }
+      } else {
+        card.classList.remove('ring-2', 'ring-indigo-500')
+      }
+    })
+  }
+
   // --- API Keys ---
   async function loadKeys() {
     const keys = await api('/keys')
@@ -562,20 +589,20 @@
     const value = document.getElementById('key-value').value
     const label = document.getElementById('key-label').value
     if (!provider || !value) { toast('Provider and key value required', 'error'); return }
-    try {
-      await api('/keys', { method: 'POST', body: JSON.stringify({ provider, value, label }) })
-      document.getElementById('key-value').value = ''
-      document.getElementById('key-label').value = ''
-      hideAddKey()
-      toast('Key saved')
-      await loadKeys()
-    } catch (e) { toast(e.message, 'error') }
+    const t = await api('/keys', { method: 'POST', body: JSON.stringify({ provider, value, label }) })
+    if (!t) return
+    document.getElementById('key-value').value = ''
+    document.getElementById('key-label').value = ''
+    hideAddKey()
+    toast('Key saved')
+    await loadKeys()
   }
 
   async function removeKey(id) {
     if (!confirm('Delete this key?')) return
-    try { await api(`/keys/${id}`, { method: 'DELETE' }); toast('Key deleted'); await loadKeys() }
-    catch (e) { toast(e.message, 'error') }
+    await api(`/keys/${id}`, { method: 'DELETE' })
+    toast('Key deleted')
+    await loadKeys()
   }
 
   // --- Settings ---
@@ -594,13 +621,21 @@
 
   async function saveSetting(key, value) {
     if (!value) { toast('Value cannot be empty', 'error'); return }
-    try { await api('/settings', { method: 'POST', body: JSON.stringify({ key, value }) }); toast('Setting saved'); await loadSettings() }
-    catch (e) { toast(e.message, 'error') }
+    await api('/settings', { method: 'POST', body: JSON.stringify({ key, value }) })
+    toast('Setting saved')
+    await loadSettings()
   }
 
   // --- Users ---
   async function loadUsers() {
-    const users = await api('/users')
+    const [users, stats] = await Promise.all([
+      api('/users').catch(() => null),
+      api('/usage/admin').catch(() => null),
+    ])
+    if (stats) {
+      document.getElementById('admin-stats').innerHTML =
+        `<span>${stats.today} requests today</span><span class="text-[#30363d]">|</span><span>${stats.total} total</span>`
+    }
     if (!users) return
     const tbody = document.getElementById('users-table')
     const empty = document.getElementById('users-empty')
