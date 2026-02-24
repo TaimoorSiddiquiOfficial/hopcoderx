@@ -891,9 +891,14 @@ export namespace Provider {
     }
 
     // load env
+    // Copilot providers require OAuth via the copilot plugin — a plain
+    // GITHUB_TOKEN (PAT) doesn't carry the scopes or headers the Copilot
+    // API needs, so skip them during env-based activation.
+    const OAUTH_ONLY_PROVIDERS = new Set(["github-copilot", "github-copilot-enterprise"])
     const env = Env.all()
     for (const [providerID, provider] of Object.entries(database)) {
       if (disabled.has(providerID)) continue
+      if (OAUTH_ONLY_PROVIDERS.has(providerID)) continue
       const apiKey = provider.env.map((item) => env[item]).find(Boolean)
       if (!apiKey) continue
       mergeProvider(providerID, {
