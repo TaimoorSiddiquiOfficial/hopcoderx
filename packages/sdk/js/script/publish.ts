@@ -2,8 +2,9 @@
 
 import { Script } from "@hopcoderx/script"
 import { $ } from "bun"
+import path from "path"
 
-const dir = new URL("..", import.meta.url).pathname
+const dir = path.resolve(import.meta.dir, "..")
 process.chdir(dir)
 
 const pkg = (await import("../package.json").then((m) => m.default)) as {
@@ -14,7 +15,7 @@ function transformExports(exports: Record<string, string | object>) {
   for (const [key, value] of Object.entries(exports)) {
     if (typeof value === "object" && value !== null) {
       transformExports(value as Record<string, string | object>)
-    } else if (typeof value === "string") {
+    } else if (typeof value === "string" && value.startsWith("./src/")) {
       const file = value.replace("./src/", "./dist/").replace(".ts", "")
       exports[key] = {
         import: file + ".js",
