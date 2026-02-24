@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-const dir = new URL("..", import.meta.url).pathname
+const dir = path.resolve(import.meta.dir, "..")
 process.chdir(dir)
 
 import { $ } from "bun"
