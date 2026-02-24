@@ -14,11 +14,7 @@ ENV PATH="/root/.bun/bin:$PATH"
 
 WORKDIR /app
 
-# Copy package manifest and install deps (prod only)
-COPY package.json ./
-RUN bun install --production
-
-# Copy source and panel UI (combined to bust Railway layer cache)
+# Copy source and panel UI — no npm runtime deps, all APIs are Bun built-ins
 COPY . .
 
 # Persistent volume for SQLite panel DB
