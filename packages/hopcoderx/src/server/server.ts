@@ -117,8 +117,8 @@ export namespace Server {
               )
                 return input
 
-              // *.opencode.ai (https only, adjust if needed)
-              if (/^https:\/\/([a-z0-9-]+\.)*opencode\.ai$/.test(input)) {
+              // *.hopcoderx.ai (https only, adjust if needed)
+              if (/^https:\/\/([a-z0-9-]+\.)*hopcoderx\.ai$/.test(input)) {
                 return input
               }
               if (_corsWhitelist.includes(input)) {
@@ -543,11 +543,11 @@ export namespace Server {
         .all("/*", async (c) => {
           const path = c.req.path
 
-          const response = await proxy(`https://app.opencode.ai${path}`, {
+          const response = await proxy(`https://app.hopcoderx.ai${path}`, {
             ...c.req,
             headers: {
               ...c.req.raw.headers,
-              host: "app.opencode.ai",
+              host: "app.hopcoderx.ai",
             },
           })
           response.headers.set(

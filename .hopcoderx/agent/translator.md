@@ -144,7 +144,7 @@ HopCoderX TUI with the HopCoderX theme
 HopCoderX Web - Active Session
 HopCoderX Web - New Session
 HopCoderX Web - See Servers
-HopCoderX Zen
+HopCoderX Bdr
 HopCoderX-Obsidian
 OpenRouter dashboard
 OpenWork

@@ -361,8 +361,8 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://opencode.ai/",
-            "X-Title": "opencode",
+            "HTTP-Referer": "https://hopcoderx.ai/",
+            "X-Title": "hopcoderx",
           },
         },
       }
@@ -372,9 +372,8 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://opencode.ai/",
-            "x-title": "opencode",
-          },
+            "http-referer": "https://hopcoderx.ai/",
+            "x-title": "hopcoderx",
         },
       }
     },
@@ -458,8 +457,8 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://opencode.ai/",
-            "X-Title": "opencode",
+            "HTTP-Referer": "https://hopcoderx.ai/",
+            "X-Title": "hopcoderx",
           },
         },
       }
@@ -582,8 +581,8 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://opencode.ai/",
-            "X-Title": "opencode",
+            "HTTP-Referer": "https://hopcoderx.ai/",
+            "X-Title": "hopcoderx",
           },
         },
       }

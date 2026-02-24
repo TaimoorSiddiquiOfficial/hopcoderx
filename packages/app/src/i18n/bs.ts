@@ -130,7 +130,7 @@ export const dict = {
   "provider.connect.apiKey.placeholder": "API ključ",
   "provider.connect.apiKey.required": "API ključ je obavezan",
   "provider.connect.HopCoderXZen.line1":
-    "HopCoderX Zen ti daje pristup kuriranom skupu pouzdanih, optimizovanih modela za coding agente.",
+    "HopCoderX Bdr ti daje pristup kuriranom skupu pouzdanih, optimizovanih modela za coding agente.",
   "provider.connect.HopCoderXZen.line2":
     "Sa jednim API ključem dobijaš pristup modelima kao što su Claude, GPT, Gemini, GLM i drugi.",
   "provider.connect.HopCoderXZen.visit.prefix": "Posjeti ",

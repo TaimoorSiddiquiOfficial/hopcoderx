@@ -127,7 +127,7 @@ HopCoderX ile ilgili bir proje üzerinde çalışıyorsanız ve projenizin adın
 Yetenekler açısından Claude Code'a çok benzer. İşte temel farklar:
 
 - %100 açık kaynak
-- Herhangi bir sağlayıcıya bağlı değil. [HopCoderX Zen](https://HopCoderX.ai/zen) üzerinden sunduğumuz modelleri önermekle birlikte; HopCoderX, Claude, OpenAI, Google veya hatta yerel modellerle kullanılabilir. Modeller geliştikçe aralarındaki farklar kapanacak ve fiyatlar düşecek, bu nedenle sağlayıcıdan bağımsız olmak önemlidir.
+- Herhangi bir sağlayıcıya bağlı değil. [HopCoderX Bdr](https://HopCoderX.ai/zen) üzerinden sunduğumuz modelleri önermekle birlikte; HopCoderX, Claude, OpenAI, Google veya hatta yerel modellerle kullanılabilir. Modeller geliştikçe aralarındaki farklar kapanacak ve fiyatlar düşecek, bu nedenle sağlayıcıdan bağımsız olmak önemlidir.
 - Kurulum gerektirmeyen hazır LSP desteği
 - TUI odaklı yaklaşım. HopCoderX, neovim kullanıcıları ve [terminal.shop](https://terminal.shop)'un geliştiricileri tarafından geliştirilmektedir; terminalde olabileceklerin sınırlarını zorlayacağız.
 - İstemci/sunucu (client/server) mimarisi. Bu, örneğin HopCoderX'un bilgisayarınızda çalışması ve siz onu bir mobil uygulamadan uzaktan yönetmenizi sağlar. TUI arayüzü olası istemcilerden sadece biridir.

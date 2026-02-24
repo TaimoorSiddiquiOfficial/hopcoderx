@@ -130,7 +130,7 @@ export const dict = {
   "provider.connect.apiKey.placeholder": "API-nøgle",
   "provider.connect.apiKey.required": "API-nøgle er påkrævet",
   "provider.connect.HopCoderXZen.line1":
-    "HopCoderX Zen giver dig adgang til et udvalg af pålidelige optimerede modeller til kodningsagenter.",
+    "HopCoderX Bdr giver dig adgang til et udvalg af pålidelige optimerede modeller til kodningsagenter.",
   "provider.connect.HopCoderXZen.line2":
     "Med en enkelt API-nøgle får du adgang til modeller som Claude, GPT, Gemini, GLM og flere.",
   "provider.connect.HopCoderXZen.visit.prefix": "Besøg ",

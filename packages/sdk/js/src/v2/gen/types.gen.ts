@@ -1702,7 +1702,7 @@ export type Config = {
   }
   server?: ServerConfig
   /**
-   * Command configuration, see https://opencode.ai/docs/commands
+   * Command configuration, see https://hopcoderx.ai/docs/commands
    */
   command?: {
     [key: string]: {
@@ -1776,7 +1776,7 @@ export type Config = {
     [key: string]: AgentConfig | undefined
   }
   /**
-   * Agent configuration, see https://opencode.ai/docs/agents
+   * Agent configuration, see https://hopcoderx.ai/docs/agents
    */
   agent?: {
     plan?: AgentConfig

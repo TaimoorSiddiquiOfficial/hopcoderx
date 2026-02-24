@@ -130,7 +130,7 @@ export const dict = {
   "provider.connect.apiKey.placeholder": "API ключ",
   "provider.connect.apiKey.required": "API ключ обязателен",
   "provider.connect.HopCoderXZen.line1":
-    "HopCoderX Zen даёт вам доступ к отобранным надёжным оптимизированным моделям для агентов программирования.",
+    "HopCoderX Bdr даёт вам доступ к отобранным надёжным оптимизированным моделям для агентов программирования.",
   "provider.connect.HopCoderXZen.line2":
     "С одним API ключом вы получите доступ к таким моделям как Claude, GPT, Gemini, GLM и другим.",
   "provider.connect.HopCoderXZen.visit.prefix": "Посетите ",

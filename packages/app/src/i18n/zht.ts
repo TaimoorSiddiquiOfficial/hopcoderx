@@ -133,7 +133,7 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API 金鑰",
   "provider.connect.apiKey.placeholder": "API 金鑰",
   "provider.connect.apiKey.required": "API 金鑰為必填",
-  "provider.connect.HopCoderXZen.line1": "HopCoderX Zen 為你提供一組精選的可靠最佳化模型，用於程式碼代理程式。",
+  "provider.connect.HopCoderXZen.line1": "HopCoderX Bdr 為你提供一組精選的可靠最佳化模型，用於程式碼代理程式。",
   "provider.connect.HopCoderXZen.line2": "只需一個 API 金鑰，你就能使用 Claude、GPT、Gemini、GLM 等模型。",
   "provider.connect.HopCoderXZen.visit.prefix": "造訪 ",
   "provider.connect.HopCoderXZen.visit.link": "HopCoderX.ai/zen",

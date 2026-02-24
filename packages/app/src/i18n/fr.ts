@@ -118,7 +118,7 @@ export const dict = {
   "provider.connect.apiKey.placeholder": "Clé API",
   "provider.connect.apiKey.required": "La clé API est requise",
   "provider.connect.HopCoderXZen.line1":
-    "HopCoderX Zen vous donne accès à un ensemble sélectionné de modèles fiables et optimisés pour les agents de codage.",
+    "HopCoderX Bdr vous donne accès à un ensemble sélectionné de modèles fiables et optimisés pour les agents de codage.",
   "provider.connect.HopCoderXZen.line2":
     "Avec une seule clé API, vous aurez accès à des modèles tels que Claude, GPT, Gemini, GLM et plus encore.",
   "provider.connect.HopCoderXZen.visit.prefix": "Visitez ",

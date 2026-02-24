@@ -130,7 +130,7 @@ export const dict = {
   "provider.connect.apiKey.placeholder": "Clave API",
   "provider.connect.apiKey.required": "La clave API es obligatoria",
   "provider.connect.HopCoderXZen.line1":
-    "HopCoderX Zen te da acceso a un conjunto curado de modelos fiables optimizados para agentes de programación.",
+    "HopCoderX Bdr te da acceso a un conjunto curado de modelos fiables optimizados para agentes de programación.",
   "provider.connect.HopCoderXZen.line2":
     "Con una sola clave API obtendrás acceso a modelos como Claude, GPT, Gemini, GLM y más.",
   "provider.connect.HopCoderXZen.visit.prefix": "Visita ",

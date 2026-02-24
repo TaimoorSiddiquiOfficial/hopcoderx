@@ -20977,9 +20977,9 @@
     "id": "opencode",
     "env": ["OPENCODE_API_KEY"],
     "npm": "@ai-sdk/openai-compatible",
-    "api": "https://opencode.ai/zen/v1",
-    "name": "OpenCode Zen",
-    "doc": "https://opencode.ai/docs/zen",
+    "api": "https://hopcoderx.ai/zen/v1",
+    "name": "HopCoderX Zen",
+    "doc": "https://hopcoderx.ai/docs/zen",
     "models": {
       "glm-4.7": {
         "id": "glm-4.7",

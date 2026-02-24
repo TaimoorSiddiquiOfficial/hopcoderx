@@ -51,7 +51,7 @@ If the issue mentions nix, assign to `rekram1-node`.
 
 #### zen
 
-**Only** add if the issue mentions "zen" or "HopCoderX zen" or "HopCoderX black".
+**Only** add if the issue mentions "zen" or "HopCoderX Bdr" or "HopCoderX black".
 
 If the issue doesn't have "zen" or "HopCoderX black" in it then don't add zen label
 
