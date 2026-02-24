@@ -31,9 +31,29 @@ const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
 // Live Portkey Gateway on Railway — hop to https://hopcoderx-bdr.up.railway.app/public/ for logs
 const PORTKEY = (Bun.env.PORTKEY_GATEWAY_URL ?? "https://hopcoderx-bdr.up.railway.app").replace(/\/$/, "")
-const PORTKEY_CONFIG = Bun.env.BDR_PORTKEY_FREE_CONFIG // base64-encoded routing config JSON
 const OPENROUTER_KEY = Bun.env.OPENROUTER_API_KEY
 const OPENROUTER_PRESET = Bun.env.OPENROUTER_PRESET ?? "hopcoder-free"
+
+// Build Portkey load-balance config from individual env var API keys.
+// Manual BDR_PORTKEY_FREE_CONFIG (base64 JSON) always takes precedence.
+function buildPortkeyConfig() {
+  if (Bun.env.BDR_PORTKEY_FREE_CONFIG) return Bun.env.BDR_PORTKEY_FREE_CONFIG
+  const targets: Array<Record<string, unknown>> = []
+  if (Bun.env.OPENROUTER_API_KEY)
+    targets.push({ provider: "openai", api_key: Bun.env.OPENROUTER_API_KEY, base_url: "https://openrouter.ai/api/v1", override_params: { model: `@preset/${OPENROUTER_PRESET}` }, weight: 3 })
+  if (Bun.env.GROQ_API_KEY)
+    targets.push({ provider: "groq", api_key: Bun.env.GROQ_API_KEY, override_params: { model: "llama-3.3-70b-versatile" }, weight: 2 })
+  if (Bun.env.CEREBRAS_API_KEY)
+    targets.push({ provider: "cerebras", api_key: Bun.env.CEREBRAS_API_KEY, override_params: { model: "llama3.1-70b" }, weight: 2 })
+  if (Bun.env.TOGETHER_API_KEY)
+    targets.push({ provider: "together-ai", api_key: Bun.env.TOGETHER_API_KEY, override_params: { model: "Qwen/Qwen2.5-72B-Instruct-Turbo" }, weight: 1 })
+  if (Bun.env.GOOGLE_API_KEY)
+    targets.push({ provider: "google", api_key: Bun.env.GOOGLE_API_KEY, override_params: { model: "gemini-2.0-flash-exp" }, weight: 1 })
+  if (!targets.length) return undefined
+  return btoa(JSON.stringify({ strategy: { mode: "loadbalance" }, retry: { attempts: 3, on_status_codes: [429, 500, 502, 503, 504] }, targets }))
+}
+
+const PORTKEY_CONFIG = buildPortkeyConfig()
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -110,6 +130,12 @@ async function chat(req: Request) {
   if (PORTKEY) {
     const headers: Record<string, string> = { "Content-Type": "application/json" }
     if (PORTKEY_CONFIG) headers["x-portkey-config"] = PORTKEY_CONFIG
+    // Forward auth + any x-portkey-* headers from caller (supports Portkey cloud virtual keys)
+    const auth = req.headers.get("authorization")
+    if (auth) headers["authorization"] = auth
+    for (const [k, v] of req.headers.entries()) {
+      if (k.startsWith("x-portkey-")) headers[k] = v
+    }
     const upstream = await fetch(`${PORTKEY}/v1/chat/completions`, {
       method: "POST",
       headers,
@@ -189,6 +215,10 @@ if (mode === "openrouter") {
 } else if (mode === "portkey") {
   console.log(`  Mode   Portkey Gateway`)
   console.log(`  Gate   ${PORTKEY}`)
+  console.log(`  Logs   ${PORTKEY}/public/`)
+  const providers = [Bun.env.OPENROUTER_API_KEY && "openrouter", Bun.env.GROQ_API_KEY && "groq", Bun.env.CEREBRAS_API_KEY && "cerebras", Bun.env.TOGETHER_API_KEY && "together", Bun.env.GOOGLE_API_KEY && "google"].filter(Boolean)
+  if (providers.length) console.log(`  Providers ${providers.join(", ")}`)
+  else console.log(`  Config  ${PORTKEY_CONFIG ? "custom (BDR_PORTKEY_FREE_CONFIG)" : "pass-through (set provider API keys)"}`)
 } else {
   console.log(`  Mode   Ollama`)
   console.log(`  Ollama ${OLLAMA}`)

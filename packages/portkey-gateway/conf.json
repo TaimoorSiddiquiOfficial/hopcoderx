@@ -7,5 +7,39 @@
   "retry": {
     "attempts": 3,
     "on_status_codes": [429, 500, 502, 503, 504]
-  }
+  },
+  "before_request_hooks": [
+    {
+      "id": "prompt-injection-guard",
+      "type": "guardrail",
+      "async": false,
+      "deny": true,
+      "checks": [
+        {
+          "id": "default.regexMatch",
+          "parameters": {
+            "rule": "ignore (all )?(previous|prior|above) instructions|disregard your (system )?prompt|jailbreak|DAN mode|system prompt override|forget everything you know|you are now (a |an )?[a-z]+(?! assistant)",
+            "not": true
+          }
+        }
+      ]
+    }
+  ],
+  "after_request_hooks": [
+    {
+      "id": "pii-detect-log",
+      "type": "guardrail",
+      "async": true,
+      "deny": false,
+      "checks": [
+        {
+          "id": "default.regexMatch",
+          "parameters": {
+            "rule": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}|\\b\\d{3}[-.\\s]?\\d{3}[-.\\s]?\\d{4}\\b|\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b",
+            "not": false
+          }
+        }
+      ]
+    }
+  ]
 }

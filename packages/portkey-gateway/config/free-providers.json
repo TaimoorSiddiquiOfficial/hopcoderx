@@ -1,6 +1,6 @@
 {
-  "_comment": "Option A (recommended): Use an OpenRouter Preset instead — create at https://openrouter.ai/settings/presets, name it 'hopcoder-free', add Groq/Cerebras/Gemini/Together as free providers. Then set OPENROUTER_API_KEY in bdr-local and skip Portkey entirely.",
-  "_comment_b": "Option B (this file): Portkey load-balance config. Fill in your API keys, base64-encode, set as BDR_PORTKEY_FREE_CONFIG env var.",
+  "_comment": "bdr-local auto-builds a Portkey load-balance config from individual env vars (OPENROUTER_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, TOGETHER_API_KEY, GOOGLE_API_KEY) — no manual base64 needed.",
+  "_comment_b": "This file is a reference/documentation. Set the env vars above on Railway and bdr-local will build the config dynamically. Override everything with BDR_PORTKEY_FREE_CONFIG=<base64 JSON>.",
   "strategy": { "mode": "loadbalance" },
   "retry": {
     "attempts": 3,
