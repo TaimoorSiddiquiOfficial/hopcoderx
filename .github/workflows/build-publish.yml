@@ -55,11 +55,16 @@ jobs:
         run: |
           bun --version
           echo "--- @opentui/core ---"
-          ls node_modules/@opentui/core/parser.worker.js 2>/dev/null || ls ../../node_modules/@opentui/core/parser.worker.js 2>/dev/null || echo "parser.worker.js NOT FOUND"
-          echo "--- @opentui/solid ---"
-          ls node_modules/@opentui/solid/scripts/solid-plugin.js 2>/dev/null || ls ../../node_modules/@opentui/solid/scripts/solid-plugin.js 2>/dev/null || echo "solid-plugin NOT FOUND"
-          echo "--- minimal compile test ---"
-          bun build --compile --target=bun-linux-x64 ./src/index.ts --outfile /tmp/hopcoderx-test 2>&1 | tail -20 || true
+          ls node_modules/@opentui/core/parser.worker.js 2>/dev/null && echo "FOUND in pkg node_modules" || (ls ../../node_modules/@opentui/core/parser.worker.js 2>/dev/null && echo "FOUND in root node_modules" || echo "::error::parser.worker.js NOT FOUND")
+          echo "--- minimal compile test (no plugin) ---"
+          OUTPUT=$(bun build --compile --target=bun-linux-x64 ./src/index.ts --outfile /tmp/hopcoderx-test 2>&1)
+          STATUS=$?
+          if [ $STATUS -ne 0 ]; then
+            FIRST=$(echo "$OUTPUT" | head -5)
+            echo "::error::Minimal compile FAILED (status=$STATUS): $FIRST"
+          else
+            echo "::notice::Minimal compile SUCCEEDED"
+          fi
 
       - name: Build CLI (all platforms)
         working-directory: packages/hopcoderx

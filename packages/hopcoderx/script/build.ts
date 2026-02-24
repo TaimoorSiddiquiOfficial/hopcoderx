@@ -192,7 +192,7 @@ for (const item of targets) {
         target: name.replace(pkg.name, "bun") as any,
         outfile: `dist/${name}/bin/hopcoderx`,
         execArgv: [`--user-agent=hopcoderx/${Script.version}`, "--use-system-ca", "--"],
-        windows: {},
+        ...(item.os === "win32" ? { windows: {} } : {}),
       },
       entrypoints: ["./src/index.ts", parserWorker, workerPath],
       define: {
