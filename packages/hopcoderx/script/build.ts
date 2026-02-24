@@ -205,11 +205,15 @@ for (const item of targets) {
       },
     })
   } catch (err) {
-    console.error(`build error for ${name}:`, err)
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`build error for ${name}:`, msg)
+    if (process.env.GITHUB_ACTIONS) console.log(`::error title=Bun.build ${name}::${msg}`)
     continue
   }
   if (!buildResult.success) {
-    console.error(`build failed for ${name}:`, buildResult.logs)
+    const msg = buildResult.logs.map((l) => l.message).join(" | ")
+    console.error(`build failed for ${name}:`, msg)
+    if (process.env.GITHUB_ACTIONS) console.log(`::error title=Bun.build ${name}::${msg}`)
     continue
   }
 
@@ -241,7 +245,9 @@ if (Script.release) {
 }
 
 if (Object.keys(binaries).length === 0) {
-  console.error("No binaries were produced — all Bun.build() targets failed")
+  const msg = "No binaries were produced — all Bun.build() targets failed"
+  console.error(msg)
+  if (process.env.GITHUB_ACTIONS) console.log(`::error::${msg}`)
   process.exit(1)
 }
 
