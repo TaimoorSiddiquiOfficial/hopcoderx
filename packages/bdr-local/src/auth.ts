@@ -24,19 +24,19 @@ export async function loginEmail(email: string, pw: string) {
 
 // --- GitHub OAuth ---
 
-export function githubAuthUrl(state: string) {
+export function githubAuthUrl(state: string, redirectUri: string) {
   if (!GITHUB_CLIENT_ID) throw new Error("GITHUB_CLIENT_ID not set")
-  const params = new URLSearchParams({ client_id: GITHUB_CLIENT_ID, scope: "user:email", state })
+  const params = new URLSearchParams({ client_id: GITHUB_CLIENT_ID, scope: "user:email", state, redirect_uri: redirectUri })
   return `https://github.com/login/oauth/authorize?${params}`
 }
 
-export async function githubCallback(code: string): Promise<string> {
+export async function githubCallback(code: string, redirectUri: string): Promise<string> {
   if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) throw new Error("GitHub OAuth not configured")
 
   const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ client_id: GITHUB_CLIENT_ID, client_secret: GITHUB_CLIENT_SECRET, code }),
+    body: JSON.stringify({ client_id: GITHUB_CLIENT_ID, client_secret: GITHUB_CLIENT_SECRET, code, redirect_uri: redirectUri }),
   })
   const { access_token, error_description } = (await tokenRes.json()) as { access_token?: string; error_description?: string }
   if (!access_token) throw new Error(error_description ?? "GitHub auth failed")

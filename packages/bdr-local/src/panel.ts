@@ -38,6 +38,14 @@ function requireAdmin(req: Request) {
   return user
 }
 
+// Derive the public-facing origin — Railway terminates TLS at the proxy, so
+// X-Forwarded-Proto / X-Forwarded-Host reflect the real scheme and host.
+function reqOrigin(req: Request, url: URL) {
+  const proto = req.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "")
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? url.host
+  return `${proto}://${host}`
+}
+
 export async function handlePanel(req: Request, path: string): Promise<Response> {
   const { method } = req
   const url = new URL(req.url)
@@ -75,16 +83,19 @@ export async function handlePanel(req: Request, path: string): Promise<Response>
 
   if (api === "/auth/github" && method === "GET") {
     const state = Math.random().toString(36).slice(2)
-    const redirectUrl = githubAuthUrl(state)
+    const origin = reqOrigin(req, url)
+    const redirectUri = `${origin}/panel/api/auth/github/callback`
+    const redirectUrl = githubAuthUrl(state, redirectUri)
     return Response.redirect(redirectUrl, 302)
   }
 
   if (api === "/auth/github/callback" && method === "GET") {
     const code = url.searchParams.get("code")
     if (!code) return err("Missing code")
-    const token = await githubCallback(code)
-    // Redirect to panel with token in hash so SPA can pick it up
-    return Response.redirect(`/panel#token=${token}`, 302)
+    const origin = reqOrigin(req, url)
+    const redirectUri = `${origin}/panel/api/auth/github/callback`
+    const token = await githubCallback(code, redirectUri)
+    return Response.redirect(`${origin}/panel#token=${token}`, 302)
   }
 
   // --- Me ---
