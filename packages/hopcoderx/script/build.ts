@@ -206,8 +206,15 @@ for (const item of targets) {
     })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
+    const stack = err instanceof Error ? err.stack : ""
+    const cause = err instanceof Error && err.cause ? String(err.cause) : ""
     console.error(`build error for ${name}:`, msg)
-    if (process.env.GITHUB_ACTIONS) console.log(`::error title=Bun.build ${name}::${msg}`)
+    if (stack) console.error(`stack:`, stack)
+    if (cause) console.error(`cause:`, cause)
+    if (process.env.GITHUB_ACTIONS) {
+      const detail = [msg, cause, stack].filter(Boolean).join(" | ")
+      console.log(`::error title=Bun.build ${name}::${detail}`)
+    }
     continue
   }
   if (!buildResult.success) {
