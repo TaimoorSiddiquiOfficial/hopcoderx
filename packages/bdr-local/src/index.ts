@@ -28,34 +28,52 @@
  */
 
 import { handlePanel } from "./panel"
+import { getAllProviderKeys } from "./db"
 
 const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
 // Live Portkey Gateway on Railway — hop to https://hopcoderx-bdr.up.railway.app/public/ for logs
 const PORTKEY = (Bun.env.PORTKEY_GATEWAY_URL ?? "https://hopcoderx-bdr.up.railway.app").replace(/\/$/, "")
-const OPENROUTER_KEY = Bun.env.OPENROUTER_API_KEY
 const OPENROUTER_PRESET = Bun.env.OPENROUTER_PRESET ?? "hopcoder-free"
 
-// Build Portkey load-balance config from individual env var API keys.
+// TTL-cached merged key lookup: env vars take precedence, panel DB keys fill in the rest.
+// Cache TTL = 30s so panel changes (add/delete) take effect without restart.
+let keyCache: { map: Record<string, string>; ts: number } | null = null
+
+function mergedKeys() {
+  const now = Date.now()
+  if (keyCache && now - keyCache.ts < 30_000) return keyCache.map
+  const map: Record<string, string> = {}
+  for (const { provider, value } of getAllProviderKeys()) map[provider] = value
+  // Env vars always win
+  if (Bun.env.OPENROUTER_API_KEY) map["openrouter"] = Bun.env.OPENROUTER_API_KEY
+  if (Bun.env.GROQ_API_KEY) map["groq"] = Bun.env.GROQ_API_KEY
+  if (Bun.env.CEREBRAS_API_KEY) map["cerebras"] = Bun.env.CEREBRAS_API_KEY
+  if (Bun.env.TOGETHER_API_KEY) map["together-ai"] = Bun.env.TOGETHER_API_KEY
+  if (Bun.env.GOOGLE_API_KEY) map["google"] = Bun.env.GOOGLE_API_KEY
+  keyCache = { map, ts: now }
+  return map
+}
+
+// Build Portkey load-balance config from merged env+DB keys.
 // Manual BDR_PORTKEY_FREE_CONFIG (base64 JSON) always takes precedence.
 function buildPortkeyConfig() {
   if (Bun.env.BDR_PORTKEY_FREE_CONFIG) return Bun.env.BDR_PORTKEY_FREE_CONFIG
+  const keys = mergedKeys()
   const targets: Array<Record<string, unknown>> = []
-  if (Bun.env.OPENROUTER_API_KEY)
-    targets.push({ provider: "openai", api_key: Bun.env.OPENROUTER_API_KEY, base_url: "https://openrouter.ai/api/v1", override_params: { model: `@preset/${OPENROUTER_PRESET}` }, weight: 3 })
-  if (Bun.env.GROQ_API_KEY)
-    targets.push({ provider: "groq", api_key: Bun.env.GROQ_API_KEY, override_params: { model: "llama-3.3-70b-versatile" }, weight: 2 })
-  if (Bun.env.CEREBRAS_API_KEY)
-    targets.push({ provider: "cerebras", api_key: Bun.env.CEREBRAS_API_KEY, override_params: { model: "llama3.1-70b" }, weight: 2 })
-  if (Bun.env.TOGETHER_API_KEY)
-    targets.push({ provider: "together-ai", api_key: Bun.env.TOGETHER_API_KEY, override_params: { model: "Qwen/Qwen2.5-72B-Instruct-Turbo" }, weight: 1 })
-  if (Bun.env.GOOGLE_API_KEY)
-    targets.push({ provider: "google", api_key: Bun.env.GOOGLE_API_KEY, override_params: { model: "gemini-2.0-flash-exp" }, weight: 1 })
+  if (keys["openrouter"])
+    targets.push({ provider: "openai", api_key: keys["openrouter"], base_url: "https://openrouter.ai/api/v1", override_params: { model: `@preset/${OPENROUTER_PRESET}` }, weight: 3 })
+  if (keys["groq"])
+    targets.push({ provider: "groq", api_key: keys["groq"], override_params: { model: "llama-3.3-70b-versatile" }, weight: 2 })
+  if (keys["cerebras"])
+    targets.push({ provider: "cerebras", api_key: keys["cerebras"], override_params: { model: "llama3.1-70b" }, weight: 2 })
+  if (keys["together-ai"])
+    targets.push({ provider: "together-ai", api_key: keys["together-ai"], override_params: { model: "Qwen/Qwen2.5-72B-Instruct-Turbo" }, weight: 1 })
+  if (keys["google"])
+    targets.push({ provider: "google", api_key: keys["google"], override_params: { model: "gemini-2.0-flash-exp" }, weight: 1 })
   if (!targets.length) return undefined
   return btoa(JSON.stringify({ strategy: { mode: "loadbalance" }, retry: { attempts: 3, on_status_codes: [429, 500, 502, 503, 504] }, targets }))
 }
-
-const PORTKEY_CONFIG = buildPortkeyConfig()
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -81,7 +99,7 @@ const FREE_MODEL_LIST = {
 }
 
 async function listModels() {
-  if (OPENROUTER_KEY || PORTKEY) return FREE_MODEL_LIST
+  if (mergedKeys()["openrouter"] || PORTKEY) return FREE_MODEL_LIST
   const res = await fetch(`${OLLAMA}/api/tags`)
   if (!res.ok) throw new Error(`Ollama unavailable (${res.status})`)
   const { models } = (await res.json()) as {
@@ -101,9 +119,11 @@ async function listModels() {
 async function chat(req: Request) {
   const body = await req.json()
   const isStream = !!body.stream
+  const keys = mergedKeys()
 
   // Mode C: OpenRouter Preset — use @preset/<slug> as model, OR routes internally
-  if (OPENROUTER_KEY) {
+  const orKey = keys["openrouter"]
+  if (orKey) {
     // If caller sent a generic model, replace with the preset
     const model = (body.model as string)?.startsWith("@preset/")
       ? body.model
@@ -112,7 +132,7 @@ async function chat(req: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_KEY}`,
+        "Authorization": `Bearer ${orKey}`,
         "HTTP-Referer": "https://hopcoder.dev",
         "X-Title": "HopCoderX BDR",
       },
@@ -131,7 +151,8 @@ async function chat(req: Request) {
   // Mode B: Portkey Gateway — load-balanced across free providers
   if (PORTKEY) {
     const headers: Record<string, string> = { "Content-Type": "application/json" }
-    if (PORTKEY_CONFIG) headers["x-portkey-config"] = PORTKEY_CONFIG
+    const config = buildPortkeyConfig()
+    if (config) headers["x-portkey-config"] = config
     // Forward auth + any x-portkey-* headers from caller (supports Portkey cloud virtual keys)
     const auth = req.headers.get("authorization")
     if (auth) headers["authorization"] = auth
@@ -197,8 +218,9 @@ Bun.serve({
 
     // Health / root
     if (path === "/" || path === "/health") {
-      const mode = OPENROUTER_KEY ? "openrouter" : PORTKEY ? "portkey" : "ollama"
-      const upstream = OPENROUTER_KEY ? `openrouter/@preset/${OPENROUTER_PRESET}` : PORTKEY ?? OLLAMA
+      const keys = mergedKeys()
+      const mode = keys["openrouter"] ? "openrouter" : PORTKEY ? "portkey" : "ollama"
+      const upstream = keys["openrouter"] ? `openrouter/@preset/${OPENROUTER_PRESET}` : PORTKEY ?? OLLAMA
       return Response.json({ ok: true, mode, upstream, panel: `http://localhost:${PORT}/panel` }, { headers: CORS })
     }
 
@@ -211,8 +233,9 @@ Bun.serve({
 })
 
 // Print startup info
+const startKeys = mergedKeys()
 const models = await listModels().catch(() => null)
-const mode = OPENROUTER_KEY ? "openrouter" : PORTKEY ? "portkey" : "ollama"
+const mode = startKeys["openrouter"] ? "openrouter" : PORTKEY ? "portkey" : "ollama"
 console.log(`\n  BDR Local`)
 console.log(`  ─────────────────────────────────────`)
 console.log(`  API    http://localhost:${PORT}/v1`)
@@ -224,9 +247,9 @@ if (mode === "openrouter") {
   console.log(`  Mode   Portkey Gateway`)
   console.log(`  Gate   ${PORTKEY}`)
   console.log(`  Logs   ${PORTKEY}/public/`)
-  const providers = [Bun.env.OPENROUTER_API_KEY && "openrouter", Bun.env.GROQ_API_KEY && "groq", Bun.env.CEREBRAS_API_KEY && "cerebras", Bun.env.TOGETHER_API_KEY && "together", Bun.env.GOOGLE_API_KEY && "google"].filter(Boolean)
+  const providers = (["openrouter", "groq", "cerebras", "together-ai", "google"] as const).filter(p => startKeys[p])
   if (providers.length) console.log(`  Providers ${providers.join(", ")}`)
-  else console.log(`  Config  ${PORTKEY_CONFIG ? "custom (BDR_PORTKEY_FREE_CONFIG)" : "pass-through (set provider API keys)"}`)
+  else console.log(`  Config  ${Bun.env.BDR_PORTKEY_FREE_CONFIG ? "custom (BDR_PORTKEY_FREE_CONFIG)" : "pass-through (add keys in panel or via env vars)"}`)
 } else {
   console.log(`  Mode   Ollama`)
   console.log(`  Ollama ${OLLAMA}`)
