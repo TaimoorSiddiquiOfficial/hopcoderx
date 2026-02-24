@@ -801,11 +801,11 @@ http://localhost:4096
 http://localhost:4096/doc
 https://app.example.com
 https://AZURE_COGNITIVE_SERVICES_RESOURCE_NAME.cognitiveservices.azure.com/
-https://hopcoderx.dev/zen/v1/chat/completions
-https://hopcoderx.dev/zen/v1/messages
-https://hopcoderx.dev/zen/v1/models/gemini-3-flash
-https://hopcoderx.dev/zen/v1/models/gemini-3-pro
-https://hopcoderx.dev/zen/v1/responses
+https://hopcoderx.dev/bdr/v1/chat/completions
+https://hopcoderx.dev/bdr/v1/messages
+https://hopcoderx.dev/bdr/v1/models/gemini-3-flash
+https://hopcoderx.dev/bdr/v1/models/gemini-3-pro
+https://hopcoderx.dev/bdr/v1/responses
 https://RESOURCE_NAME.openai.azure.com/
 laravel/pint
 log/

@@ -127,7 +127,7 @@ Se você estiver trabalhando em um projeto relacionado ao HopCoderX e estiver us
 É muito parecido com o Claude Code em termos de capacidade. Aqui estão as principais diferenças:
 
 - 100% open source
-- Não está acoplado a nenhum provedor. Embora recomendemos os modelos que oferecemos pelo [HopCoderX Bdr](https://hopcoderx.dev/zen); o HopCoderX pode ser usado com Claude, OpenAI, Google ou até modelos locais. À medida que os modelos evoluem, as diferenças diminuem e os preços caem, então ser provider-agnostic é importante.
+- Não está acoplado a nenhum provedor. Embora recomendemos os modelos que oferecemos pelo [HopCoderX Bdr](https://hopcoderx.dev/bdr); o HopCoderX pode ser usado com Claude, OpenAI, Google ou até modelos locais. À medida que os modelos evoluem, as diferenças diminuem e os preços caem, então ser provider-agnostic é importante.
 - Suporte a LSP pronto para uso
 - Foco em TUI. O HopCoderX é construído por usuários de neovim e pelos criadores do [terminal.shop](https://terminal.shop); vamos levar ao limite o que é possível no terminal.
 - Arquitetura cliente/servidor. Isso, por exemplo, permite executar o HopCoderX no seu computador enquanto você o controla remotamente por um aplicativo mobile. Isso significa que o frontend TUI é apenas um dos possíveis clientes.

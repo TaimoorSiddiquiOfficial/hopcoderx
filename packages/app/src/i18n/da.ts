@@ -134,7 +134,7 @@ export const dict = {
   "provider.connect.HopCoderXZen.line2":
     "Med en enkelt API-nøgle får du adgang til modeller som Claude, GPT, Gemini, GLM og flere.",
   "provider.connect.HopCoderXZen.visit.prefix": "Besøg ",
-  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/zen",
+  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/bdr",
   "provider.connect.HopCoderXZen.visit.suffix": " for at hente din API-nøgle.",
   "provider.connect.oauth.code.visit.prefix": "Besøg ",
   "provider.connect.oauth.code.visit.link": "dette link",

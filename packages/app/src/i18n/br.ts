@@ -122,7 +122,7 @@ export const dict = {
   "provider.connect.HopCoderXZen.line2":
     "Com uma única chave de API você terá acesso a modelos como Claude, GPT, Gemini, GLM e mais.",
   "provider.connect.HopCoderXZen.visit.prefix": "Visite ",
-  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/zen",
+  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/bdr",
   "provider.connect.HopCoderXZen.visit.suffix": " para obter sua chave de API.",
   "provider.connect.oauth.code.visit.prefix": "Visite ",
   "provider.connect.oauth.code.visit.link": "este link",

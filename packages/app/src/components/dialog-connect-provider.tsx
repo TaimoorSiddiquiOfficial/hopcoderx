@@ -276,7 +276,7 @@ export function DialogConnectProvider(props: { provider: string }) {
               <div class="text-14-regular text-text-base">{language.t("provider.connect.HopCoderXZen.line2")}</div>
               <div class="text-14-regular text-text-base">
                 {language.t("provider.connect.HopCoderXZen.visit.prefix")}
-                <Link href="https://hopcoderx.dev/zen" tabIndex={-1}>
+                <Link href="https://hopcoderx.dev/bdr" tabIndex={-1}>
                   {language.t("provider.connect.HopCoderXZen.visit.link")}
                 </Link>
                 {language.t("provider.connect.HopCoderXZen.visit.suffix")}

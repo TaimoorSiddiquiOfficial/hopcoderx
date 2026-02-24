@@ -158,7 +158,7 @@ export const dict = {
   "provider.connect.HopCoderXZen.line1": "HopCoderX Bdr 为你提供一组精选的可靠优化模型，用于代码智能体。",
   "provider.connect.HopCoderXZen.line2": "只需一个 API 密钥，你就能使用 Claude、GPT、Gemini、GLM 等模型。",
   "provider.connect.HopCoderXZen.visit.prefix": "访问 ",
-  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/zen",
+  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/bdr",
   "provider.connect.HopCoderXZen.visit.suffix": " 获取你的 API 密钥。",
   "provider.connect.oauth.code.visit.prefix": "访问 ",
   "provider.connect.oauth.code.visit.link": "此链接",

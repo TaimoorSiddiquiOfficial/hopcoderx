@@ -354,10 +354,10 @@ body {
     }
 
     @media (prefers-color-scheme: dark) {
-      [data-slot="zen logo light"] {
+      [data-slot="bdr logo light"] {
         display: none;
       }
-      [data-slot="zen logo dark"] {
+      [data-slot="bdr logo dark"] {
         display: block;
       }
     }
@@ -815,13 +815,13 @@ body {
     }
   }
 
-  [data-component="zen-cta"] {
+  [data-component="bdr-cta"] {
     border-top: 1px solid var(--color-border-weak);
     display: flex;
     padding: var(--vertical-padding) var(--padding);
   }
 
-  [data-slot="zen-cta-copy"] {
+  [data-slot="bdr-cta-copy"] {
     strong {
       color: var(--color-text-strong);
       font-weight: 700;
