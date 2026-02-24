@@ -60,7 +60,7 @@ export async function handler(
   const MAX_429_RETRIES = 3
   const FREE_WORKSPACES = [
     "wrk_01K46JDFR0E75SG2Q8K172KF3Y", // frank
-    "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // opencode bench
+    "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // HopCoderX bench
   ]
   // Provider IDs that use free-tier API keys — used to restrict free-plan routing
   const FREE_PROVIDER_IDS = ["groq", "cerebras", "google_free", "together_free", "openrouter_free"]
@@ -71,10 +71,10 @@ export async function handler(
     const model = opts.parseModel(url, body)
     const isStream = opts.parseIsStream(url, body)
     const ip = input.request.headers.get("x-real-ip") ?? ""
-    const sessionId = input.request.headers.get("x-opencode-session") ?? ""
-    const requestId = input.request.headers.get("x-opencode-request") ?? ""
-    const projectId = input.request.headers.get("x-opencode-project") ?? ""
-    const ocClient = input.request.headers.get("x-opencode-client") ?? ""
+    const sessionId = input.request.headers.get("x-hopcoderx-session") ?? ""
+    const requestId = input.request.headers.get("x-hopcoderx-request") ?? ""
+    const projectId = input.request.headers.get("x-hopcoderx-project") ?? ""
+    const ocClient = input.request.headers.get("x-hopcoderx-client") ?? ""
     logger.metric({
       is_tream: isStream,
       session: sessionId,
@@ -145,10 +145,10 @@ export async function handler(
           })
           headers.delete("host")
           headers.delete("content-length")
-          headers.delete("x-opencode-request")
-          headers.delete("x-opencode-session")
-          headers.delete("x-opencode-project")
-          headers.delete("x-opencode-client")
+          headers.delete("x-hopcoderx-request")
+          headers.delete("x-hopcoderx-session")
+          headers.delete("x-hopcoderx-project")
+          headers.delete("x-hopcoderx-client")
           return headers
         })(),
         body: reqBody,

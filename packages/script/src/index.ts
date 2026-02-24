@@ -50,7 +50,7 @@ const VERSION = await (async () => {
 
 const team = [
   "actions-user",
-  "HopCoderX",
+  "hopcoderx",
   "rekram1-node",
   "thdxr",
   "kommander",

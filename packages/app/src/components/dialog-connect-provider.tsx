@@ -270,7 +270,7 @@ export function DialogConnectProvider(props: { provider: string }) {
     return (
       <div class="flex flex-col gap-6">
         <Switch>
-          <Match when={provider().id === "HopCoderX"}>
+          <Match when={provider().id === "hopcoderx"}>
             <div class="flex flex-col gap-4">
               <div class="text-14-regular text-text-base">{language.t("provider.connect.HopCoderXZen.line1")}</div>
               <div class="text-14-regular text-text-base">{language.t("provider.connect.HopCoderXZen.line2")}</div>

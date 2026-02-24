@@ -206,16 +206,16 @@ export namespace LLM {
       maxOutputTokens,
       abortSignal: input.abort,
       headers: {
-        ...(input.model.providerID.startsWith("opencode")
+        ...(input.model.providerID.startsWith("hopcoderx")
           ? {
-              "x-opencode-project": Instance.project.id,
-              "x-opencode-session": input.sessionID,
-              "x-opencode-request": input.user.id,
-              "x-opencode-client": Flag.HOPCODERX_CLIENT,
+              "x-hopcoderx-project": Instance.project.id,
+              "x-hopcoderx-session": input.sessionID,
+              "x-hopcoderx-request": input.user.id,
+              "x-hopcoderx-client": Flag.HOPCODERX_CLIENT,
             }
           : input.model.providerID !== "anthropic"
             ? {
-                "User-Agent": `opencode/${Installation.VERSION}`,
+                "User-Agent": `HopCoderX/${Installation.VERSION}`,
               }
             : undefined),
         ...input.model.headers,

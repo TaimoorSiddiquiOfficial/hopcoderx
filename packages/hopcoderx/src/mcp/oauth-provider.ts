@@ -38,7 +38,7 @@ export class McpOAuthProvider implements OAuthClientProvider {
   get clientMetadata(): OAuthClientMetadata {
     return {
       redirect_uris: [this.redirectUrl],
-      client_name: "HopCoderX",
+      client_name: "hopcoderx",
       client_uri: "https://hopcoderx.dev",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],

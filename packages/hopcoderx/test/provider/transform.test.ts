@@ -1205,11 +1205,11 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
   })
 
   test("preserves metadata using providerID key when store is false", () => {
-    const opencodeModel = {
+    const hopcoderxModel = {
       ...openaiModel,
-      providerID: "opencode",
+      providerID: "hopcoderx",
       api: {
-        id: "opencode-test",
+        id: "HopCoderX-test",
         url: "https://api.hopcoderx.dev",
         npm: "@ai-sdk/openai-compatible",
       },
@@ -1222,7 +1222,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
             type: "text",
             text: "Hello",
             providerOptions: {
-              opencode: {
+              HopCoderX: {
                 itemId: "msg_123",
                 otherOption: "value",
               },
@@ -1232,18 +1232,18 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       },
     ] as any[]
 
-    const result = ProviderTransform.message(msgs, opencodeModel, { store: false }) as any[]
+    const result = ProviderTransform.message(msgs, hopcoderxModel, { store: false }) as any[]
 
-    expect(result[0].content[0].providerOptions?.opencode?.itemId).toBe("msg_123")
-    expect(result[0].content[0].providerOptions?.opencode?.otherOption).toBe("value")
+    expect(result[0].content[0].providerOptions?.HopCoderX?.itemId).toBe("msg_123")
+    expect(result[0].content[0].providerOptions?.HopCoderX?.otherOption).toBe("value")
   })
 
   test("preserves itemId across all providerOptions keys", () => {
-    const opencodeModel = {
+    const hopcoderxModel = {
       ...openaiModel,
-      providerID: "opencode",
+      providerID: "hopcoderx",
       api: {
-        id: "opencode-test",
+        id: "HopCoderX-test",
         url: "https://api.hopcoderx.dev",
         npm: "@ai-sdk/openai-compatible",
       },
@@ -1253,7 +1253,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
         role: "assistant",
         providerOptions: {
           openai: { itemId: "msg_root" },
-          opencode: { itemId: "msg_opencode" },
+          HopCoderX: { itemId: "msg_HopCoderX" },
           extra: { itemId: "msg_extra" },
         },
         content: [
@@ -1262,7 +1262,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
             text: "Hello",
             providerOptions: {
               openai: { itemId: "msg_openai_part" },
-              opencode: { itemId: "msg_opencode_part" },
+              HopCoderX: { itemId: "msg_HopCoderX_part" },
               extra: { itemId: "msg_extra_part" },
             },
           },
@@ -1270,13 +1270,13 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       },
     ] as any[]
 
-    const result = ProviderTransform.message(msgs, opencodeModel, { store: false }) as any[]
+    const result = ProviderTransform.message(msgs, hopcoderxModel, { store: false }) as any[]
 
     expect(result[0].providerOptions?.openai?.itemId).toBe("msg_root")
-    expect(result[0].providerOptions?.opencode?.itemId).toBe("msg_opencode")
+    expect(result[0].providerOptions?.HopCoderX?.itemId).toBe("msg_HopCoderX")
     expect(result[0].providerOptions?.extra?.itemId).toBe("msg_extra")
     expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_openai_part")
-    expect(result[0].content[0].providerOptions?.opencode?.itemId).toBe("msg_opencode_part")
+    expect(result[0].content[0].providerOptions?.HopCoderX?.itemId).toBe("msg_HopCoderX_part")
     expect(result[0].content[0].providerOptions?.extra?.itemId).toBe("msg_extra_part")
   })
 

@@ -10,7 +10,7 @@ import { Global } from "../../src/global"
 import { Filesystem } from "../../src/util/filesystem"
 
 // Get managed config directory from environment (set in preload.ts)
-const managedConfigDir = process.env.OPENCODE_TEST_MANAGED_CONFIG_DIR!
+const managedConfigDir = process.env.HOPCODERX_TEST_MANAGED_CONFIG_DIR!
 
 afterEach(async () => {
   await fs.rm(managedConfigDir, { force: true, recursive: true }).catch(() => {})
@@ -60,7 +60,7 @@ test("loads JSONC config file", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, "opencode.jsonc"),
+        path.join(dir, "hopcoderx.jsonc"),
         `{
         // This is a comment
         "$schema": "https://hopcoder.dev/config.json",
@@ -90,7 +90,7 @@ test("merges multiple config files with correct precedence", async () => {
           model: "base",
           username: "base",
         },
-        "opencode.jsonc",
+        "hopcoderx.jsonc",
       )
       await writeConfig(dir, {
         $schema: "https://hopcoder.dev/config.json",
@@ -388,12 +388,12 @@ test("migrates mode field to agent field", async () => {
   })
 })
 
-test("loads config from .opencode directory", async () => {
+test("loads config from .HopCoderX directory", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
-      const agentDir = path.join(opencodeDir, "agent")
+      const HopCoderXDir = path.join(dir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
+      const agentDir = path.join(HopCoderXDir, "agent")
       await fs.mkdir(agentDir, { recursive: true })
 
       await Filesystem.write(
@@ -420,13 +420,13 @@ Test agent prompt`,
   })
 })
 
-test("loads agents from .opencode/agents (plural)", async () => {
+test("loads agents from .hopcoderx/agents (plural)", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(dir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
-      const agentsDir = path.join(opencodeDir, "agents")
+      const agentsDir = path.join(HopCoderXDir, "agents")
       await fs.mkdir(path.join(agentsDir, "nested"), { recursive: true })
 
       await Filesystem.write(
@@ -471,13 +471,13 @@ Nested agent prompt`,
   })
 })
 
-test("loads commands from .opencode/command (singular)", async () => {
+test("loads commands from .hopcoderx/command (singular)", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(dir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
-      const commandDir = path.join(opencodeDir, "command")
+      const commandDir = path.join(HopCoderXDir, "command")
       await fs.mkdir(path.join(commandDir, "nested"), { recursive: true })
 
       await Filesystem.write(
@@ -516,13 +516,13 @@ Nested command template`,
   })
 })
 
-test("loads commands from .opencode/commands (plural)", async () => {
+test("loads commands from .hopcoderx/commands (plural)", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(dir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
-      const commandsDir = path.join(opencodeDir, "commands")
+      const commandsDir = path.join(HopCoderXDir, "commands")
       await fs.mkdir(path.join(commandsDir, "nested"), { recursive: true })
 
       await Filesystem.write(
@@ -586,7 +586,7 @@ test("gets config directories", async () => {
   })
 })
 
-test("does not try to install dependencies in read-only OPENCODE_CONFIG_DIR", async () => {
+test("does not try to install dependencies in read-only HOPCODERX_CONFIG_DIR", async () => {
   if (process.platform === "win32") return
 
   await using tmp = await tmpdir<string>({
@@ -603,8 +603,8 @@ test("does not try to install dependencies in read-only OPENCODE_CONFIG_DIR", as
     },
   })
 
-  const prev = process.env.OPENCODE_CONFIG_DIR
-  process.env.OPENCODE_CONFIG_DIR = tmp.extra
+  const prev = process.env.HOPCODERX_CONFIG_DIR
+  process.env.HOPCODERX_CONFIG_DIR = tmp.extra
 
   try {
     await Instance.provide({
@@ -614,12 +614,12 @@ test("does not try to install dependencies in read-only OPENCODE_CONFIG_DIR", as
       },
     })
   } finally {
-    if (prev === undefined) delete process.env.OPENCODE_CONFIG_DIR
-    else process.env.OPENCODE_CONFIG_DIR = prev
+    if (prev === undefined) delete process.env.HOPCODERX_CONFIG_DIR
+    else process.env.HOPCODERX_CONFIG_DIR = prev
   }
 })
 
-test("installs dependencies in writable OPENCODE_CONFIG_DIR", async () => {
+test("installs dependencies in writable HOPCODERX_CONFIG_DIR", async () => {
   await using tmp = await tmpdir<string>({
     init: async (dir) => {
       const cfg = path.join(dir, "configdir")
@@ -628,8 +628,8 @@ test("installs dependencies in writable OPENCODE_CONFIG_DIR", async () => {
     },
   })
 
-  const prev = process.env.OPENCODE_CONFIG_DIR
-  process.env.OPENCODE_CONFIG_DIR = tmp.extra
+  const prev = process.env.HOPCODERX_CONFIG_DIR
+  process.env.HOPCODERX_CONFIG_DIR = tmp.extra
 
   try {
     await Instance.provide({
@@ -643,8 +643,8 @@ test("installs dependencies in writable OPENCODE_CONFIG_DIR", async () => {
     expect(await Filesystem.exists(path.join(tmp.extra, "package.json"))).toBe(true)
     expect(await Filesystem.exists(path.join(tmp.extra, ".gitignore"))).toBe(true)
   } finally {
-    if (prev === undefined) delete process.env.OPENCODE_CONFIG_DIR
-    else process.env.OPENCODE_CONFIG_DIR = prev
+    if (prev === undefined) delete process.env.HOPCODERX_CONFIG_DIR
+    else process.env.HOPCODERX_CONFIG_DIR = prev
   }
 })
 
@@ -703,10 +703,10 @@ test("resolves scoped npm plugins in config", async () => {
 test("merges plugin arrays from global and local configs", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      // Create a nested project structure with local .opencode config
+      // Create a nested project structure with local .HopCoderX config
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(projectDir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
       // Global config with plugins
       await Filesystem.write(
@@ -717,9 +717,9 @@ test("merges plugin arrays from global and local configs", async () => {
         }),
       )
 
-      // Local .opencode config with different plugins
+      // Local .HopCoderX config with different plugins
       await Filesystem.write(
-        path.join(opencodeDir, "hopcoderx.json"),
+        path.join(HopCoderXDir, "hopcoderx.json"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           plugin: ["local-plugin-1"],
@@ -749,9 +749,9 @@ test("merges plugin arrays from global and local configs", async () => {
 test("does not error when only custom agent is a subagent", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
-      const agentDir = path.join(opencodeDir, "agent")
+      const HopCoderXDir = path.join(dir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
+      const agentDir = path.join(HopCoderXDir, "agent")
       await fs.mkdir(agentDir, { recursive: true })
 
       await Filesystem.write(
@@ -782,8 +782,8 @@ test("merges instructions arrays from global and local configs", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(projectDir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
       await Filesystem.write(
         path.join(dir, "hopcoderx.json"),
@@ -794,7 +794,7 @@ test("merges instructions arrays from global and local configs", async () => {
       )
 
       await Filesystem.write(
-        path.join(opencodeDir, "hopcoderx.json"),
+        path.join(HopCoderXDir, "hopcoderx.json"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           instructions: ["local-instructions.md"],
@@ -821,8 +821,8 @@ test("deduplicates duplicate instructions from global and local configs", async 
   await using tmp = await tmpdir({
     init: async (dir) => {
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(projectDir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
       await Filesystem.write(
         path.join(dir, "hopcoderx.json"),
@@ -833,7 +833,7 @@ test("deduplicates duplicate instructions from global and local configs", async 
       )
 
       await Filesystem.write(
-        path.join(opencodeDir, "hopcoderx.json"),
+        path.join(HopCoderXDir, "hopcoderx.json"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           instructions: ["duplicate.md", "local-only.md"],
@@ -862,10 +862,10 @@ test("deduplicates duplicate instructions from global and local configs", async 
 test("deduplicates duplicate plugins from global and local configs", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      // Create a nested project structure with local .opencode config
+      // Create a nested project structure with local .HopCoderX config
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      const HopCoderXDir = path.join(projectDir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
 
       // Global config with plugins
       await Filesystem.write(
@@ -876,9 +876,9 @@ test("deduplicates duplicate plugins from global and local configs", async () =>
         }),
       )
 
-      // Local .opencode config with some overlapping plugins
+      // Local .HopCoderX config with some overlapping plugins
       await Filesystem.write(
-        path.join(opencodeDir, "hopcoderx.json"),
+        path.join(HopCoderXDir, "hopcoderx.json"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           plugin: ["duplicate-plugin", "local-plugin-1"],
@@ -1005,7 +1005,7 @@ test("migrates legacy write tool to edit permission", async () => {
 })
 
 // Managed settings tests
-// Note: preload.ts sets OPENCODE_TEST_MANAGED_CONFIG which Global.Path.managedConfig uses
+// Note: preload.ts sets HOPCODERX_TEST_MANAGED_CONFIG which Global.Path.managedConfig uses
 
 test("managed settings override user settings", async () => {
   await using tmp = await tmpdir({
@@ -1291,7 +1291,7 @@ test("project config can override MCP server enabled status", async () => {
     init: async (dir) => {
       // Simulates a base config (like from remote .well-known) with disabled MCP
       await Filesystem.write(
-        path.join(dir, "opencode.jsonc"),
+        path.join(dir, "hopcoderx.jsonc"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           mcp: {
@@ -1349,7 +1349,7 @@ test("MCP config deep merges preserving base config properties", async () => {
     init: async (dir) => {
       // Base config with full MCP definition
       await Filesystem.write(
-        path.join(dir, "opencode.jsonc"),
+        path.join(dir, "hopcoderx.jsonc"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           mcp: {
@@ -1396,7 +1396,7 @@ test("MCP config deep merges preserving base config properties", async () => {
   })
 })
 
-test("local .opencode config can override MCP from project config", async () => {
+test("local .HopCoderX config can override MCP from project config", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       // Project config with disabled MCP
@@ -1413,11 +1413,11 @@ test("local .opencode config can override MCP from project config", async () => 
           },
         }),
       )
-      // Local .opencode directory config enables it
-      const opencodeDir = path.join(dir, ".opencode")
-      await fs.mkdir(opencodeDir, { recursive: true })
+      // Local .HopCoderX directory config enables it
+      const HopCoderXDir = path.join(dir, ".hopcoderx")
+      await fs.mkdir(HopCoderXDir, { recursive: true })
       await Filesystem.write(
-        path.join(opencodeDir, "hopcoderx.json"),
+        path.join(HopCoderXDir, "hopcoderx.json"),
         JSON.stringify({
           $schema: "https://hopcoder.dev/config.json",
           mcp: {
@@ -1445,7 +1445,7 @@ test("project config overrides remote well-known config", async () => {
   let fetchedUrl: string | undefined
   const mockFetch = mock((url: string | URL | Request) => {
     const urlStr = url.toString()
-    if (urlStr.includes(".well-known/opencode")) {
+    if (urlStr.includes(".well-known/HopCoderX")) {
       fetchedUrl = urlStr
       return Promise.resolve(
         new Response(
@@ -1504,7 +1504,7 @@ test("project config overrides remote well-known config", async () => {
       fn: async () => {
         const config = await Config.get()
         // Verify fetch was called for wellknown config
-        expect(fetchedUrl).toBe("https://example.com/.well-known/opencode")
+        expect(fetchedUrl).toBe("https://example.com/.well-known/HopCoderX")
         // Project config (enabled: true) should override remote (enabled: false)
         expect(config.mcp?.jira?.enabled).toBe(true)
       },
@@ -1523,14 +1523,14 @@ describe("getPluginName", () => {
   })
 
   test("extracts name from npm package with version", () => {
-    expect(Config.getPluginName("oh-my-opencode@2.4.3")).toBe("oh-my-opencode")
+    expect(Config.getPluginName("oh-my-HopCoderX@2.4.3")).toBe("oh-my-HopCoderX")
     expect(Config.getPluginName("some-plugin@1.0.0")).toBe("some-plugin")
     expect(Config.getPluginName("plugin@latest")).toBe("plugin")
   })
 
   test("extracts name from scoped npm package", () => {
     expect(Config.getPluginName("@scope/pkg@1.0.0")).toBe("@scope/pkg")
-    expect(Config.getPluginName("@opencode/plugin@2.0.0")).toBe("@opencode/plugin")
+    expect(Config.getPluginName("@HopCoderX/plugin@2.0.0")).toBe("@HopCoderX/plugin")
   })
 
   test("returns full string for package without version", () => {
@@ -1553,12 +1553,12 @@ describe("deduplicatePlugins", () => {
   })
 
   test("prefers local file over npm package with same name", () => {
-    const plugins = ["oh-my-opencode@2.4.3", "file:///project/.opencode/plugin/oh-my-opencode.js"]
+    const plugins = ["oh-my-HopCoderX@2.4.3", "file:///project/.hopcoderx/plugin/oh-my-HopCoderX.js"]
 
     const result = Config.deduplicatePlugins(plugins)
 
     expect(result.length).toBe(1)
-    expect(result[0]).toBe("file:///project/.opencode/plugin/oh-my-opencode.js")
+    expect(result[0]).toBe("file:///project/.hopcoderx/plugin/oh-my-HopCoderX.js")
   })
 
   test("preserves order of remaining plugins", () => {
@@ -1569,12 +1569,12 @@ describe("deduplicatePlugins", () => {
     expect(result).toEqual(["a-plugin@1.0.0", "b-plugin@1.0.0", "c-plugin@1.0.0"])
   })
 
-  test("local plugin directory overrides global opencode.json plugin", async () => {
+  test("local plugin directory overrides global hopcoderx.json plugin", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         const projectDir = path.join(dir, "project")
-        const opencodeDir = path.join(projectDir, ".opencode")
-        const pluginDir = path.join(opencodeDir, "plugin")
+        const HopCoderXDir = path.join(projectDir, ".hopcoderx")
+        const pluginDir = path.join(HopCoderXDir, "plugin")
         await fs.mkdir(pluginDir, { recursive: true })
 
         await Filesystem.write(
@@ -1603,10 +1603,10 @@ describe("deduplicatePlugins", () => {
   })
 })
 
-describe("OPENCODE_DISABLE_PROJECT_CONFIG", () => {
+describe("HOPCODERX_DISABLE_PROJECT_CONFIG", () => {
   test("skips project config files when flag is set", async () => {
-    const originalEnv = process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
-    process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = "true"
+    const originalEnv = process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
+    process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir({
@@ -1633,47 +1633,47 @@ describe("OPENCODE_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalEnv === undefined) {
-        delete process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
+        delete process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = originalEnv
+        process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = originalEnv
       }
     }
   })
 
-  test("skips project .opencode/ directories when flag is set", async () => {
-    const originalEnv = process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
-    process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = "true"
+  test("skips project .hopcoderx/ directories when flag is set", async () => {
+    const originalEnv = process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
+    process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          // Create a .opencode directory with a command
-          const opencodeDir = path.join(dir, ".opencode", "command")
-          await fs.mkdir(opencodeDir, { recursive: true })
-          await Filesystem.write(path.join(opencodeDir, "test-cmd.md"), "# Test Command\nThis is a test command.")
+          // Create a .HopCoderX directory with a command
+          const HopCoderXDir = path.join(dir, ".hopcoderx", "command")
+          await fs.mkdir(HopCoderXDir, { recursive: true })
+          await Filesystem.write(path.join(HopCoderXDir, "test-cmd.md"), "# Test Command\nThis is a test command.")
         },
       })
       await Instance.provide({
         directory: tmp.path,
         fn: async () => {
           const directories = await Config.directories()
-          // Project .opencode should NOT be in directories list
-          const hasProjectOpencode = directories.some((d) => d.startsWith(tmp.path))
-          expect(hasProjectOpencode).toBe(false)
+          // Project .HopCoderX should NOT be in directories list
+          const hasProjectHopCoderX = directories.some((d) => d.startsWith(tmp.path))
+          expect(hasProjectHopCoderX).toBe(false)
         },
       })
     } finally {
       if (originalEnv === undefined) {
-        delete process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
+        delete process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = originalEnv
+        process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = originalEnv
       }
     }
   })
 
   test("still loads global config when flag is set", async () => {
-    const originalEnv = process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
-    process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = "true"
+    const originalEnv = process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
+    process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir()
@@ -1688,21 +1688,21 @@ describe("OPENCODE_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalEnv === undefined) {
-        delete process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
+        delete process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = originalEnv
+        process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = originalEnv
       }
     }
   })
 
   test("skips relative instructions with warning when flag is set but no config dir", async () => {
-    const originalDisable = process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
-    const originalConfigDir = process.env["OPENCODE_CONFIG_DIR"]
+    const originalDisable = process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
+    const originalConfigDir = process.env["HOPCODERX_CONFIG_DIR"]
 
     try {
       // Ensure no config dir is set
-      delete process.env["OPENCODE_CONFIG_DIR"]
-      process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = "true"
+      delete process.env["HOPCODERX_CONFIG_DIR"]
+      process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = "true"
 
       await using tmp = await tmpdir({
         init: async (dir) => {
@@ -1733,21 +1733,21 @@ describe("OPENCODE_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalDisable === undefined) {
-        delete process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
+        delete process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = originalDisable
+        process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = originalDisable
       }
       if (originalConfigDir === undefined) {
-        delete process.env["OPENCODE_CONFIG_DIR"]
+        delete process.env["HOPCODERX_CONFIG_DIR"]
       } else {
-        process.env["OPENCODE_CONFIG_DIR"] = originalConfigDir
+        process.env["HOPCODERX_CONFIG_DIR"] = originalConfigDir
       }
     }
   })
 
-  test("OPENCODE_CONFIG_DIR still works when flag is set", async () => {
-    const originalDisable = process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
-    const originalConfigDir = process.env["OPENCODE_CONFIG_DIR"]
+  test("HOPCODERX_CONFIG_DIR still works when flag is set", async () => {
+    const originalDisable = process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
+    const originalConfigDir = process.env["HOPCODERX_CONFIG_DIR"]
 
     try {
       await using configDirTmp = await tmpdir({
@@ -1776,38 +1776,38 @@ describe("OPENCODE_DISABLE_PROJECT_CONFIG", () => {
         },
       })
 
-      process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = "true"
-      process.env["OPENCODE_CONFIG_DIR"] = configDirTmp.path
+      process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = "true"
+      process.env["HOPCODERX_CONFIG_DIR"] = configDirTmp.path
 
       await Instance.provide({
         directory: projectTmp.path,
         fn: async () => {
           const config = await Config.get()
-          // Should load from OPENCODE_CONFIG_DIR, not project
+          // Should load from HOPCODERX_CONFIG_DIR, not project
           expect(config.model).toBe("configdir/model")
         },
       })
     } finally {
       if (originalDisable === undefined) {
-        delete process.env["OPENCODE_DISABLE_PROJECT_CONFIG"]
+        delete process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["OPENCODE_DISABLE_PROJECT_CONFIG"] = originalDisable
+        process.env["HOPCODERX_DISABLE_PROJECT_CONFIG"] = originalDisable
       }
       if (originalConfigDir === undefined) {
-        delete process.env["OPENCODE_CONFIG_DIR"]
+        delete process.env["HOPCODERX_CONFIG_DIR"]
       } else {
-        process.env["OPENCODE_CONFIG_DIR"] = originalConfigDir
+        process.env["HOPCODERX_CONFIG_DIR"] = originalConfigDir
       }
     }
   })
 })
 
-describe("OPENCODE_CONFIG_CONTENT token substitution", () => {
-  test("substitutes {env:} tokens in OPENCODE_CONFIG_CONTENT", async () => {
-    const originalEnv = process.env["OPENCODE_CONFIG_CONTENT"]
+describe("HOPCODERX_CONFIG_CONTENT token substitution", () => {
+  test("substitutes {env:} tokens in HOPCODERX_CONFIG_CONTENT", async () => {
+    const originalEnv = process.env["HOPCODERX_CONFIG_CONTENT"]
     const originalTestVar = process.env["TEST_CONFIG_VAR"]
     process.env["TEST_CONFIG_VAR"] = "test_api_key_12345"
-    process.env["OPENCODE_CONFIG_CONTENT"] = JSON.stringify({
+    process.env["HOPCODERX_CONFIG_CONTENT"] = JSON.stringify({
       $schema: "https://hopcoder.dev/config.json",
       theme: "{env:TEST_CONFIG_VAR}",
     })
@@ -1823,9 +1823,9 @@ describe("OPENCODE_CONFIG_CONTENT token substitution", () => {
       })
     } finally {
       if (originalEnv !== undefined) {
-        process.env["OPENCODE_CONFIG_CONTENT"] = originalEnv
+        process.env["HOPCODERX_CONFIG_CONTENT"] = originalEnv
       } else {
-        delete process.env["OPENCODE_CONFIG_CONTENT"]
+        delete process.env["HOPCODERX_CONFIG_CONTENT"]
       }
       if (originalTestVar !== undefined) {
         process.env["TEST_CONFIG_VAR"] = originalTestVar
@@ -1835,14 +1835,14 @@ describe("OPENCODE_CONFIG_CONTENT token substitution", () => {
     }
   })
 
-  test("substitutes {file:} tokens in OPENCODE_CONFIG_CONTENT", async () => {
-    const originalEnv = process.env["OPENCODE_CONFIG_CONTENT"]
+  test("substitutes {file:} tokens in HOPCODERX_CONFIG_CONTENT", async () => {
+    const originalEnv = process.env["HOPCODERX_CONFIG_CONTENT"]
 
     try {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Bun.write(path.join(dir, "api_key.txt"), "secret_key_from_file")
-          process.env["OPENCODE_CONFIG_CONTENT"] = JSON.stringify({
+          process.env["HOPCODERX_CONFIG_CONTENT"] = JSON.stringify({
             $schema: "https://hopcoder.dev/config.json",
             theme: "{file:./api_key.txt}",
           })
@@ -1857,9 +1857,9 @@ describe("OPENCODE_CONFIG_CONTENT token substitution", () => {
       })
     } finally {
       if (originalEnv !== undefined) {
-        process.env["OPENCODE_CONFIG_CONTENT"] = originalEnv
+        process.env["HOPCODERX_CONFIG_CONTENT"] = originalEnv
       } else {
-        delete process.env["OPENCODE_CONFIG_CONTENT"]
+        delete process.env["HOPCODERX_CONFIG_CONTENT"]
       }
     }
   })

@@ -129,7 +129,7 @@ const unsafeCSS = `
 
 export function createDefaultOptions<T>(style: FileDiffOptions<T>["diffStyle"]) {
   return {
-    theme: "HopCoderX",
+    theme: "hopcoderx",
     themeType: "system",
     disableLineNumbers: false,
     overflow: "wrap",

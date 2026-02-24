@@ -507,18 +507,18 @@ export namespace ACP {
       log.info("initialize", { protocolVersion: params.protocolVersion })
 
       const authMethod: AuthMethod = {
-        description: "Run `opencode auth login` in the terminal",
-        name: "Login with opencode",
-        id: "opencode-login",
+        description: "Run `HopCoderX auth login` in the terminal",
+        name: "Login with HopCoderX",
+        id: "HopCoderX-login",
       }
 
       // If client supports terminal-auth capability, use that instead.
       if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
         authMethod._meta = {
           "terminal-auth": {
-            command: "opencode",
+            command: "hopcoderx",
             args: ["auth", "login"],
-            label: "OpenCode Login",
+            label: "HopCoderX Login",
           },
         }
       }
@@ -543,7 +543,7 @@ export namespace ACP {
         },
         authMethods: [authMethod],
         agentInfo: {
-          name: "OpenCode",
+          name: "hopcoderx",
           version: Installation.VERSION,
         },
       }
@@ -966,7 +966,7 @@ export namespace ACP {
           }
         } else if (part.type === "file") {
           // Replay file attachments as appropriate ACP content blocks.
-          // OpenCode stores files internally as { type: "file", url, filename, mime }.
+          // HopCoderX stores files internally as { type: "file", url, filename, mime }.
           // We convert these back to ACP blocks based on the URL scheme and MIME type:
           // - file:// URLs → resource_link
           // - data: URLs with image/* → image block
@@ -1519,12 +1519,12 @@ export namespace ACP {
 
     if (specified && !providers.length) return specified
 
-    const opencodeProvider = providers.find((p) => p.id === "opencode")
-    if (opencodeProvider) {
-      if (opencodeProvider.models["big-pickle"]) {
-        return { providerID: "opencode", modelID: "big-pickle" }
+    const hopcoderxProvider = providers.find((p) => p.id === "hopcoderx")
+    if (hopcoderxProvider) {
+      if (hopcoderxProvider.models["big-pickle"]) {
+        return { providerID: "hopcoderx", modelID: "big-pickle" }
       }
-      const [best] = Provider.sort(Object.values(opencodeProvider.models))
+      const [best] = Provider.sort(Object.values(hopcoderxProvider.models))
       if (best) {
         return {
           providerID: best.providerID,
@@ -1544,7 +1544,7 @@ export namespace ACP {
 
     if (specified) return specified
 
-    return { providerID: "opencode", modelID: "big-pickle" }
+    return { providerID: "hopcoderx", modelID: "big-pickle" }
   }
 
   function parseUri(
@@ -1656,7 +1656,7 @@ export namespace ACP {
     availableVariants: string[]
   }) {
     return {
-      opencode: {
+      HopCoderX: {
         modelId: `${input.model.providerID}/${input.model.modelID}`,
         variant: input.variant ?? null,
         availableVariants: input.availableVariants,

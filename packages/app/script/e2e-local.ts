@@ -44,7 +44,7 @@ async function waitForHealth(url: string) {
 
 const appDir = process.cwd()
 const repoDir = path.resolve(appDir, "../..")
-const HopCoderXDir = path.join(repoDir, "packages", "HopCoderX")
+const HopCoderXDir = path.join(repoDir, "packages", "hopcoderx")
 
 const extraArgs = (() => {
   const args = process.argv.slice(2)

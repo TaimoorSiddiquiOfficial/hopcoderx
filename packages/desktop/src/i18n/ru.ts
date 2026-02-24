@@ -21,7 +21,7 @@ export const dict = {
 
   "desktop.cli.installed.title": "CLI установлен",
   "desktop.cli.installed.message":
-    "CLI установлен в {{path}}\n\nПерезапустите терминал, чтобы использовать команду 'HopCoderX'.",
+    "CLI установлен в {{path}}\n\nПерезапустите терминал, чтобы использовать команду 'hopcoderx'.",
   "desktop.cli.failed.title": "Ошибка установки",
   "desktop.cli.failed.message": "Не удалось установить CLI: {{error}}",
 }

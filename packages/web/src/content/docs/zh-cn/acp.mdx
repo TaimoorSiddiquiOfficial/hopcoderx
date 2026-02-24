@@ -30,8 +30,8 @@ ACP 是一个开放协议，用于标准化代码编辑器与 AI 编码代理之
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "HopCoderX": {
-      "command": "HopCoderX",
+    "hopcoderx": {
+      "command": "hopcoderx",
       "args": ["acp"]
     }
   }
@@ -51,9 +51,9 @@ ACP 是一个开放协议，用于标准化代码编辑器与 AI 编码代理之
         {
           "agent": {
             "custom": {
-              "name": "HopCoderX",
+              "name": "hopcoderx",
               "command": {
-                "command": "HopCoderX",
+                "command": "hopcoderx",
                 "args": ["acp"]
               }
             }
@@ -74,7 +74,7 @@ ACP 是一个开放协议，用于标准化代码编辑器与 AI 编码代理之
 ```json title="acp.json"
 {
   "agent_servers": {
-    "HopCoderX": {
+    "hopcoderx": {
       "command": "/absolute/path/bin/HopCoderX",
       "args": ["acp"]
     }
@@ -82,7 +82,7 @@ ACP 是一个开放协议，用于标准化代码编辑器与 AI 编码代理之
 }
 ```
 
-打开方式：在 AI Chat 代理选择器中选择新的 'HopCoderX' 代理。
+打开方式：在 AI Chat 代理选择器中选择新的 'hopcoderx' 代理。
 
 ---
 
@@ -93,8 +93,8 @@ ACP 是一个开放协议，用于标准化代码编辑器与 AI 编码代理之
 ```lua
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" }
     }
   }
@@ -106,8 +106,8 @@ ACP 是一个开放协议，用于标准化代码编辑器与 AI 编码代理之
 ```lua {6-8}
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" },
       env = {
         HOPCODERX_API_KEY = os.getenv("HOPCODERX_API_KEY")
@@ -128,7 +128,7 @@ require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "HopCoderX",
+        name = "hopcoderx",
         model = "claude-sonnet-4",
       },
     },

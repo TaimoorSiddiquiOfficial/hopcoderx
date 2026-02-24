@@ -16,7 +16,7 @@ export async function createMenu(trigger: (id: string) => void) {
   const menu = await Menu.new({
     items: [
       await Submenu.new({
-        text: "HopCoderX",
+        text: "hopcoderx",
         items: [
           await PredefinedMenuItem.new({
             item: { About: null },

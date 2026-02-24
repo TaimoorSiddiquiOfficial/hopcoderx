@@ -30,8 +30,8 @@ ACP 是一個開放協議，用於標準化程式碼編輯器與 AI 編碼代理
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "HopCoderX": {
-      "command": "HopCoderX",
+    "hopcoderx": {
+      "command": "hopcoderx",
       "args": ["acp"]
     }
   }
@@ -51,9 +51,9 @@ ACP 是一個開放協議，用於標準化程式碼編輯器與 AI 編碼代理
         {
           "agent": {
             "custom": {
-              "name": "HopCoderX",
+              "name": "hopcoderx",
               "command": {
-                "command": "HopCoderX",
+                "command": "hopcoderx",
                 "args": ["acp"]
               }
             }
@@ -74,7 +74,7 @@ ACP 是一個開放協議，用於標準化程式碼編輯器與 AI 編碼代理
 ```json title="acp.json"
 {
   "agent_servers": {
-    "HopCoderX": {
+    "hopcoderx": {
       "command": "/absolute/path/bin/HopCoderX",
       "args": ["acp"]
     }
@@ -82,7 +82,7 @@ ACP 是一個開放協議，用於標準化程式碼編輯器與 AI 編碼代理
 }
 ```
 
-開啟方式：在 AI Chat 代理選擇器中選擇新的 'HopCoderX' 代理。
+開啟方式：在 AI Chat 代理選擇器中選擇新的 'hopcoderx' 代理。
 
 ---
 
@@ -93,8 +93,8 @@ ACP 是一個開放協議，用於標準化程式碼編輯器與 AI 編碼代理
 ```lua
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" }
     }
   }
@@ -106,8 +106,8 @@ ACP 是一個開放協議，用於標準化程式碼編輯器與 AI 編碼代理
 ```lua {6-8}
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" },
       env = {
         HOPCODERX_API_KEY = os.getenv("HOPCODERX_API_KEY")
@@ -128,7 +128,7 @@ require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "HopCoderX",
+        name = "hopcoderx",
         model = "claude-sonnet-4",
       },
     },

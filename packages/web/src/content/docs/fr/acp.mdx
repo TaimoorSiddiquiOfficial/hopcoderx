@@ -30,8 +30,8 @@ Ajoutez à votre configuration [Zed](https://zed.dev) (`~/.config/zed/settings.j
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "HopCoderX": {
-      "command": "HopCoderX",
+    "hopcoderx": {
+      "command": "hopcoderx",
       "args": ["acp"]
     }
   }
@@ -51,9 +51,9 @@ Vous pouvez également associer un raccourci clavier en modifiant votre `keymap.
         {
           "agent": {
             "custom": {
-              "name": "HopCoderX",
+              "name": "hopcoderx",
               "command": {
-                "command": "HopCoderX",
+                "command": "hopcoderx",
                 "args": ["acp"]
               }
             }
@@ -74,7 +74,7 @@ Ajoutez `acp.json` à votre [IDE JetBrains](https://www.jetbrains.com/) conform�
 ```json title="acp.json"
 {
   "agent_servers": {
-    "HopCoderX": {
+    "hopcoderx": {
       "command": "/absolute/path/bin/HopCoderX",
       "args": ["acp"]
     }
@@ -93,8 +93,8 @@ Ajoutez à votre configuration [Avante.nvim](https://github.com/yetone/avante.nv
 ```lua
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" }
     }
   }
@@ -106,8 +106,8 @@ Si vous devez transmettre des variables d'environnement :
 ```lua {6-8}
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" },
       env = {
         HOPCODERX_API_KEY = os.getenv("HOPCODERX_API_KEY")
@@ -128,7 +128,7 @@ require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "HopCoderX",
+        name = "hopcoderx",
         model = "claude-sonnet-4",
       },
     },

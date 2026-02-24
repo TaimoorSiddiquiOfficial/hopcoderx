@@ -46,7 +46,7 @@ export default function Home() {
   }
 
   return (
-    <main data-page="HopCoderX">
+    <main data-page="hopcoderx">
       {/*<HttpHeader name="Cache-Control" value="public, max-age=1, s-maxage=3600, stale-while-revalidate=86400" />*/}
       <Title>{i18n.t("home.title")}</Title>
       <LocaleLinks path="/" />

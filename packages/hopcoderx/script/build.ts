@@ -15,7 +15,7 @@ process.chdir(dir)
 import { Script } from "@hopcoderx/script"
 import pkg from "../package.json"
 
-const modelsUrl = process.env.OPENCODE_MODELS_URL || "https://models.dev"
+const modelsUrl = process.env.HOPCODERX_MODELS_URL || "https://models.dev"
 // Fetch and generate models.dev snapshot (skip in CI if already committed)
 const snapshotPath = path.join(dir, "src/provider/models-snapshot.ts")
 if (!process.env.CI || !fs.existsSync(snapshotPath)) {
@@ -196,12 +196,12 @@ for (const item of targets) {
       },
       entrypoints: ["./src/index.ts", parserWorker, workerPath],
       define: {
-        OPENCODE_VERSION: `'${Script.version}'`,
-        OPENCODE_MIGRATIONS: JSON.stringify(migrations),
+        HOPCODERX_VERSION: `'${Script.version}'`,
+        HOPCODERX_MIGRATIONS: JSON.stringify(migrations),
         OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + workerRelativePath,
-        OPENCODE_WORKER_PATH: workerPath,
-        OPENCODE_CHANNEL: `'${Script.channel}'`,
-        OPENCODE_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "",
+        HOPCODERX_WORKER_PATH: workerPath,
+        HOPCODERX_CHANNEL: `'${Script.channel}'`,
+        HOPCODERX_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "",
       },
     })
   } catch (err) {

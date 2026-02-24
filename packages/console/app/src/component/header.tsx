@@ -124,8 +124,8 @@ export function Header(props: { bdr?: boolean; hideGetStarted?: boolean }) {
     <section data-component="top">
       <div onContextMenu={handleLogoContextMenu}>
         <A href={language.route("/")}>
-          <img data-slot="logo light" src={logoLight} alt="HopCoderX" width="189" height="34" />
-          <img data-slot="logo dark" src={logoDark} alt="HopCoderX" width="189" height="34" />
+          <img data-slot="logo light" src={logoLight} alt="hopcoderx" width="189" height="34" />
+          <img data-slot="logo dark" src={logoDark} alt="hopcoderx" width="189" height="34" />
         </A>
       </div>
 

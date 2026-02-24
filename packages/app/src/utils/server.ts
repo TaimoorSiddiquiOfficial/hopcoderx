@@ -10,7 +10,7 @@ export function createSdkForServer({
   const auth = (() => {
     if (!server.password) return
     return {
-      Authorization: `Basic ${btoa(`${server.username ?? "HopCoderX"}:${server.password}`)}`,
+      Authorization: `Basic ${btoa(`${server.username ?? "hopcoderx"}:${server.password}`)}`,
     }
   })()
 

@@ -15,7 +15,7 @@ import { Clipboard } from "@tui/util/clipboard"
 import { useToast } from "../ui/toast"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
-  opencode: 0,
+  hopcoderx: 0,
   anthropic: 1,
   "github-copilot": 2,
   openai: 3,
@@ -34,7 +34,7 @@ export function createDialogProviderOptions() {
         title: provider.name,
         value: provider.id,
         description: {
-          opencode: "(Recommended)",
+          hopcoderx: "(Recommended)",
           anthropic: "(Claude Max or API key)",
           openai: "(ChatGPT Plus/Pro or API key)",
         }[provider.id],
@@ -214,10 +214,10 @@ function ApiMethod(props: ApiMethodProps) {
       title={props.title}
       placeholder="API key"
       description={
-        props.providerID === "opencode" ? (
+        props.providerID === "hopcoderx" ? (
           <box gap={1}>
             <text fg={theme.textMuted}>
-              OpenCode Zen gives you access to all the best coding models at the cheapest prices with a single API key.
+              HopCoderX Zen gives you access to all the best coding models at the cheapest prices with a single API key.
             </text>
             <text fg={theme.text}>
               Go to <span style={{ fg: theme.primary }}>https://hopcoderx.dev/bdr</span> to get a key

@@ -47,7 +47,7 @@ process.on("uncaughtException", (e) => {
 
 const cli = yargs(hideBin(process.argv))
   .parserConfiguration({ "populate--": true })
-  .scriptName("opencode")
+  .scriptName("hopcoderx")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -76,7 +76,7 @@ const cli = yargs(hideBin(process.argv))
     process.env.AGENT = "1"
     process.env.HOPCODERX = "1"
 
-    Log.Default.info("opencode", {
+    Log.Default.info("hopcoderx", {
       version: Installation.VERSION,
       args: process.argv.slice(2),
     })

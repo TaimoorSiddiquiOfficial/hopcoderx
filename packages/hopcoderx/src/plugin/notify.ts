@@ -34,7 +34,7 @@ function send(title: string, body: string) {
           "[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null",
           `$xml = [Windows.Data.Xml.Dom.XmlDocument]::new()`,
           `$xml.LoadXml('<toast><visual><binding template="ToastGeneric"><text>${title.replace(/</g, "&lt;")}</text><text>${body.replace(/</g, "&lt;")}</text></binding></visual></toast>')`,
-          `[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("HopCoderX").Show([Windows.UI.Notifications.ToastNotification]::new($xml))`,
+          `[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("hopcoderx").Show([Windows.UI.Notifications.ToastNotification]::new($xml))`,
         ].join("; ")
         spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], {
           stdio: "ignore",

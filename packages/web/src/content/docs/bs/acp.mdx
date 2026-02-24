@@ -30,8 +30,8 @@ Dodajte u svoju [Zed](https://zed.dev) konfiguraciju (`~/.config/zed/settings.js
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "HopCoderX": {
-      "command": "HopCoderX",
+    "hopcoderx": {
+      "command": "hopcoderx",
       "args": ["acp"]
     }
   }
@@ -51,9 +51,9 @@ Također možete vezati prečicu na tastaturi uređivanjem vašeg `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "HopCoderX",
+              "name": "hopcoderx",
               "command": {
-                "command": "HopCoderX",
+                "command": "hopcoderx",
                 "args": ["acp"]
               }
             }
@@ -74,7 +74,7 @@ Dodajte u svoj [JetBrains IDE](https://www.jetbrains.com/) `acp.json` prema [dok
 ```json title="acp.json"
 {
   "agent_servers": {
-    "HopCoderX": {
+    "hopcoderx": {
       "command": "/absolute/path/bin/HopCoderX",
       "args": ["acp"]
     }
@@ -82,7 +82,7 @@ Dodajte u svoj [JetBrains IDE](https://www.jetbrains.com/) `acp.json` prema [dok
 }
 ```
 
-Da biste ga otvorili, koristite novog "HopCoderX" agenta u AI Chat agent selektoru.
+Da biste ga otvorili, koristite novog "hopcoderx" agenta u AI Chat agent selektoru.
 
 ---
 
@@ -93,8 +93,8 @@ Dodajte u svoju [Avante.nvim](https://github.com/yetone/avante.nvim) konfiguraci
 ```lua
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" }
     }
   }
@@ -106,8 +106,8 @@ Ako trebate proslijediti varijable okruženja:
 ```lua {6-8}
 {
   acp_providers = {
-    ["HopCoderX"] = {
-      command = "HopCoderX",
+    ["hopcoderx"] = {
+      command = "hopcoderx",
       args = { "acp" },
       env = {
         HOPCODERX_API_KEY = os.getenv("HOPCODERX_API_KEY")
@@ -128,7 +128,7 @@ require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "HopCoderX",
+        name = "hopcoderx",
         model = "claude-sonnet-4",
       },
     },

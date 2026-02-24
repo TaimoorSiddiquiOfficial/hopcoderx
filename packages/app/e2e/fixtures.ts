@@ -76,7 +76,7 @@ async function seedStorage(page: Page, input: { directory: string; extra?: strin
     localStorage.setItem(
       "HopCoderX.global.dat:model",
       JSON.stringify({
-        recent: [{ providerID: "HopCoderX", modelID: "big-pickle" }],
+        recent: [{ providerID: "hopcoderx", modelID: "big-pickle" }],
         user: [],
         variant: {},
       }),

@@ -20973,9 +20973,9 @@
       }
     }
   },
-  "opencode": {
-    "id": "opencode",
-    "env": ["OPENCODE_API_KEY"],
+  "HopCoderX": {
+    "id": "HopCoderX",
+    "env": ["HOPCODERX_API_KEY"],
     "npm": "@ai-sdk/openai-compatible",
     "api": "https://hopcoderx.dev/bdr/v1",
     "name": "HopCoderX Bdr",

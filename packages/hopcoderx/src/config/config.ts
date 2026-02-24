@@ -52,7 +52,7 @@ export namespace Config {
     }
   }
 
-  const managedConfigDir = process.env.OPENCODE_TEST_MANAGED_CONFIG_DIR || getManagedConfigDir()
+  const managedConfigDir = process.env.HOPCODERX_TEST_MANAGED_CONFIG_DIR || getManagedConfigDir()
 
   // Custom merge function that concatenates array fields instead of replacing them
   function merge(target: Info, source: Info): Info {
@@ -72,10 +72,10 @@ export namespace Config {
     // Config loading order (low -> high precedence): https://hopcoder.dev/docs/config#precedence-order
     // 1) Remote .well-known/hopcoderx (org defaults)
     // 2) Global config (~/.config/hopcoderx/hopcoderx.json{,c})
-    // 3) Custom config (OPENCODE_CONFIG)
+    // 3) Custom config (HOPCODERX_CONFIG)
     // 4) Project config (hopcoderx.json{,c})
     // 5) .hopcoderx directories (.hopcoderx/agents/, .hopcoderx/commands/, .hopcoderx/plugins/, .hopcoderx/hopcoderx.json{,c})
-    // 6) Inline config (OPENCODE_CONFIG_CONTENT)
+    // 6) Inline config (HOPCODERX_CONFIG_CONTENT)
     // Managed config directory is enterprise-only and always overrides everything above.
     let result: Info = {}
     for (const [key, value] of Object.entries(auth)) {
@@ -109,13 +109,13 @@ export namespace Config {
     result = merge(result, await global())
 
     // Custom config path overrides global config.
-    if (Flag.OPENCODE_CONFIG) {
-      result = merge(result, await loadFile(Flag.OPENCODE_CONFIG))
-      log.debug("loaded custom config", { path: Flag.OPENCODE_CONFIG })
+    if (Flag.HOPCODERX_CONFIG) {
+      result = merge(result, await loadFile(Flag.HOPCODERX_CONFIG))
+      log.debug("loaded custom config", { path: Flag.HOPCODERX_CONFIG })
     }
 
     // Project config overrides global and remote config.
-    if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
+    if (!Flag.HOPCODERX_DISABLE_PROJECT_CONFIG) {
       for (const file of ["hopcoderx.jsonc", "hopcoderx.json"]) {
         const found = await Filesystem.findUp(file, Instance.directory, Instance.worktree)
         for (const resolved of found.toReversed()) {
@@ -130,8 +130,8 @@ export namespace Config {
 
     const directories = [
       Global.Path.config,
-      // Only scan project .opencode/ directories when project discovery is enabled
-      ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
+      // Only scan project .hopcoderx/ directories when project discovery is enabled
+      ...(!Flag.HOPCODERX_DISABLE_PROJECT_CONFIG
         ? await Array.fromAsync(
             Filesystem.up({
               targets: [".hopcoderx"],
@@ -150,16 +150,16 @@ export namespace Config {
       )),
     ]
 
-    // .opencode directory config overrides (project and global) config sources.
-    if (Flag.OPENCODE_CONFIG_DIR) {
-      directories.push(Flag.OPENCODE_CONFIG_DIR)
-      log.debug("loading config from OPENCODE_CONFIG_DIR", { path: Flag.OPENCODE_CONFIG_DIR })
+    // .HopCoderX directory config overrides (project and global) config sources.
+    if (Flag.HOPCODERX_CONFIG_DIR) {
+      directories.push(Flag.HOPCODERX_CONFIG_DIR)
+      log.debug("loading config from HOPCODERX_CONFIG_DIR", { path: Flag.HOPCODERX_CONFIG_DIR })
     }
 
     const deps = []
 
     for (const dir of unique(directories)) {
-      if (dir.endsWith(".hopcoderx") || dir === Flag.OPENCODE_CONFIG_DIR) {
+      if (dir.endsWith(".hopcoderx") || dir === Flag.HOPCODERX_CONFIG_DIR) {
         for (const file of ["hopcoderx.jsonc", "hopcoderx.json"]) {
           log.debug(`loading config from ${path.join(dir, file)}`)
           result = merge(result, await loadFile(path.join(dir, file)))
@@ -184,15 +184,15 @@ export namespace Config {
     }
 
     // Inline config content overrides all non-managed config sources.
-    if (process.env.OPENCODE_CONFIG_CONTENT) {
+    if (process.env.HOPCODERX_CONFIG_CONTENT) {
       result = merge(
         result,
-        await load(process.env.OPENCODE_CONFIG_CONTENT, {
+        await load(process.env.HOPCODERX_CONFIG_CONTENT, {
           dir: Instance.directory,
-          source: "OPENCODE_CONFIG_CONTENT",
+          source: "HOPCODERX_CONFIG_CONTENT",
         }),
       )
-      log.debug("loaded custom config from OPENCODE_CONFIG_CONTENT")
+      log.debug("loaded custom config from HOPCODERX_CONFIG_CONTENT")
     }
 
     // Load managed config files last (highest priority) - enterprise admin-controlled
@@ -215,8 +215,8 @@ export namespace Config {
       })
     }
 
-    if (Flag.OPENCODE_PERMISSION) {
-      result.permission = mergeDeep(result.permission ?? {}, JSON.parse(Flag.OPENCODE_PERMISSION))
+    if (Flag.HOPCODERX_PERMISSION) {
+      result.permission = mergeDeep(result.permission ?? {}, JSON.parse(Flag.HOPCODERX_PERMISSION))
     }
 
     // Backwards compatibility: legacy top-level `tools` config
@@ -243,10 +243,10 @@ export namespace Config {
     if (!result.keybinds) result.keybinds = Info.shape.keybinds.parse({})
 
     // Apply flag overrides for compaction settings
-    if (Flag.OPENCODE_DISABLE_AUTOCOMPACT) {
+    if (Flag.HOPCODERX_DISABLE_AUTOCOMPACT) {
       result.compaction = { ...result.compaction, auto: false }
     }
-    if (Flag.OPENCODE_DISABLE_PRUNE) {
+    if (Flag.HOPCODERX_DISABLE_PRUNE) {
       result.compaction = { ...result.compaction, prune: false }
     }
 
@@ -488,7 +488,7 @@ export namespace Config {
    *
    * @example
    * getPluginName("file:///path/to/plugin/foo.js") // "foo"
-   * getPluginName("oh-my-opencode@2.4.3") // "oh-my-opencode"
+   * getPluginName("oh-my-HopCoderX@2.4.3") // "oh-my-HopCoderX"
    * getPluginName("@scope/pkg@1.0.0") // "@scope/pkg"
    */
   export function getPluginName(plugin: string): string {
@@ -506,20 +506,20 @@ export namespace Config {
    * Deduplicates plugins by name, with later entries (higher priority) winning.
    * Priority order (highest to lowest):
    * 1. Local plugin/ directory
-   * 2. Local opencode.json
+   * 2. Local hopcoderx.json
    * 3. Global plugin/ directory
-   * 4. Global opencode.json
+   * 4. Global hopcoderx.json
    *
    * Since plugins are added in low-to-high priority order,
    * we reverse, deduplicate (keeping first occurrence), then restore order.
    */
   export function deduplicatePlugins(plugins: string[]): string[] {
     // seenNames: canonical plugin names for duplicate detection
-    // e.g., "oh-my-opencode", "@scope/pkg"
+    // e.g., "oh-my-HopCoderX", "@scope/pkg"
     const seenNames = new Set<string>()
 
     // uniqueSpecifiers: full plugin specifiers to return
-    // e.g., "oh-my-opencode@2.4.3", "file:///path/to/plugin.js"
+    // e.g., "oh-my-HopCoderX@2.4.3", "file:///path/to/plugin.js"
     const uniqueSpecifiers: string[] = []
 
     for (const specifier of plugins.toReversed()) {
