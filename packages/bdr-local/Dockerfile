@@ -18,8 +18,14 @@ WORKDIR /app
 COPY package.json ./
 RUN bun install --production
 
-# Copy source
+# Copy source and panel UI
 COPY src ./src
+COPY public ./public
+
+# Persistent volume for SQLite panel DB
+# In Railway: add a Volume → mount path /data
+RUN mkdir -p /data
+ENV PANEL_DB_PATH=/data/panel.db
 
 # Railway injects PORT; default 4999
 ENV PORT=4999
