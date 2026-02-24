@@ -18,9 +18,8 @@ WORKDIR /app
 COPY package.json ./
 RUN bun install --production
 
-# Copy source and panel UI
-COPY src ./src
-COPY public ./public
+# Copy source and panel UI (combined to bust Railway layer cache)
+COPY . .
 
 # Persistent volume for SQLite panel DB
 # In Railway: add a Volume → mount path /data
