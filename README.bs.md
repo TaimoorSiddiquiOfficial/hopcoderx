@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://HopCoderX.ai">
+  <a href="https://hopcoderx.dev">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
@@ -9,7 +9,7 @@
 </p>
 <p align="center">HopCoderX je open source AI agent za programiranje.</p>
 <p align="center">
-  <a href="https://HopCoderX.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://hopcoderx.dev/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
   <a href="https://www.npmjs.com/package/HopCoderX-ai"><img alt="npm" src="https://img.shields.io/npm/v/HopCoderX-ai?style=flat-square" /></a>
   <a href="https://github.com/TaimoorSiddiquiOfficial/hopcoderx/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/TaimoorSiddiquiOfficial/hopcoderx/publish.yml?style=flat-square&branch=main" /></a>
 </p>
@@ -36,7 +36,7 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://HopCoderX.ai)
+[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://hopcoderx.dev)
 
 ---
 
@@ -44,7 +44,7 @@
 
 ```bash
 # YOLO
-curl -fsSL https://HopCoderX.ai/install | bash
+curl -fsSL https://hopcoderx.dev/install | bash
 
 # Package manageri
 npm i -g HopCoderX-ai@latest        # ili bun/pnpm/yarn
@@ -63,7 +63,7 @@ nix run nixpkgs#HopCoderX           # ili github:TaimoorSiddiquiOfficial/hopcode
 
 ### Desktop aplikacija (BETA)
 
-HopCoderX je dostupan i kao desktop aplikacija. Preuzmi je direktno sa [stranice izdanja](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) ili sa [HopCoderX.ai/download](https://HopCoderX.ai/download).
+HopCoderX je dostupan i kao desktop aplikacija. Preuzmi je direktno sa [stranice izdanja](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) ili sa [hopcoderx.dev/download](https://hopcoderx.dev/download).
 
 | Platforma             | Preuzimanje                           |
 | --------------------- | ------------------------------------- |
@@ -90,8 +90,8 @@ Instalacijska skripta koristi sljedeći redoslijed prioriteta za putanju instala
 
 ```bash
 # Primjeri
-HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://HopCoderX.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://HopCoderX.ai/install | bash
+HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://hopcoderx.dev/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
 ```
 
 ### Agenti
@@ -107,11 +107,11 @@ HopCoderX uključuje dva ugrađena agenta između kojih možeš prebacivati tast
 Uključen je i **general** pod-agent za složene pretrage i višekoračne zadatke.
 Koristi se interno i može se pozvati pomoću `@general` u porukama.
 
-Saznaj više o [agentima](https://HopCoderX.ai/docs/agents).
+Saznaj više o [agentima](https://hopcoderx.dev/docs/agents).
 
 ### Dokumentacija
 
-Za više informacija o konfiguraciji HopCoderX-a, [**pogledaj dokumentaciju**](https://HopCoderX.ai/docs).
+Za više informacija o konfiguraciji HopCoderX-a, [**pogledaj dokumentaciju**](https://hopcoderx.dev/docs).
 
 ### Doprinosi
 
@@ -128,7 +128,7 @@ Ako radiš na projektu koji je povezan s HopCoderX-om i koristi "HopCoderX" kao 
 Po mogućnostima je vrlo sličan Claude Code-u. Ključne razlike su:
 
 - 100% open source
-- Nije vezan za jednog provajdera. Iako preporučujemo modele koje nudimo kroz [HopCoderX Bdr](https://HopCoderX.ai/zen), HopCoderX možeš koristiti s Claude, OpenAI, Google ili čak lokalnim modelima. Kako modeli napreduju, razlike među njima će se smanjivati, a cijene padati, zato je nezavisnost od provajdera važna.
+- Nije vezan za jednog provajdera. Iako preporučujemo modele koje nudimo kroz [HopCoderX Bdr](https://hopcoderx.dev/zen), HopCoderX možeš koristiti s Claude, OpenAI, Google ili čak lokalnim modelima. Kako modeli napreduju, razlike među njima će se smanjivati, a cijene padati, zato je nezavisnost od provajdera važna.
 - LSP podrška odmah po instalaciji
 - Fokus na TUI. HopCoderX grade neovim korisnici i kreatori [terminal.shop](https://terminal.shop); pomjeraćemo granice onoga što je moguće u terminalu.
 - Klijent/server arhitektura. To, recimo, omogućava da HopCoderX radi na tvom računaru dok ga daljinski koristiš iz mobilne aplikacije, što znači da je TUI frontend samo jedan od mogućih klijenata.

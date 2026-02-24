@@ -13,7 +13,7 @@ HopCoderX understøtter både **JSON** og **JSONC** (JSON med kommentarer) forma
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   // Theme configuration
   "theme": "HopCoderX",
   "model": "anthropic/claude-sonnet-4-5",
@@ -146,7 +146,7 @@ Den brugerdefinerede mappe indlæses efter den globale konfig og `.HopCoderX` ma
 
 ## Skema
 
-Konfigurationsfilen har et skema, der defineres i [**`HopCoderX.ai/config.json`**](https://HopCoderX.ai/config.json).
+Konfigurationsfilen har et skema, der defineres i [**`hopcoderx.dev/config.json`**](https://hopcoderx.dev/config.json).
 
 Din editor skal være i stand til at validere og autofuldføre baseret på skemaet.
 
@@ -158,7 +158,7 @@ Du kan konfigurere TUI-specifikke indstillinger gennem indstillingen `tui`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tui": {
     "scroll_speed": 3,
     "scroll_acceleration": {
@@ -185,7 +185,7 @@ Du kan konfigurere serverindstillinger for kommandoerne `HopCoderX serve` og `Ho
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0",
@@ -214,7 +214,7 @@ Du kan administrere de værktøjer, en LLM kan bruge, gennem indstillingen `tool
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tools": {
     "write": false,
     "bash": false
@@ -232,7 +232,7 @@ Du kan konfigurere de udbydere og modeller, du vil bruge i din HopCoderX-konfigu
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {},
   "model": "anthropic/claude-sonnet-4-5",
   "small_model": "anthropic/claude-haiku-4-5"
@@ -245,7 +245,7 @@ Udbydermuligheder kan omfatte `timeout` og `setCacheKey`:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "anthropic": {
       "options": {
@@ -274,7 +274,7 @@ Amazon Bedrock understøtter AWS-specifik konfiguration:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "amazon-bedrock": {
       "options": {
@@ -305,7 +305,7 @@ Du kan konfigurere det tema, du vil bruge i din HopCoderX-konfiguration, gennem 
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "theme": ""
 }
 ```
@@ -320,7 +320,7 @@ Du kan konfigurere opgaver specialiserede agenter til specifikke indstillinger g
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "code-reviewer": {
       "description": "Reviews code for best practices and potential issues",
@@ -346,7 +346,7 @@ Du kan indstille standardagenten ved at bruge indstillingen `default_agent`. Det
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "default_agent": "plan"
 }
 ```
@@ -363,7 +363,7 @@ Du kan konfigurere funktionen [share](/docs/share) gennem indstillingen `share`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "share": "manual"
 }
 ```
@@ -384,7 +384,7 @@ Du kan konfigurere brugerdefinerede kommandoer til gentagne opgaver gennem indst
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "command": {
     "test": {
       "template": "Run the full test suite with coverage report and show any failures.\nFocus on the failing tests and suggest fixes.",
@@ -410,7 +410,7 @@ Du kan tilpasse dine nøglebindinger gennem indstillingen `keybinds`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "keybinds": {}
 }
 ```
@@ -425,7 +425,7 @@ HopCoderX vil automatisk downloade alle nye opdateringer, når den starter op. D
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "autoupdate": false
 }
 ```
@@ -441,7 +441,7 @@ Du kan konfigurere kodeformatere gennem indstillingen `formatter`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -469,7 +469,7 @@ For at sikre, at værktøjerne `edit` og `bash` for eksempel kræver brugergodke
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "ask",
     "bash": "ask"
@@ -487,7 +487,7 @@ Du kan styre kontekstkomprimeringsadfærd gennem indstillingen `compaction`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "compaction": {
     "auto": true,
     "prune": true
@@ -506,7 +506,7 @@ Du kan konfigurere ignoreringsmønstre for filovervåger gennem indstillingen `w
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**"]
   }
@@ -523,7 +523,7 @@ Du kan konfigurere MCP-servere, som du vil bruge, gennem indstillingen `mcp`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "mcp": {}
 }
 ```
@@ -540,7 +540,7 @@ Placer plugin-filer i `.HopCoderX/plugins/` eller `~/.config/HopCoderX/plugins/`
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "plugin": ["HopCoderX-helicone-session", "@my-org/custom-plugin"]
 }
 ```
@@ -555,7 +555,7 @@ Du kan konfigurere brugervejledningen til den model, du kan gennem indstillingen
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
@@ -571,7 +571,7 @@ Du kan deaktivere udbydere, der indlæses automatisk gennem `disabled_providers`
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "disabled_providers": ["openai", "gemini"]
 }
 ```
@@ -594,7 +594,7 @@ Du kan angive en tilladelsesliste over udbydere gennem muligheden `enabled_provi
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "enabled_providers": ["anthropic", "openai"]
 }
 ```
@@ -615,7 +615,7 @@ Nøglen `experimental` indeholder muligheder, der er under aktiv udvikling.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "experimental": {}
 }
 ```
@@ -638,7 +638,7 @@ Brug `{env:VARIABLE_NAME}` til at erstatte miljøvariabler:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "model": "{env:HOPCODERX_MODEL}",
   "provider": {
     "anthropic": {
@@ -661,7 +661,7 @@ Brug `{file:path/to/file}` til at erstatte indholdet af en fil:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "instructions": ["./custom-instructions.md"],
   "provider": {
     "openai": {

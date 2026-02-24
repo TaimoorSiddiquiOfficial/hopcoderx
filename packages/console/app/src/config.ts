@@ -3,7 +3,7 @@
  */
 export const config = {
   // Base URL
-  baseUrl: "https://HopCoderX.ai",
+  baseUrl: "https://hopcoderx.dev",
 
   // GitHub
   github: {

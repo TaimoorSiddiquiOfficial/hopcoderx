@@ -801,11 +801,11 @@ http://localhost:4096
 http://localhost:4096/doc
 https://app.example.com
 https://AZURE_COGNITIVE_SERVICES_RESOURCE_NAME.cognitiveservices.azure.com/
-https://HopCoderX.ai/zen/v1/chat/completions
-https://HopCoderX.ai/zen/v1/messages
-https://HopCoderX.ai/zen/v1/models/gemini-3-flash
-https://HopCoderX.ai/zen/v1/models/gemini-3-pro
-https://HopCoderX.ai/zen/v1/responses
+https://hopcoderx.dev/zen/v1/chat/completions
+https://hopcoderx.dev/zen/v1/messages
+https://hopcoderx.dev/zen/v1/models/gemini-3-flash
+https://hopcoderx.dev/zen/v1/models/gemini-3-pro
+https://hopcoderx.dev/zen/v1/responses
 https://RESOURCE_NAME.openai.azure.com/
 laravel/pint
 log/
@@ -813,7 +813,7 @@ model: "anthropic/claude-sonnet-4-5"
 modes/
 node_modules/
 openai/gpt-4.1
-HopCoderX.ai/config.json
+hopcoderx.dev/config.json
 HopCoderX/<model-id>
 HopCoderX/gpt-5.1-codex
 HopCoderX/gpt-5.2-codex

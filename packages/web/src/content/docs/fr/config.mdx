@@ -13,7 +13,7 @@ HopCoderX prend en charge les formats **JSON** et **JSONC** (JSON avec commentai
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   // Theme configuration
   "theme": "HopCoderX",
   "model": "anthropic/claude-sonnet-4-5",
@@ -143,7 +143,7 @@ Le répertoire personnalisé est chargé après les répertoires de configuratio
 
 ## Schéma
 
-Le fichier de configuration a un schéma défini dans [**`HopCoderX.ai/config.json`**](https://HopCoderX.ai/config.json).
+Le fichier de configuration a un schéma défini dans [**`hopcoderx.dev/config.json`**](https://hopcoderx.dev/config.json).
 
 Votre éditeur doit être capable de valider et de compléter automatiquement en fonction du schéma.
 
@@ -155,7 +155,7 @@ Vous pouvez configurer les paramètres spécifiques à TUI via l'option `tui`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tui": {
     "scroll_speed": 3,
     "scroll_acceleration": {
@@ -182,7 +182,7 @@ Vous pouvez configurer les paramètres du serveur pour les commandes `HopCoderX 
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0",
@@ -211,7 +211,7 @@ Vous pouvez gérer les outils qu'un LLM peut utiliser via l'option `tools`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tools": {
     "write": false,
     "bash": false
@@ -229,7 +229,7 @@ Vous pouvez configurer les fournisseurs et les modèles que vous souhaitez utili
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {},
   "model": "anthropic/claude-sonnet-4-5",
   "small_model": "anthropic/claude-haiku-4-5"
@@ -242,7 +242,7 @@ Les options du fournisseur peuvent inclure `timeout` et `setCacheKey` :
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "anthropic": {
       "options": {
@@ -271,7 +271,7 @@ Amazon Bedrock prend en charge la configuration spécifique à AWS :
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "amazon-bedrock": {
       "options": {
@@ -302,7 +302,7 @@ Vous pouvez configurer le thème que vous souhaitez utiliser dans votre configur
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "theme": ""
 }
 ```
@@ -317,7 +317,7 @@ Vous pouvez configurer des agents spécialisés pour des tâches spécifiques vi
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "code-reviewer": {
       "description": "Reviews code for best practices and potential issues",
@@ -343,7 +343,7 @@ Vous pouvez définir l'agent par défaut à l'aide de l'option `default_agent`. 
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "default_agent": "plan"
 }
 ```
@@ -360,7 +360,7 @@ Vous pouvez configurer la fonctionnalité [share](/docs/share) via l'option `sha
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "share": "manual"
 }
 ```
@@ -381,7 +381,7 @@ Vous pouvez configurer des commandes personnalisées pour les tâches répétiti
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "command": {
     "test": {
       "template": "Run the full test suite with coverage report and show any failures.\nFocus on the failing tests and suggest fixes.",
@@ -407,7 +407,7 @@ Vous pouvez personnaliser vos raccourcis clavier via l'option `keybinds`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "keybinds": {}
 }
 ```
@@ -422,7 +422,7 @@ HopCoderX téléchargera automatiquement toutes les nouvelles mises à jour au d
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "autoupdate": false
 }
 ```
@@ -438,7 +438,7 @@ Vous pouvez configurer les formateurs de code via l'option `formatter`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -466,7 +466,7 @@ Par exemple, pour garantir que les outils `edit` et `bash` nécessitent l'approb
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "ask",
     "bash": "ask"
@@ -484,7 +484,7 @@ Vous pouvez contrôler le comportement de compactage du contexte via l'option `c
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "compaction": {
     "auto": true,
     "prune": true
@@ -503,7 +503,7 @@ Vous pouvez configurer les modèles d'ignorance de l'observateur de fichiers via
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**"]
   }
@@ -520,7 +520,7 @@ Vous pouvez configurer les serveurs MCP que vous souhaitez utiliser via l'option
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "mcp": {}
 }
 ```
@@ -537,7 +537,7 @@ Placez les fichiers du plugin dans `.HopCoderX/plugins/` ou `~/.config/HopCoderX
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "plugin": ["HopCoderX-helicone-session", "@my-org/custom-plugin"]
 }
 ```
@@ -552,7 +552,7 @@ Vous pouvez configurer les instructions pour le modèle que vous utilisez via l'
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
@@ -567,7 +567,7 @@ Vous pouvez désactiver les fournisseurs chargés automatiquement via l'option `
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "disabled_providers": ["openai", "gemini"]
 }
 ```
@@ -590,7 +590,7 @@ Vous pouvez spécifier une liste autorisée de fournisseurs via l'option `enable
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "enabled_providers": ["anthropic", "openai"]
 }
 ```
@@ -611,7 +611,7 @@ La clé `experimental` contient des options en cours de développement actif.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "experimental": {}
 }
 ```
@@ -634,7 +634,7 @@ Utilisez `{env:VARIABLE_NAME}` pour remplacer les variables d'environnement :
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "model": "{env:HOPCODERX_MODEL}",
   "provider": {
     "anthropic": {
@@ -657,7 +657,7 @@ Utilisez `{file:path/to/file}` pour remplacer le contenu d'un fichier :
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "instructions": ["./custom-instructions.md"],
   "provider": {
     "openai": {

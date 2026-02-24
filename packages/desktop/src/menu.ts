@@ -159,7 +159,7 @@ export async function createMenu(trigger: (id: string) => void) {
         items: [
           // missing native macos search
           await MenuItem.new({
-            action: () => openUrl("https://HopCoderX.ai/docs"),
+            action: () => openUrl("https://hopcoderx.dev/docs"),
             text: "HopCoderX Documentation",
           }),
           await MenuItem.new({

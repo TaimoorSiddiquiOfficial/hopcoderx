@@ -18,7 +18,7 @@ Pro Tool kannst du erlauben, verbieten oder eine Rueckfrage verlangen.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "deny",
     "bash": "ask",
@@ -32,7 +32,7 @@ Zum Beispiel, um fuer alle Tools eines MCP-Servers eine Freigabe zu verlangen:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "mymcp_*": "ask"
   }
@@ -55,7 +55,7 @@ Fuehrt Shell-Befehle in deiner Projektumgebung aus.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "bash": "allow"
   }
@@ -72,7 +72,7 @@ Bearbeitet bestehende Dateien ueber exakte String-Ersetzungen.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "allow"
   }
@@ -90,7 +90,7 @@ Erstellt neue Dateien oder ueberschreibt bestehende Dateien.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "allow"
   }
@@ -113,7 +113,7 @@ Read file contents from your codebase.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "read": "allow"
   }
@@ -130,7 +130,7 @@ Search file contents using regular expressions.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "grep": "allow"
   }
@@ -147,7 +147,7 @@ Find files by pattern matching.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "glob": "allow"
   }
@@ -164,7 +164,7 @@ List files and directories in a given path.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "list": "allow"
   }
@@ -185,7 +185,7 @@ This tool is only available when `HOPCODERX_EXPERIMENTAL_LSP_TOOL=true` (or `HOP
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "lsp": "allow"
   }
@@ -204,7 +204,7 @@ Apply patches to files.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "allow"
   }
@@ -225,7 +225,7 @@ Load a [skill](/docs/skills) (a `SKILL.md` file) and return its content in the c
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "skill": "allow"
   }
@@ -240,7 +240,7 @@ Manage todo lists during coding sessions.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "todowrite": "allow"
   }
@@ -261,7 +261,7 @@ Read existing todo lists.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "todoread": "allow"
   }
@@ -282,7 +282,7 @@ Fetch web content.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "webfetch": "allow"
   }
@@ -310,7 +310,7 @@ HOPCODERX_ENABLE_EXA=1 HopCoderX
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "websearch": "allow"
   }
@@ -333,7 +333,7 @@ Ask the user questions during execution.
 
 ```json title="HopCoderX.json" {4}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "question": "allow"
   }

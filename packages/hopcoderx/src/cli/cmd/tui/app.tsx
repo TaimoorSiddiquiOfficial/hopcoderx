@@ -555,7 +555,7 @@ function App() {
       title: "Open docs",
       value: "docs.open",
       onSelect: () => {
-        open("https://hopcoderx.ai/docs").catch(() => {})
+        open("https://hopcoderx.dev/docs").catch(() => {})
         dialog.clear()
       },
       category: "System",
@@ -662,7 +662,7 @@ function App() {
         DialogAlert.show(
           dialog,
           "Warning",
-          "While openrouter is a convenient way to access LLMs your request will often be routed to subpar providers that do not work well in our testing.\n\nFor reliable access to models check out HopCoderX Zen\nhttps://hopcoderx.ai/zen",
+          "While openrouter is a convenient way to access LLMs your request will often be routed to subpar providers that do not work well in our testing.\n\nFor reliable access to models check out HopCoderX Zen\nhttps://hopcoderx.dev/zen",
         ).then(() => kv.set("openrouter_warning", true))
       })
     }

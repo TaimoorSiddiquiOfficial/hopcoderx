@@ -140,7 +140,7 @@ Configure os agentes em seu arquivo de configuração `HopCoderX.json`:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "build": {
       "mode": "primary",
@@ -369,7 +369,7 @@ Controle quais ferramentas estão disponíveis neste agente com a configuração
 
 ```json title="HopCoderX.json" {3-6,9-12}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tools": {
     "write": true,
     "bash": true
@@ -393,7 +393,7 @@ Você também pode usar curingas para controlar várias ferramentas ao mesmo tem
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "readonly": {
       "tools": {
@@ -420,7 +420,7 @@ Você pode configurar permissões para gerenciar quais ações um agente pode re
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "deny"
   }
@@ -431,7 +431,7 @@ Você pode substituir essas permissões por agente.
 
 ```json title="HopCoderX.json" {3-5,8-10}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "deny"
   },
@@ -468,7 +468,7 @@ Você pode definir permissões para comandos bash específicos.
 
 ```json title="HopCoderX.json" {7}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "build": {
       "permission": {
@@ -486,7 +486,7 @@ Isso pode aceitar um padrão glob.
 
 ```json title="HopCoderX.json" {7}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "build": {
       "permission": {
@@ -504,7 +504,7 @@ Como a última regra correspondente tem precedência, coloque o curinga `*` prim
 
 ```json title="HopCoderX.json" {8}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "build": {
       "permission": {

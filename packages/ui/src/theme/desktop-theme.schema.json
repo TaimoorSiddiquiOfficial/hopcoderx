@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://HopCoderX.ai/desktop-theme.json",
+  "$id": "https://hopcoderx.dev/desktop-theme.json",
   "title": "HopCoderX Desktop Theme",
   "description": "A theme definition for the HopCoderX desktop application",
   "type": "object",

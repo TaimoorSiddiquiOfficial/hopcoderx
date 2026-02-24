@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://HopCoderX.ai">
+  <a href="https://hopcoderx.dev">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
@@ -9,7 +9,7 @@
 </p>
 <p align="center">L'agent de codage IA open source.</p>
 <p align="center">
-  <a href="https://HopCoderX.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://hopcoderx.dev/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
   <a href="https://www.npmjs.com/package/HopCoderX-ai"><img alt="npm" src="https://img.shields.io/npm/v/HopCoderX-ai?style=flat-square" /></a>
   <a href="https://github.com/TaimoorSiddiquiOfficial/hopcoderx/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/TaimoorSiddiquiOfficial/hopcoderx/publish.yml?style=flat-square&branch=main" /></a>
 </p>
@@ -35,7 +35,7 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://HopCoderX.ai)
+[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://hopcoderx.dev)
 
 ---
 
@@ -43,7 +43,7 @@
 
 ```bash
 # YOLO
-curl -fsSL https://HopCoderX.ai/install | bash
+curl -fsSL https://hopcoderx.dev/install | bash
 
 # Gestionnaires de paquets
 npm i -g HopCoderX-ai@latest        # ou bun/pnpm/yarn
@@ -62,7 +62,7 @@ nix run nixpkgs#HopCoderX           # ou github:TaimoorSiddiquiOfficial/hopcoder
 
 ### Application de bureau (BETA)
 
-HopCoderX est aussi disponible en application de bureau. Téléchargez-la directement depuis la [page des releases](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) ou [HopCoderX.ai/download](https://HopCoderX.ai/download).
+HopCoderX est aussi disponible en application de bureau. Téléchargez-la directement depuis la [page des releases](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) ou [hopcoderx.dev/download](https://hopcoderx.dev/download).
 
 | Plateforme            | Téléchargement                        |
 | --------------------- | ------------------------------------- |
@@ -89,8 +89,8 @@ Le script d'installation respecte l'ordre de priorité suivant pour le chemin d'
 
 ```bash
 # Exemples
-HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://HopCoderX.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://HopCoderX.ai/install | bash
+HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://hopcoderx.dev/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
 ```
 
 ### Agents
@@ -106,11 +106,11 @@ HopCoderX inclut deux agents intégrés que vous pouvez basculer avec la touche 
 Un sous-agent **general** est aussi inclus pour les recherches complexes et les tâches en plusieurs étapes.
 Il est utilisé en interne et peut être invoqué via `@general` dans les messages.
 
-En savoir plus sur les [agents](https://HopCoderX.ai/docs/agents).
+En savoir plus sur les [agents](https://hopcoderx.dev/docs/agents).
 
 ### Documentation
 
-Pour plus d'informations sur la configuration d'HopCoderX, [**consultez notre documentation**](https://HopCoderX.ai/docs).
+Pour plus d'informations sur la configuration d'HopCoderX, [**consultez notre documentation**](https://hopcoderx.dev/docs).
 
 ### Contribuer
 
@@ -127,7 +127,7 @@ Si vous travaillez sur un projet lié à HopCoderX et que vous utilisez "HopCode
 C'est très similaire à Claude Code en termes de capacités. Voici les principales différences :
 
 - 100% open source
-- Pas couplé à un fournisseur. Nous recommandons les modèles proposés via [HopCoderX Bdr](https://HopCoderX.ai/zen) ; HopCoderX peut être utilisé avec Claude, OpenAI, Google ou même des modèles locaux. Au fur et à mesure que les modèles évoluent, les écarts se réduiront et les prix baisseront, donc être agnostique au fournisseur est important.
+- Pas couplé à un fournisseur. Nous recommandons les modèles proposés via [HopCoderX Bdr](https://hopcoderx.dev/zen) ; HopCoderX peut être utilisé avec Claude, OpenAI, Google ou même des modèles locaux. Au fur et à mesure que les modèles évoluent, les écarts se réduiront et les prix baisseront, donc être agnostique au fournisseur est important.
 - Support LSP prêt à l'emploi
 - Un focus sur la TUI. HopCoderX est construit par des utilisateurs de neovim et les créateurs de [terminal.shop](https://terminal.shop) ; nous allons repousser les limites de ce qui est possible dans le terminal.
 - Architecture client/serveur. Cela permet par exemple de faire tourner HopCoderX sur votre ordinateur tout en le pilotant à distance depuis une application mobile. Cela signifie que la TUI n'est qu'un des clients possibles.

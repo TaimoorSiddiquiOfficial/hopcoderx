@@ -850,7 +850,7 @@
       "additionalProperties": false
     },
     "command": {
-      "description": "Command configuration, see https://hopcoderx.ai/docs/commands",
+      "description": "Command configuration, see https://hopcoderx.dev/docs/commands",
       "type": "object",
       "propertyNames": {
         "type": "string"
@@ -2520,7 +2520,7 @@
       }
     },
     "agent": {
-      "description": "Agent configuration, see https://hopcoderx.ai/docs/agents",
+      "description": "Agent configuration, see https://hopcoderx.dev/docs/agents",
       "type": "object",
       "properties": {
         "plan": {

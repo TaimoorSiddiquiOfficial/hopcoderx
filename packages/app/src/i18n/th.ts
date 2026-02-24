@@ -134,7 +134,7 @@ export const dict = {
   "provider.connect.HopCoderXZen.line2":
     "ด้วยคีย์ API เดียวคุณจะได้รับการเข้าถึงโมเดล เช่น Claude, GPT, Gemini, GLM และอื่น ๆ",
   "provider.connect.HopCoderXZen.visit.prefix": "เยี่ยมชม ",
-  "provider.connect.HopCoderXZen.visit.link": "HopCoderX.ai/zen",
+  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/zen",
   "provider.connect.HopCoderXZen.visit.suffix": " เพื่อรวบรวมคีย์ API ของคุณ",
   "provider.connect.oauth.code.visit.prefix": "เยี่ยมชม ",
   "provider.connect.oauth.code.visit.link": "ลิงก์นี้",

@@ -121,7 +121,7 @@ export const dict = {
     "HopCoderX Bdrは、コーディングエージェント向けに最適化された信頼性の高いモデルへのアクセスを提供します。",
   "provider.connect.HopCoderXZen.line2": "1つのAPIキーで、Claude、GPT、Gemini、GLMなどのモデルにアクセスできます。",
   "provider.connect.HopCoderXZen.visit.prefix": " ",
-  "provider.connect.HopCoderXZen.visit.link": "HopCoderX.ai/zen",
+  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/zen",
   "provider.connect.HopCoderXZen.visit.suffix": " にアクセスしてAPIキーを取得してください。",
   "provider.connect.oauth.code.visit.prefix": " ",
   "provider.connect.oauth.code.visit.link": "このリンク",

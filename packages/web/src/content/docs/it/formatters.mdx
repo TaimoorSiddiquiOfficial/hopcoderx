@@ -61,7 +61,7 @@ Puoi personalizzare i formattatori nella sezione `formatter` della config di Hop
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {}
 }
 ```
@@ -85,7 +85,7 @@ Per disabilitare **tutti** i formattatori globalmente, imposta `formatter` a `fa
 
 ```json title="HopCoderX.json" {3}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": false
 }
 ```
@@ -94,7 +94,7 @@ Per disabilitare un formattatore **specifico**, imposta `disabled` a `true`:
 
 ```json title="HopCoderX.json" {5}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -111,7 +111,7 @@ Puoi sovrascrivere i formattatori integrati o aggiungerne di nuovi specificando 
 
 ```json title="HopCoderX.json" {4-14}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "command": ["npx", "prettier", "--write", "$FILE"],

@@ -33,7 +33,7 @@ Você pode personalizar a URL base para qualquer provedor definindo a opção `b
 
 ```json title="HopCoderX.json" {6}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "anthropic": {
       "options": {
@@ -54,7 +54,7 @@ HopCoderX Bdr é uma lista de modelos fornecidos pela equipe do HopCoderX que fo
 Se você é novo, recomendamos começar com o HopCoderX Bdr.
 :::
 
-1. Execute o comando `/connect` no TUI, selecione HopCoderX e acesse [HopCoderX.ai/auth](https://HopCoderX.ai/auth).
+1. Execute o comando `/connect` no TUI, selecione HopCoderX e acesse [hopcoderx.dev/auth](https://hopcoderx.dev/auth).
 
    ```txt
    /connect
@@ -158,7 +158,7 @@ Para usar o Amazon Bedrock com o HopCoderX:
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "amazon-bedrock": {
          "options": {
@@ -185,7 +185,7 @@ Para usar o Amazon Bedrock com o HopCoderX:
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "amazon-bedrock": {
          "options": {
@@ -229,7 +229,7 @@ Para perfis de inferência personalizados, use o nome do modelo e do provedor na
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "amazon-bedrock": {
       // ...
@@ -480,7 +480,7 @@ O Cloudflare AI Gateway permite que você acesse modelos do OpenAI, Anthropic, W
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "cloudflare-ai-gateway": {
          "models": {
@@ -686,7 +686,7 @@ arquivo `HopCoderX.json`. Também é recomendado desativar o compartilhamento de
 
 ```json
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "small_model": "gitlab/duo-chat-haiku-4-5",
   "share": "disabled"
 }
@@ -748,7 +748,7 @@ Personalize através do `HopCoderX.json`:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "gitlab": {
       "options": {
@@ -769,7 +769,7 @@ Para acessar ferramentas do GitLab (merge requests, issues, pipelines, CI/CD, et
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "plugin": ["@gitlab/opencode-gitlab-plugin"]
 }
 ```
@@ -951,7 +951,7 @@ Aqui está o [Diretório de Modelos do Helicone](https://helicone.ai/models), vo
 
 ```jsonc title="~/.config/HopCoderX/HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "helicone": {
       "npm": "@ai-sdk/openai-compatible",
@@ -979,7 +979,7 @@ Helicone suporta cabeçalhos personalizados para recursos como cache, rastreamen
 
 ```jsonc title="~/.config/HopCoderX/HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "helicone": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1033,7 +1033,7 @@ Você pode configurar o HopCoderX para usar modelos locais através da utilidade
 
 ```json title="HopCoderX.json" "llama.cpp" {5, 6, 8, 10-15}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "llama.cpp": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1100,7 +1100,7 @@ Você pode configurar o HopCoderX para usar modelos locais através do LM Studio
 
 ```json title="HopCoderX.json" "lmstudio" {5, 6, 8, 10-14}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "lmstudio": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1221,7 +1221,7 @@ Ollama pode se configurar automaticamente para o HopCoderX. Consulte a [document
 
 ```json title="HopCoderX.json" "ollama" {5, 6, 8, 10-14}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1382,7 +1382,7 @@ HopCoderX Bdr é uma lista de modelos testados e verificados fornecidos pela equ
 
    ```json title="HopCoderX.json" {6}
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "openrouter": {
          "models": {
@@ -1397,7 +1397,7 @@ HopCoderX Bdr é uma lista de modelos testados e verificados fornecidos pela equ
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "openrouter": {
          "models": {
@@ -1613,7 +1613,7 @@ Você também pode personalizar modelos através da sua configuração do HopCod
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "vercel": {
       "models": {
@@ -1723,7 +1723,7 @@ Algumas opções de roteamento úteis:
 
    ```json title="HopCoderX.json" {6}
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "zenmux": {
          "models": {
@@ -1794,7 +1794,7 @@ Você pode usar qualquer provedor compatível com OpenAI com o HopCoderX. A maio
 
    ```json title="HopCoderX.json" ""myprovider"" {5-15}
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "myprovider": {
          "npm": "@ai-sdk/openai-compatible",
@@ -1834,7 +1834,7 @@ Aqui está um exemplo definindo as opções `apiKey`, `headers` e `limit` do mod
 
 ```json title="HopCoderX.json" {9,11,17-20}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "myprovider": {
       "npm": "@ai-sdk/openai-compatible",

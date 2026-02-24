@@ -117,7 +117,7 @@ export namespace Server {
               )
                 return input
 
-              // *.hopcoderx.ai (https only, adjust if needed)
+              // *.hopcoderx.dev (https only, adjust if needed)
               if (/^https:\/\/([a-z0-9-]+\.)*hopcoderx\.ai$/.test(input)) {
                 return input
               }
@@ -543,11 +543,11 @@ export namespace Server {
         .all("/*", async (c) => {
           const path = c.req.path
 
-          const response = await proxy(`https://app.hopcoderx.ai${path}`, {
+          const response = await proxy(`https://app.hopcoderx.dev${path}`, {
             ...c.req,
             headers: {
               ...c.req.raw.headers,
-              host: "app.hopcoderx.ai",
+              host: "app.hopcoderx.dev",
             },
           })
           response.headers.set(

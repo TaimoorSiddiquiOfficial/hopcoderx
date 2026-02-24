@@ -16,7 +16,7 @@
           {
             "group": "Getting started",
             "pages": ["index", "quickstart", "development"],
-            "openapi": "https://HopCoderX.ai/openapi.json"
+            "openapi": "https://hopcoderx.dev/openapi.json"
           }
         ]
       }

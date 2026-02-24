@@ -361,7 +361,7 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://hopcoderx.ai/",
+            "HTTP-Referer": "https://hopcoderx.dev/",
             "X-Title": "hopcoderx",
           },
         },
@@ -372,8 +372,9 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://hopcoderx.ai/",
+            "http-referer": "https://hopcoderx.dev/",
             "x-title": "hopcoderx",
+          },
         },
       }
     },
@@ -457,7 +458,7 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://hopcoderx.ai/",
+            "HTTP-Referer": "https://hopcoderx.dev/",
             "X-Title": "hopcoderx",
           },
         },
@@ -581,7 +582,7 @@ export namespace Provider {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://hopcoderx.ai/",
+            "HTTP-Referer": "https://hopcoderx.dev/",
             "X-Title": "hopcoderx",
           },
         },

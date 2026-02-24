@@ -1,10 +1,10 @@
 # HopCoderX VS Code Extension
 
-A Visual Studio Code extension that integrates [HopCoderX](https://HopCoderX.ai) directly into your development workflow.
+A Visual Studio Code extension that integrates [HopCoderX](https://hopcoderx.dev) directly into your development workflow.
 
 ## Prerequisites
 
-This extension requires the [HopCoderX CLI](https://HopCoderX.ai) to be installed on your system. Visit [HopCoderX.ai](https://HopCoderX.ai) for installation instructions.
+This extension requires the [HopCoderX CLI](https://hopcoderx.dev) to be installed on your system. Visit [hopcoderx.dev](https://hopcoderx.dev) for installation instructions.
 
 ## Features
 

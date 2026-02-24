@@ -13,7 +13,7 @@ HopCoderX podržava i **JSON** i **JSONC** (JSON sa komentarima) formate.
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   // Theme configuration
   "theme": "HopCoderX",
   "model": "anthropic/claude-sonnet-4-5",
@@ -133,7 +133,7 @@ Prilagođeni direktorij se učitava nakon direktorija globalne konfiguracije i `
 
 ## Šema
 
-Konfiguracijski fajl ima šemu koja je definirana u [**`HopCoderX.ai/config.json`**](https://HopCoderX.ai/config.json).
+Konfiguracijski fajl ima šemu koja je definirana u [**`hopcoderx.dev/config.json`**](https://hopcoderx.dev/config.json).
 Vaš editor bi trebao biti u mogućnosti da validira i autodovršava na osnovu šeme.
 
 ---
@@ -144,7 +144,7 @@ Možete konfigurirati postavke specifične za TUI putem opcije `tui`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tui": {
     "scroll_speed": 3,
     "scroll_acceleration": {
@@ -170,7 +170,7 @@ Možete konfigurirati postavke servera za naredbe `HopCoderX serve` i `HopCoderX
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0",
@@ -198,7 +198,7 @@ Možete upravljati alatima koje LLM može koristiti putem opcije `tools`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "tools": {
     "write": false,
     "bash": false
@@ -216,7 +216,7 @@ Možete konfigurirati dobavljače i modele koje želite koristiti u svojoj HopCo
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {},
   "model": "anthropic/claude-sonnet-4-5",
   "small_model": "anthropic/claude-haiku-4-5"
@@ -228,7 +228,7 @@ Opcije provajdera mogu uključivati ​​`timeout` i `setCacheKey`:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "anthropic": {
       "options": {
@@ -256,7 +256,7 @@ Amazon Bedrock podržava konfiguraciju specifičnu za AWS:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "amazon-bedrock": {
       "options": {
@@ -285,7 +285,7 @@ Možete konfigurirati temu koju želite koristiti u svojoj HopCoderX konfiguraci
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "theme": ""
 }
 ```
@@ -300,7 +300,7 @@ Možete konfigurirati specijalizirane agente za određene zadatke putem opcije `
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "agent": {
     "code-reviewer": {
       "description": "Reviews code for best practices and potential issues",
@@ -326,7 +326,7 @@ Možete postaviti zadanog agenta koristeći opciju `default_agent`. Ovo određuj
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "default_agent": "plan"
 }
 ```
@@ -342,7 +342,7 @@ Možete konfigurirati funkciju [share](/docs/share) putem opcije `share`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "share": "manual"
 }
 ```
@@ -362,7 +362,7 @@ Možete konfigurirati prilagođene naredbe za ponavljanje zadataka putem opcije 
 
 ```jsonc title="HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "command": {
     "test": {
       "template": "Run the full test suite with coverage report and show any failures.\nFocus on the failing tests and suggest fixes.",
@@ -388,7 +388,7 @@ Možete prilagoditi svoje veze tipki putem opcije `keybinds`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "keybinds": {}
 }
 ```
@@ -403,7 +403,7 @@ HopCoderX će automatski preuzeti sva nova ažuriranja kada se pokrene. Ovo mož
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "autoupdate": false
 }
 ```
@@ -419,7 +419,7 @@ Možete konfigurirati formatere koda putem opcije `formatter`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -446,7 +446,7 @@ Na primjer, da osigurate da alati `edit` i `bash` zahtijevaju odobrenje korisnik
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "permission": {
     "edit": "ask",
     "bash": "ask"
@@ -464,7 +464,7 @@ Možete kontrolirati ponašanje sažimanja konteksta putem opcije `compaction`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "compaction": {
     "auto": true,
     "prune": true
@@ -483,7 +483,7 @@ Možete konfigurirati obrasce ignoriranja promatrača datoteka putem opcije `wat
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**"]
   }
@@ -500,7 +500,7 @@ Možete konfigurirati MCP servere koje želite koristiti putem opcije `mcp`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "mcp": {}
 }
 ```
@@ -516,7 +516,7 @@ Postavite datoteke dodataka u `.HopCoderX/plugins/` ili `~/.config/HopCoderX/plu
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "plugin": ["HopCoderX-helicone-session", "@my-org/custom-plugin"]
 }
 ```
@@ -531,7 +531,7 @@ Možete konfigurirati upute za model koji koristite putem opcije `instructions`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
@@ -546,7 +546,7 @@ Možete onemogućiti dobavljače koji se automatski učitavaju preko opcije `dis
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "disabled_providers": ["openai", "gemini"]
 }
 ```
@@ -568,7 +568,7 @@ Možete odrediti listu dozvoljenih dobavljača putem opcije `enabled_providers`.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "enabled_providers": ["anthropic", "openai"]
 }
 ```
@@ -587,7 +587,7 @@ Ključ `experimental` sadrži opcije koje su u aktivnom razvoju.
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "experimental": {}
 }
 ```
@@ -610,7 +610,7 @@ Koristite `{env:VARIABLE_NAME}` za zamjenu varijabli okruženja:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "model": "{env:HOPCODERX_MODEL}",
   "provider": {
     "anthropic": {
@@ -633,7 +633,7 @@ Koristite `{file:path/to/file}` da zamijenite sadržaj fajla:
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "instructions": ["./custom-instructions.md"],
   "provider": {
     "openai": {

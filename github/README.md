@@ -1,6 +1,6 @@
 # HopCoderX GitHub Action
 
-A GitHub Action that integrates [HopCoderX](https://HopCoderX.ai) directly into your GitHub workflow.
+A GitHub Action that integrates [HopCoderX](https://hopcoderx.dev) directly into your GitHub workflow.
 
 Mention `/HopCoderX` in your comment, and HopCoderX will execute tasks within your GitHub Actions runner.
 

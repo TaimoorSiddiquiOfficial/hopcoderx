@@ -61,7 +61,7 @@ Du kan tilpasse formattere gjennom `formatter`-delen i HopCoderX-konfigurasjonen
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {}
 }
 ```
@@ -85,7 +85,7 @@ For å deaktivere **alle** formattere globalt, sett `formatter` til `false`:
 
 ```json title="HopCoderX.json" {3}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": false
 }
 ```
@@ -94,7 +94,7 @@ For å deaktivere en **spesifikk** formatter, sett `disabled` til `true`:
 
 ```json title="HopCoderX.json" {5}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -111,7 +111,7 @@ Du kan overstyre de innebygde formatterne eller legge til nye ved å spesifisere
 
 ```json title="HopCoderX.json" {4-14}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "formatter": {
     "prettier": {
       "command": ["npx", "prettier", "--write", "$FILE"],

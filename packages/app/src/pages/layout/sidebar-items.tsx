@@ -33,7 +33,7 @@ export const ProjectIcon = (props: { project: LocalProject; class?: string; noti
         <Avatar
           fallback={name()}
           src={
-            props.project.id === HOPCODERX_PROJECT_ID ? "https://HopCoderX.ai/favicon.svg" : props.project.icon?.override
+            props.project.id === HOPCODERX_PROJECT_ID ? "https://hopcoderx.dev/favicon.svg" : props.project.icon?.override
           }
           {...getAvatarColors(props.project.icon?.color)}
           class="size-full rounded"

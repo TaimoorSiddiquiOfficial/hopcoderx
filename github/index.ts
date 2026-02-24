@@ -362,7 +362,7 @@ function useIssueId() {
 }
 
 function useShareUrl() {
-  return isMock() ? "https://dev.HopCoderX.ai" : "https://HopCoderX.ai"
+  return isMock() ? "https://dev.hopcoderx.dev" : "https://hopcoderx.dev"
 }
 
 async function getAccessToken() {
@@ -373,7 +373,7 @@ async function getAccessToken() {
 
   let response
   if (isMock()) {
-    response = await fetch("https://api.HopCoderX.ai/exchange_github_app_token_with_pat", {
+    response = await fetch("https://api.hopcoderx.dev/exchange_github_app_token_with_pat", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${useEnvMock().mockToken}`,
@@ -382,7 +382,7 @@ async function getAccessToken() {
     })
   } else {
     const oidcToken = await core.getIDToken("HopCoderX-github-action")
-    response = await fetch("https://api.HopCoderX.ai/exchange_github_app_token", {
+    response = await fetch("https://api.hopcoderx.dev/exchange_github_app_token", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${oidcToken}`,

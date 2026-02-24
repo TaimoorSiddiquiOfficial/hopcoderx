@@ -134,7 +134,7 @@ export const dict = {
   "provider.connect.HopCoderXZen.line2":
     "Sa jednim API ključem dobijaš pristup modelima kao što su Claude, GPT, Gemini, GLM i drugi.",
   "provider.connect.HopCoderXZen.visit.prefix": "Posjeti ",
-  "provider.connect.HopCoderXZen.visit.link": "HopCoderX.ai/zen",
+  "provider.connect.HopCoderXZen.visit.link": "hopcoderx.dev/zen",
   "provider.connect.HopCoderXZen.visit.suffix": " da preuzmeš svoj API ključ.",
   "provider.connect.oauth.code.visit.prefix": "Posjeti ",
   "provider.connect.oauth.code.visit.link": "ovaj link",

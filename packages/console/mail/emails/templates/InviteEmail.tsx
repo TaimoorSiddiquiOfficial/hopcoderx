@@ -15,7 +15,7 @@ import {
   buttonText,
 } from "../styles"
 
-const CONSOLE_URL = "https://HopCoderX.ai/"
+const CONSOLE_URL = "https://hopcoderx.dev/"
 
 interface InviteEmailProps {
   inviter: string

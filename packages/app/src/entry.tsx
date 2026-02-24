@@ -68,7 +68,7 @@ const notify: Platform["notify"] = async (title, description, href) => {
 
   const notification = new Notification(title, {
     body: description ?? "",
-    icon: "https://HopCoderX.ai/favicon-96x96-v3.png",
+    icon: "https://hopcoderx.dev/favicon-96x96-v3.png",
   })
 
   notification.onclick = () => {
@@ -113,7 +113,7 @@ const platform: Platform = {
 const defaultUrl = iife(() => {
   const lsDefault = readDefaultServerUrl()
   if (lsDefault) return lsDefault
-  if (location.hostname.includes("HopCoderX.ai")) return "http://localhost:4096"
+  if (location.hostname.includes("hopcoderx.dev")) return "http://localhost:4096"
   if (import.meta.env.DEV)
     return `http://${import.meta.env.VITE_HOPCODERX_SERVER_HOST ?? "localhost"}:${import.meta.env.VITE_HOPCODERX_SERVER_PORT ?? "4096"}`
   return location.origin

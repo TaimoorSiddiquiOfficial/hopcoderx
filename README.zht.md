@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://HopCoderX.ai">
+  <a href="https://hopcoderx.dev">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
@@ -9,7 +9,7 @@
 </p>
 <p align="center">開源的 AI Coding Agent。</p>
 <p align="center">
-  <a href="https://HopCoderX.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://hopcoderx.dev/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
   <a href="https://www.npmjs.com/package/HopCoderX-ai"><img alt="npm" src="https://img.shields.io/npm/v/HopCoderX-ai?style=flat-square" /></a>
   <a href="https://github.com/TaimoorSiddiquiOfficial/hopcoderx/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/TaimoorSiddiquiOfficial/hopcoderx/publish.yml?style=flat-square&branch=main" /></a>
 </p>
@@ -35,7 +35,7 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://HopCoderX.ai)
+[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://hopcoderx.dev)
 
 ---
 
@@ -43,7 +43,7 @@
 
 ```bash
 # 直接安裝 (YOLO)
-curl -fsSL https://HopCoderX.ai/install | bash
+curl -fsSL https://hopcoderx.dev/install | bash
 
 # 套件管理員
 npm i -g HopCoderX-ai@latest        # 也可使用 bun/pnpm/yarn
@@ -62,7 +62,7 @@ nix run nixpkgs#HopCoderX           # 或使用 github:TaimoorSiddiquiOfficial/h
 
 ### 桌面應用程式 (BETA)
 
-HopCoderX 也提供桌面版應用程式。您可以直接從 [發佈頁面 (releases page)](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) 或 [HopCoderX.ai/download](https://HopCoderX.ai/download) 下載。
+HopCoderX 也提供桌面版應用程式。您可以直接從 [發佈頁面 (releases page)](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) 或 [hopcoderx.dev/download](https://hopcoderx.dev/download) 下載。
 
 | 平台                  | 下載連結                              |
 | --------------------- | ------------------------------------- |
@@ -89,8 +89,8 @@ scoop bucket add extras; scoop install extras/HopCoderX-desktop
 
 ```bash
 # 範例
-HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://HopCoderX.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://HopCoderX.ai/install | bash
+HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://hopcoderx.dev/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
 ```
 
 ### Agents
@@ -105,11 +105,11 @@ HopCoderX 內建了兩種 Agent，您可以使用 `Tab` 鍵快速切換。
 
 此外，HopCoderX 還包含一個 **general** 子 Agent，用於處理複雜搜尋與多步驟任務。此 Agent 供系統內部使用，亦可透過在訊息中輸入 `@general` 來呼叫。
 
-了解更多關於 [Agents](https://HopCoderX.ai/docs/agents) 的資訊。
+了解更多關於 [Agents](https://hopcoderx.dev/docs/agents) 的資訊。
 
 ### 線上文件
 
-關於如何設定 HopCoderX 的詳細資訊，請參閱我們的 [**官方文件**](https://HopCoderX.ai/docs)。
+關於如何設定 HopCoderX 的詳細資訊，請參閱我們的 [**官方文件**](https://hopcoderx.dev/docs)。
 
 ### 參與貢獻
 
@@ -126,7 +126,7 @@ HopCoderX 內建了兩種 Agent，您可以使用 `Tab` 鍵快速切換。
 在功能面上與 Claude Code 非常相似。以下是關鍵差異：
 
 - 100% 開源。
-- 不綁定特定的服務提供商。雖然我們推薦使用透過 [HopCoderX Bdr](https://HopCoderX.ai/zen) 提供的模型，但 HopCoderX 也可搭配 Claude, OpenAI, Google 甚至本地模型使用。隨著模型不斷演進，彼此間的差距會縮小且價格會下降，因此具備「不限廠商 (provider-agnostic)」的特性至關重要。
+- 不綁定特定的服務提供商。雖然我們推薦使用透過 [HopCoderX Bdr](https://hopcoderx.dev/zen) 提供的模型，但 HopCoderX 也可搭配 Claude, OpenAI, Google 甚至本地模型使用。隨著模型不斷演進，彼此間的差距會縮小且價格會下降，因此具備「不限廠商 (provider-agnostic)」的特性至關重要。
 - 內建 LSP (語言伺服器協定) 支援。
 - 專注於終端機介面 (TUI)。HopCoderX 由 Neovim 愛好者與 [terminal.shop](https://terminal.shop) 的創作者打造。我們將不斷挑戰終端機介面的極限。
 - 客戶端/伺服器架構 (Client/Server Architecture)。這讓 HopCoderX 能夠在您的電腦上運行的同時，由行動裝置進行遠端操控。這意味著 TUI 前端只是眾多可能的客戶端之一。

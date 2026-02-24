@@ -34,7 +34,7 @@ HopCoderX 使用 [AI SDK](https://ai-sdk.dev/) 和 [Models.dev](https://models.d
 
 ```json title="HopCoderX.json" {6}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "anthropic": {
       "options": {
@@ -55,7 +55,7 @@ HopCoderX Bdr 是由 HopCoderX 团队提供的模型列表，这些模型已经�
 如果你是新用户，我们建议从 HopCoderX Bdr 开始。
 :::
 
-1. 在 TUI 中执行 `/connect` 命令，选择 HopCoderX，然后前往 [HopCoderX.ai/auth](https://HopCoderX.ai/auth)。
+1. 在 TUI 中执行 `/connect` 命令，选择 HopCoderX，然后前往 [hopcoderx.dev/auth](https://hopcoderx.dev/auth)。
 
    ```txt
    /connect
@@ -159,7 +159,7 @@ HopCoderX Bdr 是由 HopCoderX 团队提供的模型列表，这些模型已经�
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "amazon-bedrock": {
          "options": {
@@ -186,7 +186,7 @@ HopCoderX Bdr 是由 HopCoderX 团队提供的模型列表，这些模型已经�
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "amazon-bedrock": {
          "options": {
@@ -230,7 +230,7 @@ HopCoderX Bdr 是由 HopCoderX 团队提供的模型列表，这些模型已经�
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "amazon-bedrock": {
       // ...
@@ -481,7 +481,7 @@ Cloudflare AI Gateway 允许你通过统一端点访问来自 OpenAI、Anthropic
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "cloudflare-ai-gateway": {
          "models": {
@@ -683,7 +683,7 @@ HopCoderX 会使用一个小模型来执行部分 AI 任务，例如生成会话
 
 ```json
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "small_model": "gitlab/duo-chat-haiku-4-5",
   "share": "disabled"
 }
@@ -743,7 +743,7 @@ export GITLAB_OAUTH_CLIENT_ID=your_application_id_here
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "gitlab": {
       "options": {
@@ -764,7 +764,7 @@ export GITLAB_OAUTH_CLIENT_ID=your_application_id_here
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "plugin": ["@gitlab/opencode-gitlab-plugin"]
 }
 ```
@@ -943,7 +943,7 @@ export GITLAB_OAUTH_CLIENT_ID=your_application_id_here
 
 ```jsonc title="~/.config/HopCoderX/HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "helicone": {
       "npm": "@ai-sdk/openai-compatible",
@@ -971,7 +971,7 @@ Helicone 支持用于缓存、用户跟踪和会话管理等功能的自定义�
 
 ```jsonc title="~/.config/HopCoderX/HopCoderX.jsonc"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "helicone": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1025,7 +1025,7 @@ npm install -g HopCoderX-helicone-session
 
 ```json title="HopCoderX.json" "llama.cpp" {5, 6, 8, 10-15}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "llama.cpp": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1092,7 +1092,7 @@ IO.NET 提供 17 个针对不同用例优化的模型：
 
 ```json title="HopCoderX.json" "lmstudio" {5, 6, 8, 10-14}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "lmstudio": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1213,7 +1213,7 @@ Ollama 可以自动为 HopCoderX 进行配置。详见 [Ollama 集成文档](htt
 
 ```json title="HopCoderX.json" "ollama" {5, 6, 8, 10-14}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1374,7 +1374,7 @@ HopCoderX Bdr 是由 HopCoderX 团队提供的经过测试和验证的模型列�
 
    ```json title="HopCoderX.json" {6}
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "openrouter": {
          "models": {
@@ -1389,7 +1389,7 @@ HopCoderX Bdr 是由 HopCoderX 团队提供的经过测试和验证的模型列�
 
    ```json title="HopCoderX.json"
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "openrouter": {
          "models": {
@@ -1638,7 +1638,7 @@ Vercel AI Gateway 允许你通过统一端点访问来自 OpenAI、Anthropic、G
 
 ```json title="HopCoderX.json"
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "vercel": {
       "models": {
@@ -1748,7 +1748,7 @@ Vercel AI Gateway 允许你通过统一端点访问来自 OpenAI、Anthropic、G
 
    ```json title="HopCoderX.json" {6}
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "zenmux": {
          "models": {
@@ -1816,7 +1816,7 @@ Vercel AI Gateway 允许你通过统一端点访问来自 OpenAI、Anthropic、G
 
    ```json title="HopCoderX.json" ""myprovider"" {5-15}
    {
-     "$schema": "https://HopCoderX.ai/config.json",
+     "$schema": "https://hopcoderx.dev/config.json",
      "provider": {
        "myprovider": {
          "npm": "@ai-sdk/openai-compatible",
@@ -1854,7 +1854,7 @@ Vercel AI Gateway 允许你通过统一端点访问来自 OpenAI、Anthropic、G
 
 ```json title="HopCoderX.json" {9,11,17-20}
 {
-  "$schema": "https://HopCoderX.ai/config.json",
+  "$schema": "https://hopcoderx.dev/config.json",
   "provider": {
     "myprovider": {
       "npm": "@ai-sdk/openai-compatible",

@@ -330,7 +330,7 @@ const createPlatform = (): Platform => {
         .then(() => {
           const notification = new Notification(title, {
             body: description ?? "",
-            icon: "https://HopCoderX.ai/favicon-96x96-v3.png",
+            icon: "https://hopcoderx.dev/favicon-96x96-v3.png",
           })
           notification.onclick = () => {
             const win = getCurrentWindow()
