@@ -1379,7 +1379,7 @@ export type KeybindsConfig = {
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR"
 
 /**
- * Server configuration for HopCoderX serve and web commands
+ * Server configuration for hopcoderx serve and web commands
  */
 export type ServerConfig = {
   /**
@@ -1702,7 +1702,7 @@ export type Config = {
   }
   server?: ServerConfig
   /**
-   * Command configuration, see https://hopcoderx.dev/docs/commands
+   * Command configuration, see https://hopcoder.dev/docs/commands
    */
   command?: {
     [key: string]: {
@@ -1776,7 +1776,7 @@ export type Config = {
     [key: string]: AgentConfig | undefined
   }
   /**
-   * Agent configuration, see https://hopcoderx.dev/docs/agents
+   * Agent configuration, see https://hopcoder.dev/docs/agents
    */
   agent?: {
     plan?: AgentConfig
@@ -2251,7 +2251,7 @@ export type Command = {
 export type Agent = {
   name: string
   description?: string
-  mode: "subagent" | "primary" | "all"
+  mode: "subagent" | "primary" | "all" | "orchestrator"
   native?: boolean
   hidden?: boolean
   topP?: number

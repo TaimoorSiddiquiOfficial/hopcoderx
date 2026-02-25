@@ -34,6 +34,4 @@ LICENSE
 README.md
 node_modules
 .turbo
-.gitignore
-README.md
 *.md
