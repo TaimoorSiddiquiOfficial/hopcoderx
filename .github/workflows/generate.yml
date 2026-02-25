@@ -7,6 +7,7 @@ on:
 
 jobs:
   generate:
+    if: vars.HOPCODERX_APP_ID != ''
     runs-on: ubuntu-latest
     permissions:
       contents: write

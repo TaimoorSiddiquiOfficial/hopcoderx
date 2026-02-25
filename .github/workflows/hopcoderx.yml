@@ -9,10 +9,11 @@ on:
 jobs:
   hopcoderx:
     if: |
+      vars.HOPCODERX_APP_ID != '' && (
       contains(github.event.comment.body, ' /oc') ||
       startsWith(github.event.comment.body, '/oc') ||
       contains(github.event.comment.body, ' /hopcoderx') ||
-      startsWith(github.event.comment.body, '/hopcoderx')
+      startsWith(github.event.comment.body, '/hopcoderx'))
     runs-on: ubuntu-latest
     permissions:
       id-token: write

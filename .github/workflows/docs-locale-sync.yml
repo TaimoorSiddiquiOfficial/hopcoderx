@@ -9,7 +9,7 @@ on:
 
 jobs:
   sync-locales:
-    if: github.actor != 'hopcoderx-agent[bot]'
+    if: github.actor != 'hopcoderx-agent[bot]' && vars.HOPCODERX_APP_ID != ''
     runs-on: ubuntu-latest
     permissions:
       id-token: write

@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-duplicates:
-    if: github.event.action == 'opened'
+    if: github.event.action == 'opened' && vars.HOPCODERX_APP_ID != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -118,7 +118,7 @@ jobs:
           Remember: post at most ONE comment combining all findings. If everything is fine, post nothing."
 
   recheck-compliance:
-    if: github.event.action == 'edited' && contains(github.event.issue.labels.*.name, 'needs:compliance')
+    if: github.event.action == 'edited' && contains(github.event.issue.labels.*.name, 'needs:compliance') && vars.HOPCODERX_APP_ID != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
