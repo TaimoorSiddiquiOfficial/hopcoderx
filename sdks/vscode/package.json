@@ -20,7 +20,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onStartupFinished"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -43,8 +43,62 @@
       {
         "command": "HopCoderX.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
+      },
+      {
+        "command": "HopCoderX.toggleGhostCoder",
+        "title": "HopCoderX: Toggle Ghost-Coder"
       }
     ],
+    "configuration": {
+      "title": "HopCoderX Ghost-Coder",
+      "properties": {
+        "hopcoderx.ghostCoder.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable speculative inline code completions via local models"
+        },
+        "hopcoderx.ghostCoder.endpoint": {
+          "type": "string",
+          "default": "http://localhost:11434/api/generate",
+          "description": "Ollama-compatible model endpoint for completions"
+        },
+        "hopcoderx.ghostCoder.debounceMs": {
+          "type": "number",
+          "default": 150,
+          "minimum": 50,
+          "maximum": 2000,
+          "description": "Debounce delay in ms before requesting a completion"
+        },
+        "hopcoderx.ghostCoder.maxCacheSize": {
+          "type": "number",
+          "default": 256,
+          "minimum": 16,
+          "maximum": 4096,
+          "description": "Maximum number of cached completions"
+        },
+        "hopcoderx.ghostCoder.contextLines": {
+          "type": "number",
+          "default": 50,
+          "minimum": 10,
+          "maximum": 200,
+          "description": "Lines of context sent before and after the cursor"
+        },
+        "hopcoderx.ghostCoder.maxTokens": {
+          "type": "number",
+          "default": 128,
+          "minimum": 16,
+          "maximum": 1024,
+          "description": "Maximum tokens in a completion response"
+        },
+        "hopcoderx.ghostCoder.temperature": {
+          "type": "number",
+          "default": 0.2,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Sampling temperature for completions"
+        }
+      }
+    },
     "menus": {
       "editor/title": [
         {

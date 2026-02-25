@@ -1,11 +1,33 @@
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+  ghost?.dispose()
+}
 
 import * as vscode from "vscode"
+import { GhostDaemon } from "./ghost/daemon"
+import { GhostCompletionProvider } from "./ghost/provider"
+import * as ghostConfig from "./ghost/config"
 
 const TERMINAL_NAME = "HopCoderX"
+let ghost: GhostDaemon | undefined
 
 export function activate(context: vscode.ExtensionContext) {
+  // Ghost-coder inline completion daemon
+  const cfg = ghostConfig.read()
+  ghost = new GhostDaemon()
+
+  const provider = new GhostCompletionProvider(ghost, cfg.debounceMs)
+  context.subscriptions.push(
+    vscode.languages.registerInlineCompletionItemProvider({ pattern: "**" }, provider),
+    ghost,
+  )
+
+  const toggleGhostCmd = vscode.commands.registerCommand("HopCoderX.toggleGhostCoder", () => {
+    ghost!.toggle()
+    const state = ghost!.active ? "enabled" : "disabled"
+    vscode.window.showInformationMessage(`Ghost-coder ${state}`)
+  })
+
   let openNewTerminalDisposable = vscode.commands.registerCommand("HopCoderX.openNewTerminal", async () => {
     await openTerminal()
   })
@@ -40,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   })
 
-  context.subscriptions.push(openTerminalDisposable, addFilepathDisposable)
+  context.subscriptions.push(toggleGhostCmd, openTerminalDisposable, addFilepathDisposable)
 
   async function openTerminal() {
     // Create a new terminal in split screen
@@ -85,6 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // If connected, append the prompt to the terminal
     if (connected) {
+      ghost?.setHopCoderXPort(port)
       await appendPrompt(port, `In ${fileRef}`)
       terminal.show()
     }

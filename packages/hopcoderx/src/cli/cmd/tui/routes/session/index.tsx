@@ -60,6 +60,8 @@ import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
 import { Sidebar } from "./sidebar"
+import { SplitPane } from "@tui/component/split-pane"
+import { FilePreview } from "./file-preview"
 import { Flag } from "@/flag/flag"
 import { LANGUAGE_EXTENSIONS } from "@/lsp/language"
 import parsers from "../../../../../../parsers-config.ts"
@@ -154,6 +156,7 @@ export function Session() {
   const [diffWrapMode] = kv.signal<"word" | "none">("diff_wrap_mode", "word")
   const [animationsEnabled, setAnimationsEnabled] = kv.signal("animations_enabled", true)
   const [showGenericToolOutput, setShowGenericToolOutput] = kv.signal("generic_tool_output_visibility", false)
+  const [splitPaneOpen, setSplitPaneOpen] = kv.signal("split_pane_open", false)
 
   const wide = createMemo(() => dimensions().width > 120)
   const sidebarVisible = createMemo(() => {
@@ -533,6 +536,16 @@ export function Session() {
           setSidebar(() => (isVisible ? "hide" : "auto"))
           setSidebarOpen(!isVisible)
         })
+        dialog.clear()
+      },
+    },
+    {
+      title: splitPaneOpen() ? "Hide file panel" : "Show file panel",
+      value: "session.panel.toggle",
+      keybind: "panel_toggle",
+      category: "Session",
+      onSelect: (dialog) => {
+        setSplitPaneOpen((prev) => !prev)
         dialog.clear()
       },
     },
@@ -991,23 +1004,25 @@ export function Session() {
       }}
     >
       <box flexDirection="row">
-        <box flexGrow={1} paddingBottom={1} paddingTop={1} paddingLeft={2} paddingRight={2} gap={1}>
-          <Show when={session()}>
-            <Show when={showHeader() && (!sidebarVisible() || !wide())}>
-              <Header />
-            </Show>
-            <scrollbox
-              ref={(r) => (scroll = r)}
-              viewportOptions={{
-                paddingRight: showScrollbar() ? 1 : 0,
-              }}
-              verticalScrollbarOptions={{
-                paddingLeft: 1,
-                visible: showScrollbar(),
-                trackOptions: {
-                  backgroundColor: theme.backgroundElement,
-                  foregroundColor: theme.border,
-                },
+        <SplitPane
+          left={() => (
+            <box flexGrow={1} paddingBottom={1} paddingTop={1} paddingLeft={2} paddingRight={2} gap={1}>
+              <Show when={session()}>
+                <Show when={showHeader() && (!sidebarVisible() || !wide())}>
+                  <Header />
+                </Show>
+                <scrollbox
+                  ref={(r) => (scroll = r)}
+                  viewportOptions={{
+                    paddingRight: showScrollbar() ? 1 : 0,
+                  }}
+                  verticalScrollbarOptions={{
+                    paddingLeft: 1,
+                    visible: showScrollbar(),
+                    trackOptions: {
+                      backgroundColor: theme.backgroundElement,
+                      foregroundColor: theme.border,
+                    },
               }}
               stickyScroll={true}
               stickyStart="bottom"
@@ -1137,6 +1152,10 @@ export function Session() {
           </Show>
           <Toast />
         </box>
+          )}
+          right={() => <FilePreview sessionID={route.sessionID} />}
+          sidebarWidth={sidebarVisible() ? 42 : 0}
+        />
         <Show when={sidebarVisible()}>
           <Switch>
             <Match when={wide()}>

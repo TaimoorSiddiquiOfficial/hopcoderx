@@ -923,6 +923,7 @@ export namespace Config {
       terminal_title_toggle: z.string().optional().default("none").describe("Toggle terminal title"),
       tips_toggle: z.string().optional().default("<leader>h").describe("Toggle tips on home screen"),
       display_thinking: z.string().optional().default("none").describe("Toggle thinking blocks visibility"),
+      panel_toggle: z.string().optional().default("<leader>p").describe("Toggle file preview panel"),
     })
     .strict()
     .meta({
@@ -941,6 +942,17 @@ export namespace Config {
       .enum(["auto", "stacked"])
       .optional()
       .describe("Control diff rendering style: 'auto' adapts to terminal width, 'stacked' always shows single column"),
+    pane_layout: z
+      .enum(["single", "split"])
+      .optional()
+      .describe("Pane layout: 'single' is the default chat view, 'split' opens a file preview panel alongside chat"),
+    panel_width: z
+      .number()
+      .int()
+      .min(30)
+      .max(200)
+      .optional()
+      .describe("Width in columns of the file preview panel when pane_layout is 'split' (default: 60)"),
   })
 
   export const Server = z
