@@ -24,24 +24,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install OSV-Scanner
+        run: go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+        env:
+          GOBIN: /usr/local/bin
+
       - name: Run OSV-Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v2
-        with:
-          scan-args: |-
-            --recursive
-            --format=table
-            .
+        run: osv-scanner scan --recursive --format table .
         continue-on-error: true
 
       - name: Run OSV-Scanner (SARIF)
         if: ${{ !cancelled() }}
-        uses: google/osv-scanner-action/osv-scanner-action@v2
-        with:
-          scan-args: |-
-            --recursive
-            --output=osv-results.sarif
-            --format=sarif
-            .
+        run: osv-scanner scan --recursive --format sarif --output osv-results.sarif .
         continue-on-error: true
 
       - name: Upload SARIF results
