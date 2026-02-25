@@ -10,6 +10,7 @@
     "dev:desktop": "bun --cwd packages/desktop tauri dev",
     "dev:web": "bun --cwd packages/app dev",
     "typecheck": "bun turbo typecheck",
+    "lint": "bunx @biomejs/biome lint .",
     "prepare": "husky",
     "test": "echo 'do not run tests from root' && exit 1"
   },

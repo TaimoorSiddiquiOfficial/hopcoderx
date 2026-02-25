@@ -1,0 +1,50 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "README*.md"
+      - "LICENSE"
+
+concurrency:
+  group: pr-checks-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun
+
+      - name: Lint with Biome
+        run: bunx @biomejs/biome lint .
+        continue-on-error: true
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun
+
+      - name: Typecheck all packages
+        run: bun turbo typecheck
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun
+
+      - name: Run tests
+        working-directory: packages/hopcoderx
+        run: bun test --timeout 30000

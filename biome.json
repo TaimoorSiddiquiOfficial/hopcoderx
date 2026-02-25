@@ -1,0 +1,70 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"assist": { "actions": { "source": { "organizeImports": "off" } } },
+	"formatter": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"a11y": {
+				"noSvgWithoutTitle": "off",
+				"useButtonType": "off",
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off",
+				"useKeyWithMouseEvents": "off",
+				"useGenericFontNames": "off"
+			},
+			"correctness": {
+				"noUnusedImports": "warn",
+				"noUnusedVariables": "warn",
+				"noUnusedFunctionParameters": "warn",
+				"noUndeclaredVariables": "off",
+				"noSwitchDeclarations": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noConfusingVoidType": "off",
+				"noTemplateCurlyInString": "off",
+				"noControlCharactersInRegex": "off",
+				"noTsIgnore": "off",
+				"noImplicitAnyLet": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"useConst": "warn",
+				"noParameterAssign": "off",
+				"useNodejsImportProtocol": "off",
+				"useTemplate": "off",
+				"useImportType": "off"
+			},
+			"complexity": {
+				"noBannedTypes": "off",
+				"noForEach": "off",
+				"useLiteralKeys": "off",
+				"useOptionalChain": "warn",
+				"noImportantStyles": "off",
+				"noUselessContinue": "warn"
+			}
+		}
+	},
+	"files": {
+		"includes": [
+			"**",
+			"!**/node_modules",
+			"!**/dist",
+			"!**/dist/**",
+			"!**/*.gen.ts",
+			"!**/*.gen.js",
+			"!**/packages/sdk/js/src/gen/**",
+			"!**/packages/sdk/js/src/v2/gen/**",
+			"!**/patches/**"
+		]
+	}
+}
