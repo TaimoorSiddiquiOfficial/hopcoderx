@@ -175,7 +175,7 @@ try {
     })
   }
 
-  if (e instanceof ResolveMessage) {
+  if (typeof ResolveMessage !== "undefined" && e instanceof ResolveMessage) {
     Object.assign(data, {
       name: e.name,
       message: e.message,

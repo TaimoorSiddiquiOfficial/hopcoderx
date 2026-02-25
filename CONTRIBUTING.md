@@ -41,7 +41,7 @@ https://github.com/TaimoorSiddiquiOfficial/models.dev
 
 ### Running against a different directory
 
-By default, `bun dev` runs HopCoderX in the `packages/HopCoderX` directory. To run it against a different directory or repository:
+By default, `bun dev` runs HopCoderX in the `packages/hopcoderx` directory. To run it against a different directory or repository:
 
 ```bash
 bun dev <directory>
@@ -58,23 +58,23 @@ bun dev .
 To compile a standalone executable:
 
 ```bash
-./packages/HopCoderX/script/build.ts --single
+./packages/hopcoderx/script/build.ts --single
 ```
 
 Then run it with:
 
 ```bash
-./packages/HopCoderX/dist/HopCoderX-<platform>/bin/HopCoderX
+./packages/hopcoderx/dist/hopcoderx-<platform>/bin/hopcoderx
 ```
 
 Replace `<platform>` with your platform (e.g., `darwin-arm64`, `linux-x64`).
 
 - Core pieces:
-  - `packages/HopCoderX`: HopCoderX core business logic & server.
-  - `packages/HopCoderX/src/cli/cmd/tui/`: The TUI code, written in SolidJS with [opentui](https://github.com/sst/opentui)
+  - `packages/hopcoderx`: HopCoderX core business logic & server.
+  - `packages/hopcoderx/src/cli/cmd/tui/`: The TUI code, written in SolidJS with [opentui](https://github.com/sst/opentui)
   - `packages/app`: The shared web UI components, written in SolidJS
   - `packages/desktop`: The native desktop app, built with Tauri (wraps `packages/app`)
-  - `packages/plugin`: Source for `@HopCoderX-ai/plugin`
+  - `packages/plugin`: Source for `@hopcoderx/plugin`
 
 ### Understanding bun dev vs HopCoderX
 
@@ -151,7 +151,7 @@ This runs `bun run --cwd packages/desktop build` automatically via Tauri’s `be
 > Running the desktop app requires additional Tauri dependencies (Rust toolchain, platform-specific libraries). See the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for setup instructions.
 
 > [!NOTE]
-> If you make changes to the API or SDK (e.g. `packages/HopCoderX/src/server/server.ts`), run `./script/generate.ts` to regenerate the SDK and related files.
+> If you make changes to the API or SDK (e.g. `packages/hopcoderx/src/server/server.ts`), run `./script/generate.ts` to regenerate the SDK and related files.
 
 Please try to follow the [style guide](./AGENTS.md)
 
@@ -167,9 +167,9 @@ Caveats:
 - If you want to run the HopCoderX TUI and have breakpoints triggered in the server code, you might need to run `bun dev spawn` instead of
   the usual `bun dev`. This is because `bun dev` runs the server in a worker thread and breakpoints might not work there.
 - If `spawn` does not work for you, you can debug the server separately:
-  - Debug server: `bun run --inspect=ws://localhost:6499/ --cwd packages/HopCoderX ./src/index.ts serve --port 4096`,
+  - Debug server: `bun run --inspect=ws://localhost:6499/ --cwd packages/hopcoderx ./src/index.ts serve --port 4096`,
     then attach TUI with `HopCoderX attach http://localhost:4096`
-  - Debug TUI: `bun run --inspect=ws://localhost:6499/ --cwd packages/HopCoderX --conditions=browser ./src/index.ts`
+  - Debug TUI: `bun run --inspect=ws://localhost:6499/ --cwd packages/hopcoderx --conditions=browser ./src/index.ts`
 
 Other tips and tricks:
 

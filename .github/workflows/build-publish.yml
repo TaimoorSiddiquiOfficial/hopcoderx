@@ -7,7 +7,6 @@ on:
         description: "Version to publish (e.g. 1.0.0)"
         required: true
         type: string
-        default: "1.0.0"
       channel:
         description: "npm dist-tag"
         required: false
@@ -83,10 +82,16 @@ jobs:
           TAG="${{ inputs.channel || 'latest' }}"
           for dir in dist/hopcoderx-*/; do
             if [ -f "$dir/package.json" ]; then
-              echo "Publishing $(basename $dir)..."
-              cd "$dir"
-              npm publish --access public --tag "$TAG" || echo "Failed: $dir"
-              cd - > /dev/null
+              PKG_NAME=$(jq -r .name "$dir/package.json")
+              PKG_VER=$(jq -r .version "$dir/package.json")
+              if npm view "${PKG_NAME}@${PKG_VER}" version 2>/dev/null; then
+                echo "Skipping $PKG_NAME@$PKG_VER (already published)"
+              else
+                echo "Publishing $PKG_NAME@$PKG_VER..."
+                cd "$dir"
+                npm publish --access public --tag "$TAG"
+                cd - > /dev/null
+              fi
             fi
           done
 
@@ -126,7 +131,11 @@ jobs:
           cp ../../LICENSE dist/wrapper/LICENSE
 
           cd dist/wrapper
-          npm publish --access public --tag "$TAG" || echo "Failed: wrapper"
+          if npm view "hopcoderx-ai@${VERSION}" version 2>/dev/null; then
+            echo "Skipping hopcoderx-ai@${VERSION} (already published)"
+          else
+            npm publish --access public --tag "$TAG"
+          fi
 
       - name: Create GitHub Release
         run: |

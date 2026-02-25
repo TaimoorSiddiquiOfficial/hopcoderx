@@ -11,8 +11,6 @@
     "dev:web": "bun --cwd packages/app dev",
     "typecheck": "bun turbo typecheck",
     "prepare": "husky",
-    "random": "echo 'Random script'",
-    "hello": "echo 'Hello World!'",
     "test": "echo 'do not run tests from root' && exit 1"
   },
   "workspaces": {
@@ -102,9 +100,7 @@
   ],
   "overrides": {
     "@types/bun": "catalog:",
-    "@types/node": "catalog:",
-    "@opencode-ai/plugin": "$@hopcoderx/plugin",
-    "@opencode-ai/sdk": "$@hopcoderx/sdk"
+    "@types/node": "catalog:"
   },
   "patchedDependencies": {
     "@standard-community/standard-openapi@0.2.9": "patches/@standard-community%2Fstandard-openapi@0.2.9.patch",
