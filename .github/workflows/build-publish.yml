@@ -41,13 +41,36 @@ env:
   HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
 
 jobs:
+  # ─── Validate inputs ───────────────────────────────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check NPM_TOKEN is set
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "::error::NPM_TOKEN secret is not configured. Add it in repo Settings → Secrets."
+            exit 1
+          fi
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$'; then
+            echo "::error::Invalid version format: $VERSION (expected semver like 1.0.0 or 1.0.0-beta.1)"
+            exit 1
+          fi
+          echo "Version: $VERSION"
+
   # ─── Build CLI Binaries (all platforms on single runner) ────────────
   build-cli:
     if: ${{ !inputs.skip_cli }}
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun
+
+      - name: Bump version
+        run: bun run script/bump-version.ts "${{ inputs.version }}"
 
       - name: Build CLI (all platforms)
         working-directory: packages/hopcoderx
@@ -162,24 +185,14 @@ jobs:
   # ─── Publish SDK (@hopcoderx/sdk) ──────────────────────────────────
   publish-sdk:
     if: ${{ !inputs.skip_sdk }}
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun
 
       - name: Bump version
-        run: |
-          VERSION="${{ inputs.version }}"
-          bun -e "
-            const files = await Array.fromAsync(
-              new Bun.Glob('**/package.json').scan({ absolute: true })
-            ).then(arr => arr.filter(x => !x.includes('node_modules') && !x.includes('dist')))
-            for (const file of files) {
-              let pkg = await Bun.file(file).text()
-              pkg = pkg.replaceAll(/\"version\": \"[^\"]+\"/g, '\"version\": \"'+'${VERSION}'+'\"')
-              await Bun.file(file).write(pkg)
-            }
-          "
+        run: bun run script/bump-version.ts "${{ inputs.version }}"
 
       - name: Setup npm auth
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
@@ -193,24 +206,14 @@ jobs:
   # ─── Publish Plugin (@hopcoderx/plugin) ────────────────────────────
   publish-plugin:
     if: ${{ !inputs.skip_plugin }}
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun
 
       - name: Bump version
-        run: |
-          VERSION="${{ inputs.version }}"
-          bun -e "
-            const files = await Array.fromAsync(
-              new Bun.Glob('**/package.json').scan({ absolute: true })
-            ).then(arr => arr.filter(x => !x.includes('node_modules') && !x.includes('dist')))
-            for (const file of files) {
-              let pkg = await Bun.file(file).text()
-              pkg = pkg.replaceAll(/\"version\": \"[^\"]+\"/g, '\"version\": \"'+'${VERSION}'+'\"')
-              await Bun.file(file).write(pkg)
-            }
-          "
+        run: bun run script/bump-version.ts "${{ inputs.version }}"
 
       - name: Setup npm auth
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
@@ -221,7 +224,7 @@ jobs:
 
   # ─── Finalize ──────────────────────────────────────────────────────
   finalize:
-    needs: [publish-cli, publish-sdk, publish-plugin]
+    needs: [validate, publish-cli, publish-sdk, publish-plugin]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
     steps:
