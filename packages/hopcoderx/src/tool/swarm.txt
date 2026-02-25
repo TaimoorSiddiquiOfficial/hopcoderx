@@ -1,0 +1,19 @@
+Orchestrate a complex task using the multi-agent swarm pattern (Planner → Coder → Reviewer). This tool decomposes a task into atomic steps, executes each step with a coding agent, and optionally validates each step's output with a reviewer agent.
+
+Use this when:
+- The task requires multiple coordinated changes across files
+- The task has natural subtask boundaries (e.g., "add auth, then add dashboard, then add tests")
+- You want automated code review between steps
+- The task is complex enough to benefit from structured decomposition
+
+The swarm will:
+1. **Plan**: Break the task into ordered steps with dependencies
+2. **Code**: Execute each step using the build agent (respecting dependencies)
+3. **Review**: Validate each step's output (if review is enabled)
+4. **Retry**: Re-execute steps that fail review (up to max retries)
+
+Independent steps within the same dependency wave run in parallel.
+
+Parameters:
+- task: A clear description of what needs to be accomplished
+- context: Optional key-value pairs providing relevant context (file paths, requirements, constraints)

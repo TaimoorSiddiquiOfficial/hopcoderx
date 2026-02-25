@@ -1,7 +1,8 @@
 import { AgentContext } from "./context"
 
-// System prompt for task decomposition
-const DECOMPOSE_SYSTEM = `You are an AI orchestration planner. Given a user task, break it into concrete step-by-step subtasks that can each be handled independently by a coding AI agent.
+export namespace Orchestrator {
+  // System prompt for task decomposition
+  export const DECOMPOSE_SYSTEM = `You are an AI orchestration planner. Given a user task, break it into concrete step-by-step subtasks that can each be handled independently by a coding AI agent.
 
 Return ONLY valid JSON matching this schema (no markdown, no explanation):
 {
@@ -29,8 +30,8 @@ Rules:
 - agent is always "build" unless the step is purely planning (use "plan")
 - Maximum 12 steps`
 
-// System prompt for gap detection
-const GAP_SYSTEM = `You are reviewing a set of agent steps for a coding task. For each step, identify missing information (gaps) that would prevent the step from completing.
+  // System prompt for gap detection
+  export const GAP_SYSTEM = `You are reviewing a set of agent steps for a coding task. For each step, identify missing information (gaps) that would prevent the step from completing.
 
 Return ONLY valid JSON:
 {
@@ -40,7 +41,6 @@ Return ONLY valid JSON:
   }
 }`
 
-export namespace Orchestrator {
   export type DecomposeResult = {
     steps: Omit<AgentContext.Step, "model" | "status" | "output" | "tokens" | "cost">[]
     context: AgentContext.Info["context"]

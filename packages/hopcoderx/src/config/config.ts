@@ -1224,6 +1224,27 @@ export namespace Config {
             })
             .optional()
             .describe("Local semantic code search using FTS5 indexing, symbol extraction, and AST code graph"),
+          swarm: z
+            .object({
+              enabled: z.boolean().optional().describe("Enable the multi-agent swarm tool (Planner → Coder → Reviewer)"),
+              review: z
+                .boolean()
+                .optional()
+                .describe("Enable automatic code review after each swarm step (default: true)"),
+              max_review_retries: z
+                .number()
+                .int()
+                .min(0)
+                .max(5)
+                .optional()
+                .describe("Maximum number of review-retry cycles per step (default: 2)"),
+              tier: z
+                .enum(["free", "mini", "pro", "engineer"])
+                .optional()
+                .describe("Model tier for swarm step execution (default: free)"),
+            })
+            .optional()
+            .describe("Multi-agent swarm orchestration: decomposes complex tasks into steps with Planner → Coder → Reviewer pipeline"),
         })
         .optional(),
     })

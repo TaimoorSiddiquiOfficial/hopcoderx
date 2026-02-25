@@ -1,0 +1,15 @@
+Launch a headless browser to visually debug a web application. Navigates to the specified URL, captures a screenshot, and optionally evaluates JavaScript in the page context.
+
+Use this when:
+- You need to verify that a web page renders correctly after code changes
+- You want to check for visual regressions
+- You need to inspect DOM state or run JavaScript in a live browser
+- You want to screenshot an error page for debugging
+
+The tool uses playwright-core for lightweight headless browser automation. It captures a full-page screenshot and returns the page title, URL, and any console errors encountered.
+
+Parameters:
+- url: The URL to navigate to (e.g., "http://localhost:3000")
+- evaluate: Optional JavaScript to evaluate in the page context (returns the result as a string)
+- selector: Optional CSS selector to screenshot instead of the full page
+- wait_for: Optional CSS selector to wait for before capturing (ensures content is loaded)

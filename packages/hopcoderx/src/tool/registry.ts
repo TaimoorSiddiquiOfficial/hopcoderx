@@ -28,6 +28,8 @@ import { Truncate } from "./truncation"
 import { PlanExitTool, PlanEnterTool } from "./plan"
 import { ApplyPatchTool } from "./apply_patch"
 import { SemanticSearchTool } from "./semanticsearch"
+import { SwarmTool } from "./swarm"
+import { VisualDebugTool } from "./visualdebug"
 import { Glob } from "../util/glob"
 
 export namespace ToolRegistry {
@@ -115,6 +117,8 @@ export namespace ToolRegistry {
       WebSearchTool,
       CodeSearchTool,
       ...(config.experimental?.semantic_search?.enabled !== false ? [SemanticSearchTool] : []),
+      ...(config.experimental?.swarm?.enabled ? [SwarmTool] : []),
+      VisualDebugTool,
       SkillTool,
       ApplyPatchTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),

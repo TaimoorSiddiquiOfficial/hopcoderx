@@ -1887,6 +1887,53 @@ export type Config = {
      * Timeout in milliseconds for model context protocol (MCP) requests
      */
     mcp_timeout?: number
+    /**
+     * Safe Refactor: automatically retry edits that introduce LSP/TypeScript errors
+     */
+    safe_refactor?: {
+      /**
+       * Enable safe refactor mode: auto-retry on LSP errors after edits
+       */
+      enabled?: boolean
+      /**
+       * Maximum number of retry attempts for fixing LSP errors (default: 3)
+       */
+      max_retries?: number
+    }
+    /**
+     * Local semantic code search using FTS5 indexing, symbol extraction, and AST code graph
+     */
+    semantic_search?: {
+      /**
+       * Enable the semantic search tool for local codebase indexing and search
+       */
+      enabled?: boolean
+      /**
+       * Automatically index the codebase on first semantic search query (default: true)
+       */
+      auto_index?: boolean
+    }
+    /**
+     * Multi-agent swarm orchestration: decomposes complex tasks into steps with Planner → Coder → Reviewer pipeline
+     */
+    swarm?: {
+      /**
+       * Enable the multi-agent swarm tool (Planner → Coder → Reviewer)
+       */
+      enabled?: boolean
+      /**
+       * Enable automatic code review after each swarm step (default: true)
+       */
+      review?: boolean
+      /**
+       * Maximum number of review-retry cycles per step (default: 2)
+       */
+      max_review_retries?: number
+      /**
+       * Model tier for swarm step execution (default: free)
+       */
+      tier?: "free" | "mini" | "pro" | "engineer"
+    }
   }
 }
 
