@@ -1201,6 +1201,19 @@ export namespace Config {
             .positive()
             .optional()
             .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
+          safe_refactor: z
+            .object({
+              enabled: z.boolean().optional().describe("Enable safe refactor mode: auto-retry on LSP errors after edits"),
+              max_retries: z
+                .number()
+                .int()
+                .min(1)
+                .max(10)
+                .optional()
+                .describe("Maximum number of retry attempts for fixing LSP errors (default: 3)"),
+            })
+            .optional()
+            .describe("Safe Refactor: automatically retry edits that introduce LSP/TypeScript errors"),
         })
         .optional(),
     })

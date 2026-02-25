@@ -37,6 +37,7 @@ import { SessionSummary } from "./summary"
 import { NamedError } from "@hopcoderx/util/error"
 import { fn } from "@/util/fn"
 import { SessionProcessor } from "./processor"
+import { SafeRefactor } from "./safe-refactor"
 import { TaskTool } from "@/tool/task"
 import { Tool } from "@/tool/tool"
 import { PermissionNext } from "@/permission/next"
@@ -685,6 +686,45 @@ export namespace SessionPrompt {
         break
       }
 
+      // Safe Refactor: check for unresolved LSP errors after edits
+      const refactorResult = await SafeRefactor.check({
+        sessionID,
+        messageID: processor.message.id,
+      })
+      if (refactorResult.retry) {
+        SafeRefactor.increment(sessionID)
+        const attempt = SafeRefactor.attempts(sessionID)
+        const max = await SafeRefactor.maxRetries()
+        log.info("safe-refactor: injecting retry", { sessionID, attempt, max, files: refactorResult.files })
+
+        // Inject a synthetic user message to force the LLM to fix the errors
+        const fixMsg: MessageV2.User = {
+          id: Identifier.ascending("message"),
+          sessionID,
+          role: "user",
+          time: { created: Date.now() },
+          agent: lastUser.agent,
+          model: lastUser.model,
+        }
+        await Session.updateMessage(fixMsg)
+        await Session.updatePart({
+          id: Identifier.ascending("part"),
+          messageID: fixMsg.id,
+          sessionID,
+          type: "text",
+          text: [
+            `<safe-refactor attempt="${attempt}/${max}">`,
+            "Your recent edits introduced LSP/TypeScript errors in the following files:",
+            ...refactorResult.files.map((f) => `  - ${f}`),
+            "",
+            "Please fix ALL errors before continuing. Do not move on until the code compiles cleanly.",
+            "</safe-refactor>",
+          ].join("\n"),
+          synthetic: true,
+        } satisfies MessageV2.TextPart)
+        continue
+      }
+
       // Check if model finished (finish reason is not "tool-calls" or "unknown")
       const modelFinished = processor.message.finish && !["tool-calls", "unknown"].includes(processor.message.finish)
 
@@ -711,6 +751,7 @@ export namespace SessionPrompt {
       }
       continue
     }
+    SafeRefactor.reset(sessionID)
     SessionCompaction.prune({ sessionID })
     for await (const item of MessageV2.stream(sessionID)) {
       if (item.info.role === "user") continue
