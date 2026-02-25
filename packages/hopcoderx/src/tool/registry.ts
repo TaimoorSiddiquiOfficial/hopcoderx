@@ -27,6 +27,7 @@ import { LspTool } from "./lsp"
 import { Truncate } from "./truncation"
 import { PlanExitTool, PlanEnterTool } from "./plan"
 import { ApplyPatchTool } from "./apply_patch"
+import { SemanticSearchTool } from "./semanticsearch"
 import { Glob } from "../util/glob"
 
 export namespace ToolRegistry {
@@ -113,6 +114,7 @@ export namespace ToolRegistry {
       // TodoReadTool,
       WebSearchTool,
       CodeSearchTool,
+      ...(config.experimental?.semantic_search?.enabled !== false ? [SemanticSearchTool] : []),
       SkillTool,
       ApplyPatchTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),

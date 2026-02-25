@@ -1214,6 +1214,16 @@ export namespace Config {
             })
             .optional()
             .describe("Safe Refactor: automatically retry edits that introduce LSP/TypeScript errors"),
+          semantic_search: z
+            .object({
+              enabled: z.boolean().optional().describe("Enable the semantic search tool for local codebase indexing and search"),
+              auto_index: z
+                .boolean()
+                .optional()
+                .describe("Automatically index the codebase on first semantic search query (default: true)"),
+            })
+            .optional()
+            .describe("Local semantic code search using FTS5 indexing, symbol extraction, and AST code graph"),
         })
         .optional(),
     })

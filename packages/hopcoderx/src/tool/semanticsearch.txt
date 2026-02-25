@@ -1,0 +1,8 @@
+- Semantic code search across the entire codebase using a local full-text index
+- Searches code content, function names, class names, and other symbols
+- Returns relevant code snippets ranked by relevance with file paths and line numbers
+- Automatically indexes the project on first use and updates incrementally
+- Use this when you need to understand the codebase structure or find related code
+- Supports symbol search mode to find specific function, class, or type definitions
+- More effective than grep for conceptual queries like "authentication logic" or "database connection handling"
+- Use grep for exact pattern matching; use this tool for semantic/conceptual code discovery
