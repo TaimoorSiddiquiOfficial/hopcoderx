@@ -24,6 +24,6 @@ jobs:
 
       - name: Release
         run: |
-          git config --global user.email "hopcoderx@sst.dev"
+          git config --global user.email "hopcoderx@hopcoder.dev"
           git config --global user.name "hopcoderx"
           ./github/script/release

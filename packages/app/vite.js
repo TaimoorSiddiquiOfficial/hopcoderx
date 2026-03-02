@@ -7,7 +7,7 @@ import { fileURLToPath } from "url"
  */
 export default [
   {
-    name: "opencode-desktop:config",
+    name: "hopcoderx-desktop:config",
     config() {
       return {
         resolve: {
