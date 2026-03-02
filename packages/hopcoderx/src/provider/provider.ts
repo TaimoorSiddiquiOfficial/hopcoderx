@@ -588,6 +588,73 @@ export namespace Provider {
         },
       }
     },
+    "hopcoderx-bdr": async (input) => {
+      const apiKey = await (async () => {
+        const env = Env.all()
+        if (env["HOPCODERX_BDR_API_KEY"]) return env["HOPCODERX_BDR_API_KEY"]
+        const auth = await Auth.get("hopcoderx-bdr")
+        if (auth?.type === "api") return auth.key
+        const config = await Config.get()
+        if (config.provider?.["hopcoderx-bdr"]?.options?.apiKey) return config.provider["hopcoderx-bdr"].options.apiKey
+        return undefined
+      })()
+
+      if (!apiKey) return { autoload: false }
+
+      const config = await Config.get()
+      const base =
+        Env.get("HOPCODERX_BDR_URL") ?? config.provider?.["hopcoderx-bdr"]?.api ?? "https://api.hopcoder.dev/v1"
+
+      try {
+        const res = await fetch(`${base}/models`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(5000),
+        })
+        if (res.ok) {
+          const body = (await res.json()) as { data?: Array<Record<string, unknown>> }
+          for (const m of body.data ?? []) {
+            const id = String(m.id ?? "")
+            if (!id || m.preset) continue
+            input.models[id] = {
+              id,
+              providerID: "hopcoderx-bdr",
+              name: String(m.display_name ?? id),
+              family: String(m.provider ?? ""),
+              api: { id, url: base, npm: "@ai-sdk/openai-compatible" },
+              status: "active",
+              capabilities: {
+                temperature: true,
+                reasoning: false,
+                attachment: false,
+                toolcall: true,
+                input: { text: true, audio: false, image: false, video: false, pdf: false },
+                output: { text: true, audio: false, image: false, video: false, pdf: false },
+                interleaved: false,
+              },
+              cost: {
+                input: Number(m.pricing && typeof m.pricing === "object" ? (m.pricing as Record<string, unknown>).input_per_1m_tokens_usd : 0) || 0,
+                output: Number(m.pricing && typeof m.pricing === "object" ? (m.pricing as Record<string, unknown>).output_per_1m_tokens_usd : 0) || 0,
+                cache: { read: 0, write: 0 },
+              },
+              limit: {
+                context: Number(m.context_window) || 128000,
+                output: Number(m.max_output_tokens) || 16384,
+              },
+              options: {},
+              headers: {},
+              release_date: "",
+            }
+          }
+        }
+      } catch (e) {
+        log.error("Failed to fetch HopCoderX BDR models", { error: e })
+      }
+
+      return {
+        autoload: Object.keys(input.models).length > 0,
+        options: { apiKey },
+      }
+    },
   }
 
   export const Model = z
@@ -759,6 +826,18 @@ export namespace Provider {
     const config = await Config.get()
     const modelsDev = await ModelsDev.get()
     const database = mapValues(modelsDev, fromModelsDevProvider)
+
+    // Built-in HopCoderX BDR provider (dynamic model discovery from BDR API)
+    if (!database["hopcoderx-bdr"]) {
+      database["hopcoderx-bdr"] = {
+        id: "hopcoderx-bdr",
+        name: "HopCoderX BDR",
+        source: "custom",
+        env: ["HOPCODERX_BDR_API_KEY"],
+        options: {},
+        models: {},
+      }
+    }
 
     const disabled = new Set(config.disabled_providers ?? [])
     const enabled = config.enabled_providers ? new Set(config.enabled_providers) : null
