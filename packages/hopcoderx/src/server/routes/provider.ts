@@ -46,6 +46,15 @@ export const ProviderRoutes = lazy(() =>
             filteredProviders[key] = value
           }
         }
+        // Ensure HopCoderX BDR is always available
+        if (!filteredProviders["hopcoderx-bdr"] && !disabled.has("hopcoderx-bdr")) {
+          filteredProviders["hopcoderx-bdr"] = {
+            id: "hopcoderx-bdr",
+            name: "HopCoderX BDR",
+            env: ["HOPCODERX_BDR_API_KEY"],
+            models: {},
+          }
+        }
 
         const connected = await Provider.list()
         const providers = Object.assign(

@@ -13,6 +13,7 @@ import { NamedError } from "@hopcoderx/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@hopcoderx/gitlab-auth"
 import { anthropicAuthPlugin as AnthropicAuthPlugin } from "@hopcoderx/anthropic-auth"
+import { BdrAuthPlugin } from "./bdr"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
@@ -20,7 +21,7 @@ export namespace Plugin {
   const BUILTIN: string[] = []
 
   // Built-in plugins that are directly imported (not installed from npm)
-  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin, AnthropicAuthPlugin]
+  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin, AnthropicAuthPlugin, BdrAuthPlugin]
 
   const state = Instance.state(async () => {
     const client = createHopCoderXClient({

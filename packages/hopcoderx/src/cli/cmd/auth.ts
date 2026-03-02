@@ -302,19 +302,23 @@ export const AuthLoginCommand = cmd({
 
         const priority: Record<string, number> = {
           HopCoderX: 0,
-          anthropic: 1,
-          "github-copilot": 2,
-          openai: 3,
-          google: 4,
-          openrouter: 5,
-          vercel: 6,
+          "hopcoderx-bdr": 1,
+          anthropic: 2,
+          "github-copilot": 3,
+          openai: 4,
+          google: 5,
+          openrouter: 6,
+          vercel: 7,
         }
         const pluginProviders = resolvePluginProviders({
           hooks: await Plugin.list(),
           existingProviders: providers,
           disabled,
           enabled,
-          providerNames: Object.fromEntries(Object.entries(config.provider ?? {}).map(([id, p]) => [id, p.name])),
+          providerNames: {
+            "hopcoderx-bdr": "HopCoderX BDR",
+            ...Object.fromEntries(Object.entries(config.provider ?? {}).map(([id, p]) => [id, p.name])),
+          },
         })
         let provider = await prompts.autocomplete({
           message: "Select provider",
@@ -340,7 +344,7 @@ export const AuthLoginCommand = cmd({
             ...pluginProviders.map((x) => ({
               label: x.name,
               value: x.id,
-              hint: "plugin",
+              hint: x.id === "hopcoderx-bdr" ? "HopCoderX BDR API" : "plugin",
             })),
             {
               value: "other",

@@ -16,10 +16,11 @@ import { useToast } from "../ui/toast"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
   hopcoderx: 0,
-  anthropic: 1,
-  "github-copilot": 2,
-  openai: 3,
-  google: 4,
+  "hopcoderx-bdr": 1,
+  anthropic: 2,
+  "github-copilot": 3,
+  openai: 4,
+  google: 5,
 }
 
 export function createDialogProviderOptions() {
@@ -35,6 +36,7 @@ export function createDialogProviderOptions() {
         value: provider.id,
         description: {
           hopcoderx: "(Recommended)",
+          "hopcoderx-bdr": "(HopCoderX BDR API key)",
           anthropic: "(Claude Max or API key)",
           openai: "(ChatGPT Plus/Pro or API key)",
         }[provider.id],
