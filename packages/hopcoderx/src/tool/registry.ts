@@ -36,6 +36,9 @@ import { DocgenTool } from "./docgen"
 import { DepauditTool } from "./depaudit"
 import { CodeVulnScanTool } from "./codevulnscan"
 import { RecallMemoryTool, RememberTool } from "./codemem"
+import { ImageUnderstandingTool } from "./imageunderstand"
+import { DocUnderstandingTool } from "./docunderstand"
+import { AudioTranscriptionTool } from "./transcribe"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -132,6 +135,9 @@ export namespace ToolRegistry {
       CodeVulnScanTool,
       RecallMemoryTool,
       RememberTool,
+      ImageUnderstandingTool,
+      DocUnderstandingTool,
+      AudioTranscriptionTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),

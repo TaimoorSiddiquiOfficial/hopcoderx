@@ -42,6 +42,8 @@ import { DaemonCommand } from "./cli/cmd/daemon"
 import { CronCommand } from "./cli/cmd/cron"
 import { WebhooksCommand } from "./cli/cmd/webhooks"
 import { HooksCommand } from "./cli/cmd/hooks"
+import { CompletionCommand } from "./cli/cmd/completion"
+import { ChannelsCommand } from "./cli/cmd/channels"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -169,6 +171,8 @@ const cli = yargs(hideBin(process.argv))
   .command(CronCommand)
   .command(WebhooksCommand)
   .command(HooksCommand)
+  .command(CompletionCommand)
+  .command(ChannelsCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
