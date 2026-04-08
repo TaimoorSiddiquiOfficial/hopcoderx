@@ -23,6 +23,13 @@ import { SignalChannel } from "../../channels/signal"
 import { IRCChannel } from "../../channels/irc"
 import { MattermostChannel } from "../../channels/mattermost"
 import { LINEChannel } from "../../channels/line"
+import { SlackChannel } from "../../channels/slack"
+import { FeishuChannel } from "../../channels/feishu"
+import { GoogleChatChannel } from "../../channels/googlechat"
+import { TwitchChannel } from "../../channels/twitch"
+import { SynologyChatChannel } from "../../channels/synology-chat"
+import { NextcloudTalkChannel } from "../../channels/nextcloud-talk"
+import { NostrChannel } from "../../channels/nostr"
 
 // Register built-in channels on first import
 ChannelRegistry.register(new GitHubIssuesChannel())
@@ -37,6 +44,13 @@ ChannelRegistry.register(new SignalChannel())
 ChannelRegistry.register(new IRCChannel())
 ChannelRegistry.register(new MattermostChannel())
 ChannelRegistry.register(new LINEChannel())
+ChannelRegistry.register(new SlackChannel())
+ChannelRegistry.register(new FeishuChannel())
+ChannelRegistry.register(new GoogleChatChannel())
+ChannelRegistry.register(new TwitchChannel())
+ChannelRegistry.register(new SynologyChatChannel())
+ChannelRegistry.register(new NextcloudTalkChannel())
+ChannelRegistry.register(new NostrChannel())
 
 export const ChannelsCommand = cmd({
   command: "channels <action>",
