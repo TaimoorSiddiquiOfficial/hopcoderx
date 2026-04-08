@@ -40,6 +40,8 @@ import { SandboxCommand } from "./cli/cmd/sandbox"
 import { AccessibilityCommand } from "./cli/cmd/accessibility"
 import { DaemonCommand } from "./cli/cmd/daemon"
 import { CronCommand } from "./cli/cmd/cron"
+import { WebhooksCommand } from "./cli/cmd/webhooks"
+import { HooksCommand } from "./cli/cmd/hooks"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -165,6 +167,8 @@ const cli = yargs(hideBin(process.argv))
   .command(AccessibilityCommand)
   .command(DaemonCommand)
   .command(CronCommand)
+  .command(WebhooksCommand)
+  .command(HooksCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
