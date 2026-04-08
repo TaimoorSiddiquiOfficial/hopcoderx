@@ -16,6 +16,9 @@ import { TelegramChannel } from "../../channels/telegram"
 import { PagerDutyChannel } from "../../channels/pagerduty"
 import { LinearChannel } from "../../channels/linear"
 import { DiscordChannel } from "../../channels/discord"
+import { TeamsChannel } from "../../channels/teams"
+import { WhatsAppChannel } from "../../channels/whatsapp"
+import { MatrixChannel } from "../../channels/matrix"
 
 // Register built-in channels on first import
 ChannelRegistry.register(new GitHubIssuesChannel())
@@ -23,6 +26,9 @@ ChannelRegistry.register(new TelegramChannel())
 ChannelRegistry.register(new PagerDutyChannel())
 ChannelRegistry.register(new LinearChannel())
 ChannelRegistry.register(new DiscordChannel())
+ChannelRegistry.register(new TeamsChannel())
+ChannelRegistry.register(new WhatsAppChannel())
+ChannelRegistry.register(new MatrixChannel())
 
 export const ChannelsCommand = cmd({
   command: "channels <action>",

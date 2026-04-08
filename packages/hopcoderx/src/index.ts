@@ -47,6 +47,7 @@ import { ChannelsCommand } from "./cli/cmd/channels"
 import { TaskflowCommand } from "./cli/cmd/taskflow"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { TailscaleCommand } from "./cli/cmd/tailscale"
+import { PairCommand } from "./cli/cmd/pair"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -179,6 +180,7 @@ const cli = yargs(hideBin(process.argv))
   .command(TaskflowCommand)
   .command(WorktreeCommand)
   .command(TailscaleCommand)
+  .command(PairCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
