@@ -691,6 +691,40 @@ export namespace Provider {
         options: { baseURL: "https://integrate.api.nvidia.com/v1", apiKey: key },
       }
     },
+    vllm: async (input) => {
+      // vLLM self-hosted — expects VLLM_BASE_URL (e.g. http://localhost:8000/v1)
+      const baseURL = Env.get("VLLM_BASE_URL")
+      if (!baseURL) return { autoload: false }
+      const apiKey = await iife(async () => {
+        const env = Env.get("VLLM_API_KEY")
+        if (env) return env
+        const auth = await Auth.get(input.id)
+        if (auth?.type === "api") return auth.key
+        return "EMPTY"
+      })
+      return { autoload: true, options: { baseURL, apiKey } }
+    },
+    "ibm-watsonx": async (input) => {
+      // IBM Watsonx — requires WATSONX_API_KEY + WATSONX_PROJECT_ID
+      const apiKey = await iife(async () => {
+        const env = Env.get("WATSONX_API_KEY")
+        if (env) return env
+        const auth = await Auth.get(input.id)
+        if (auth?.type === "api") return auth.key
+        return undefined
+      })
+      const projectId = Env.get("WATSONX_PROJECT_ID")
+      if (!apiKey || !projectId) return { autoload: false }
+      const region = Env.get("WATSONX_REGION") || "us-south"
+      return {
+        autoload: true,
+        options: {
+          baseURL: `https://${region}.ml.cloud.ibm.com/ml/v1`,
+          apiKey,
+          headers: { "IBM-Project-Id": projectId },
+        },
+      }
+    },
     gitlab: async (input) => {
       const instanceUrl = Env.get("GITLAB_INSTANCE_URL") || "https://gitlab.com"
 
@@ -1135,6 +1169,65 @@ export namespace Provider {
         env: ["NVIDIA_API_KEY"],
         options: { baseURL: "https://integrate.api.nvidia.com/v1" },
         models: {},
+      }
+    }
+
+    if (!database["vllm"]) {
+      database["vllm"] = {
+        id: "vllm",
+        name: "vLLM (self-hosted)",
+        source: "custom",
+        env: ["VLLM_BASE_URL"],
+        options: {},
+        models: {},
+      }
+    }
+
+    if (!database["ibm-watsonx"]) {
+      database["ibm-watsonx"] = {
+        id: "ibm-watsonx",
+        name: "IBM Watsonx",
+        source: "custom",
+        env: ["WATSONX_API_KEY", "WATSONX_PROJECT_ID"],
+        options: {},
+        models: {
+          "ibm/granite-3-8b-instruct": {
+            id: "ibm/granite-3-8b-instruct",
+            name: "Granite 3 8B Instruct",
+            providerID: "ibm-watsonx",
+            api: { id: "ibm/granite-3-8b-instruct", url: "https://us-south.ml.cloud.ibm.com/ml/v1", npm: "@ai-sdk/openai-compatible" },
+            capabilities: {
+              temperature: true, reasoning: false, attachment: false, toolcall: true,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+              interleaved: false,
+            },
+            cost: { input: 0.6, output: 1.8, cache: { read: 0, write: 0 } },
+            limit: { context: 128000, output: 8192 },
+            options: {},
+            headers: {},
+            release_date: "2024-10-21",
+            status: "active",
+          },
+          "ibm/granite-34b-code-instruct": {
+            id: "ibm/granite-34b-code-instruct",
+            name: "Granite 34B Code Instruct",
+            providerID: "ibm-watsonx",
+            api: { id: "ibm/granite-34b-code-instruct", url: "https://us-south.ml.cloud.ibm.com/ml/v1", npm: "@ai-sdk/openai-compatible" },
+            capabilities: {
+              temperature: true, reasoning: false, attachment: false, toolcall: false,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+              interleaved: false,
+            },
+            cost: { input: 1.0, output: 3.0, cache: { read: 0, write: 0 } },
+            limit: { context: 8192, output: 4096 },
+            options: {},
+            headers: {},
+            release_date: "2024-05-06",
+            status: "active",
+          },
+        },
       }
     }
 

@@ -16,6 +16,7 @@ import { cmd } from "./cmd"
 import { cwd } from "process"
 import { MemoryPlugin } from "../../memory/memory"
 import { SQLiteMemory } from "../../memory/sqlite"
+import { runDreaming, readDreamLog } from "../../memory/dreaming"
 
 async function initMemory() {
   if (!MemoryPlugin.isActive()) {
@@ -33,7 +34,7 @@ export const MemoryCommand = cmd({
       .positional("action", {
         describe: "Action to perform",
         type: "string",
-        choices: ["add", "search", "list", "delete", "export", "clear", "stats"] as const,
+        choices: ["add", "search", "list", "delete", "export", "clear", "stats", "dream"] as const,
       })
       .option("content", { alias: "c", type: "string", description: "Memory content to store" })
       .option("query",   { alias: "q", type: "string", description: "Search query" })
@@ -140,6 +141,25 @@ export const MemoryCommand = cmd({
         const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
         if (topTags.length) {
           console.log(`  Top tags      : ${topTags.map(([t, n]) => `${t}(${n})`).join(", ")}`)
+        }
+        break
+      }
+
+      case "dream": {
+        console.log("🌙 Running memory consolidation (dreaming)…")
+        const report = await runDreaming()
+        console.log(`✅ Done in ${report.durationMs}ms`)
+        console.log(`  Merged   : ${report.merged}`)
+        console.log(`  Decayed  : ${report.decayed}`)
+        console.log(`  Insights : ${report.insights.length}`)
+        for (const insight of report.insights) console.log(`    💡 ${insight}`)
+        const history = await readDreamLog(5)
+        if (history.length > 1) {
+          console.log(`\nLast ${history.length} dream runs:`)
+          for (const r of history.slice(0, -1).reverse()) {
+            const d = new Date(r.timestamp).toLocaleString()
+            console.log(`  ${d}  merged=${r.merged} decayed=${r.decayed}`)
+          }
         }
         break
       }

@@ -12,9 +12,13 @@ import type { Argv } from "yargs"
 import { cmd } from "./cmd"
 import { ChannelRegistry } from "../../channels/channel"
 import { GitHubIssuesChannel } from "../../channels/github-issues"
+import { TelegramChannel } from "../../channels/telegram"
+import { PagerDutyChannel } from "../../channels/pagerduty"
 
 // Register built-in channels on first import
 ChannelRegistry.register(new GitHubIssuesChannel())
+ChannelRegistry.register(new TelegramChannel())
+ChannelRegistry.register(new PagerDutyChannel())
 
 export const ChannelsCommand = cmd({
   command: "channels <action>",
