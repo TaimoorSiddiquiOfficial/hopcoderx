@@ -33,6 +33,8 @@ import { OnboardCommand } from "./cli/cmd/onboard"
 import { StatusCommand } from "./cli/cmd/status"
 import { SecretsCommand } from "./cli/cmd/secrets"
 import { SecurityCommand } from "./cli/cmd/security"
+import { ReplayCommand } from "./cli/cmd/replay"
+import { AnalyticsCommand } from "./cli/cmd/analytics"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -151,6 +153,8 @@ const cli = yargs(hideBin(process.argv))
   .command(StatusCommand)
   .command(SecretsCommand)
   .command(SecurityCommand)
+  .command(ReplayCommand)
+  .command(AnalyticsCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||

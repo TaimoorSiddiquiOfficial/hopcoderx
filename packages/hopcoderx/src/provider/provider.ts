@@ -554,6 +554,65 @@ export namespace Provider {
         options: { baseURL: base, apiKey: "lmstudio" },
       }
     },
+    // DeepSeek: standard OpenAI-compatible API with API key
+    deepseek: async (input) => {
+      const key = input.key ?? Env.get("DEEPSEEK_API_KEY")
+      if (!key) return { autoload: false }
+      return {
+        autoload: true,
+        options: { baseURL: "https://api.deepseek.com/v1", apiKey: key },
+      }
+    },
+    // Fireworks AI: OpenAI-compatible with API key
+    "fireworks-ai": async (input) => {
+      const key = input.key ?? Env.get("FIREWORKS_API_KEY")
+      if (!key) return { autoload: false }
+      return {
+        autoload: true,
+        options: { baseURL: "https://api.fireworks.ai/inference/v1", apiKey: key },
+      }
+    },
+    // Cloudflare Workers AI: uses account ID + API token
+    cloudflare: async (input) => {
+      const token = input.key ?? Env.get("CLOUDFLARE_API_TOKEN")
+      const accountId = Env.get("CLOUDFLARE_ACCOUNT_ID") ?? (await Config.get()).provider?.["cloudflare"]?.options?.accountId
+      if (!token || !accountId) return { autoload: false }
+      // Inject discovered models from Cloudflare catalogue (static list of popular ones)
+      const cloudflareModels: Array<{ id: string; name: string; ctx: number }> = [
+        { id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B", ctx: 131072 },
+        { id: "@cf/meta/llama-3.1-8b-instruct", name: "Llama 3.1 8B", ctx: 131072 },
+        { id: "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", name: "DeepSeek R1 Distill 32B", ctx: 32768 },
+        { id: "@cf/mistral/mistral-7b-instruct-v0.2", name: "Mistral 7B", ctx: 32768 },
+        { id: "@cf/qwen/qwen1.5-14b-chat-awq", name: "Qwen 1.5 14B", ctx: 32768 },
+      ]
+      return {
+        autoload: true,
+        options: {
+          baseURL: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+          apiKey: token,
+        },
+        getModel: async (_sdk: any, modelID: string) => {
+          const found = cloudflareModels.find((m) => m.id === modelID)
+          if (!found) return undefined
+          return {
+            id: found.id,
+            providerID: "cloudflare",
+            name: found.name,
+            family: "llama",
+            api: {
+              id: found.id,
+              url: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+              npm: "@ai-sdk/openai-compatible",
+            },
+            status: "active" as const,
+            headers: {},
+            options: {},
+            cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+            limit: { context: found.ctx, output: 4096 },
+          }
+        },
+      }
+    },
     gitlab: async (input) => {
       const instanceUrl = Env.get("GITLAB_INSTANCE_URL") || "https://gitlab.com"
 
@@ -936,6 +995,42 @@ export namespace Provider {
         name: "Ollama (Local)",
         source: "custom",
         env: [],
+        options: {},
+        models: {},
+      }
+    }
+
+    // DeepSeek (powerful reasoning model — excellent for coding tasks)
+    if (!database["deepseek"]) {
+      database["deepseek"] = {
+        id: "deepseek",
+        name: "DeepSeek",
+        source: "custom",
+        env: ["DEEPSEEK_API_KEY"],
+        options: { baseURL: "https://api.deepseek.com/v1" },
+        models: {},
+      }
+    }
+
+    // Fireworks AI (fast open-source model inference)
+    if (!database["fireworks-ai"]) {
+      database["fireworks-ai"] = {
+        id: "fireworks-ai",
+        name: "Fireworks AI",
+        source: "custom",
+        env: ["FIREWORKS_API_KEY"],
+        options: { baseURL: "https://api.fireworks.ai/inference/v1" },
+        models: {},
+      }
+    }
+
+    // Cloudflare Workers AI (serverless AI at the edge)
+    if (!database["cloudflare"]) {
+      database["cloudflare"] = {
+        id: "cloudflare",
+        name: "Cloudflare Workers AI",
+        source: "custom",
+        env: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
         options: {},
         models: {},
       }
