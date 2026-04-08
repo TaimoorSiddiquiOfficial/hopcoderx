@@ -45,6 +45,8 @@ import { HooksCommand } from "./cli/cmd/hooks"
 import { CompletionCommand } from "./cli/cmd/completion"
 import { ChannelsCommand } from "./cli/cmd/channels"
 import { TaskflowCommand } from "./cli/cmd/taskflow"
+import { WorktreeCommand } from "./cli/cmd/worktree"
+import { TailscaleCommand } from "./cli/cmd/tailscale"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -175,6 +177,8 @@ const cli = yargs(hideBin(process.argv))
   .command(CompletionCommand)
   .command(ChannelsCommand)
   .command(TaskflowCommand)
+  .command(WorktreeCommand)
+  .command(TailscaleCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||

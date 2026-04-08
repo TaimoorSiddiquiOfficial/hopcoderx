@@ -8,12 +8,15 @@ import { $ } from "bun"
 
 export const WorktreeCommand = cmd({
   command: "worktree",
-  describe: "manage git worktrees",
+  describe: "manage git worktrees for parallel agent sessions",
   builder: (yargs: Argv) =>
     yargs
       .command(WorktreeCreateCommand)
       .command(WorktreeListCommand)
       .command(WorktreeDeleteCommand)
+      .command(WorktreeSwitchCommand)
+      .command(WorktreeDiffCommand)
+      .command(WorktreePruneCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -115,6 +118,99 @@ export const WorktreeDeleteCommand = cmd({
     await bootstrap(process.cwd(), async () => {
       await Worktree.remove({ directory: args.directory })
       UI.println(`${UI.Style.TEXT_SUCCESS_BOLD}Deleted worktree${UI.Style.TEXT_NORMAL} at ${args.directory}`)
+    })
+  },
+})
+
+export const WorktreeSwitchCommand = cmd({
+  command: "switch <directory>",
+  describe: "print the cd command to switch into a worktree",
+  builder: (yargs: Argv) =>
+    yargs.positional("directory", {
+      describe: "worktree directory to switch into",
+      type: "string",
+      demandOption: true,
+    }),
+  handler: async (args) => {
+    await bootstrap(process.cwd(), async () => {
+      const result = await $`git worktree list --porcelain`.quiet().nothrow()
+      if (result.exitCode !== 0) {
+        UI.error("Failed to list worktrees")
+        process.exit(1)
+      }
+      const text = new TextDecoder().decode(result.stdout)
+      const paths = text
+        .split("\n")
+        .filter((l) => l.startsWith("worktree "))
+        .map((l) => l.slice("worktree ".length).trim())
+
+      const target = paths.find(
+        (p) => p === args.directory || p.endsWith("/" + args.directory) || p.endsWith("\\" + args.directory),
+      )
+      if (!target) {
+        UI.error(`Worktree '${args.directory}' not found. Run 'hopcoderx worktree list' to see available worktrees.`)
+        process.exit(1)
+      }
+      UI.println(`To switch to this worktree, run:`)
+      UI.println(`  cd ${target}`)
+      UI.println(`  hopcoderx run`)
+    })
+  },
+})
+
+export const WorktreeDiffCommand = cmd({
+  command: "diff [a] [b]",
+  describe: "show diff between two worktrees (or all vs main)",
+  builder: (yargs: Argv) =>
+    yargs
+      .positional("a", { type: "string", describe: "First branch or HEAD ref" })
+      .positional("b", { type: "string", describe: "Second branch or HEAD ref" })
+      .option("stat", { type: "boolean", describe: "Show stat summary only", default: true }),
+  handler: async (args) => {
+    await bootstrap(process.cwd(), async () => {
+      if (args.a && args.b) {
+        const rangeFlag = `${args.a}...${args.b}`
+        const statCmd = args.stat
+          ? await $`git diff --stat ${rangeFlag}`.quiet().nothrow()
+          : await $`git diff ${rangeFlag}`.quiet().nothrow()
+        UI.println(new TextDecoder().decode(statCmd.stdout) || "No differences")
+        return
+      }
+
+      // Compare all non-main worktrees vs main HEAD
+      const result = await $`git worktree list --porcelain`.quiet().nothrow()
+      const lines = new TextDecoder().decode(result.stdout).split("\n")
+      const worktrees: { path: string; head: string; branch: string }[] = []
+      let cur: { path?: string; head?: string; branch?: string } = {}
+      for (const l of lines) {
+        if (l.startsWith("worktree ")) { if (cur.path) worktrees.push(cur as any); cur = { path: l.slice(9).trim() } }
+        else if (l.startsWith("HEAD ")) cur.head = l.slice(5).trim()
+        else if (l.startsWith("branch ")) cur.branch = l.slice(15).trim()
+      }
+      if (cur.path) worktrees.push(cur as any)
+
+      if (worktrees.length < 2) { UI.println("Only one worktree — nothing to diff."); return }
+      const main = worktrees[0]
+      UI.println(`Comparing worktrees vs ${main.branch ?? "main"} (${(main.head ?? "").slice(0, 8)})\n`)
+      for (const wt of worktrees.slice(1)) {
+        const label = wt.branch ?? (wt.head ?? "").slice(0, 8)
+        UI.println(`─── ${label} ───`)
+        const d = await $`git diff --stat ${main.head}...${wt.head}`.quiet().nothrow()
+        UI.println(new TextDecoder().decode(d.stdout) || "  No differences\n")
+      }
+    })
+  },
+})
+
+export const WorktreePruneCommand = cmd({
+  command: "prune",
+  describe: "prune stale worktree metadata",
+  builder: (yargs: Argv) => yargs,
+  handler: async () => {
+    await bootstrap(process.cwd(), async () => {
+      const result = await $`git worktree prune --verbose`.quiet().nothrow()
+      const out = new TextDecoder().decode(result.stdout).trim()
+      UI.println(out || "✓ Nothing to prune")
     })
   },
 })
