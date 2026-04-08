@@ -38,6 +38,8 @@ import { AnalyticsCommand } from "./cli/cmd/analytics"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { SandboxCommand } from "./cli/cmd/sandbox"
 import { AccessibilityCommand } from "./cli/cmd/accessibility"
+import { DaemonCommand } from "./cli/cmd/daemon"
+import { CronCommand } from "./cli/cmd/cron"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -161,6 +163,8 @@ const cli = yargs(hideBin(process.argv))
   .command(MemoryCommand)
   .command(SandboxCommand)
   .command(AccessibilityCommand)
+  .command(DaemonCommand)
+  .command(CronCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
