@@ -12,6 +12,7 @@ import PROMPT_GENERATE from "./generate.txt"
 import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_REVIEWER from "./prompt/reviewer.txt"
+import PROMPT_CODE_REVIEW from "./prompt/code-review.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
 import { PermissionNext } from "@/permission/next"
@@ -175,6 +176,32 @@ export namespace Agent {
         description: `Code reviewer agent for the multi-agent swarm. Evaluates code changes for correctness, safety, style, and completeness. Returns structured verdicts (approve/revise) with specific issues and suggestions. Used automatically by the swarm orchestrator after each coding step.`,
         prompt: PROMPT_REVIEWER,
         temperature: 0.2,
+        options: {},
+        mode: "subagent",
+        native: true,
+      },
+      codereview: {
+        name: "codereview",
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            "*": "deny",
+            grep: "allow",
+            glob: "allow",
+            list: "allow",
+            read: "allow",
+            bash: "allow",
+            codevulnscan: "allow",
+            external_directory: {
+              "*": "ask",
+              ...Object.fromEntries(whitelistedDirs.map((dir) => [dir, "allow"])),
+            },
+          }),
+          user,
+        ),
+        description: `Automated code review agent. Reviews diffs, PRs, or file snapshots for correctness, security, performance, reliability, maintainability, test coverage, and TypeScript types. Returns BLOCKING/WARNING/SUGGESTION findings with line references and suggested fixes. Can post comments to GitHub/GitLab PRs.`,
+        prompt: PROMPT_CODE_REVIEW,
+        temperature: 0.1,
         options: {},
         mode: "subagent",
         native: true,

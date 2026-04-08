@@ -34,6 +34,7 @@ import { Glob } from "../util/glob"
 import { TestgenTool } from "./testgen"
 import { DocgenTool } from "./docgen"
 import { DepauditTool } from "./depaudit"
+import { CodeVulnScanTool } from "./codevulnscan"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -127,6 +128,7 @@ export namespace ToolRegistry {
       TestgenTool,
       DocgenTool,
       DepauditTool,
+      CodeVulnScanTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
