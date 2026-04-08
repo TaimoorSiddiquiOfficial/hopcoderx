@@ -48,6 +48,7 @@ import { TaskflowCommand } from "./cli/cmd/taskflow"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { TailscaleCommand } from "./cli/cmd/tailscale"
 import { PairCommand } from "./cli/cmd/pair"
+import { HubCommand } from "./cli/cmd/hub"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -181,6 +182,7 @@ const cli = yargs(hideBin(process.argv))
   .command(WorktreeCommand)
   .command(TailscaleCommand)
   .command(PairCommand)
+  .command(HubCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
