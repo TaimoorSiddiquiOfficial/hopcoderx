@@ -41,6 +41,7 @@ import { DocUnderstandingTool } from "./docunderstand"
 import { AudioTranscriptionTool } from "./transcribe"
 import { ImageGenTool } from "./imagegen"
 import { TTSTool } from "./tts"
+import { VoiceInputTool } from "./voice"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -142,6 +143,7 @@ export namespace ToolRegistry {
       AudioTranscriptionTool,
       ImageGenTool,
       TTSTool,
+      VoiceInputTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
