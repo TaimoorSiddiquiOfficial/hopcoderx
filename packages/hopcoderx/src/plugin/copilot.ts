@@ -7,6 +7,64 @@ const CLIENT_SECRET = "7a25fa8c56c36d71ef803791bd16099afe901f4f"
 // Add a small safety buffer when polling to avoid hitting the server
 // slightly too early due to clock skew / timer drift.
 const OAUTH_POLLING_SAFETY_MARGIN_MS = 3000 // 3 seconds
+
+const COPILOT_TOKEN_URL = "https://api.github.com/copilot_internal/v2/token"
+const DEFAULT_COPILOT_API_BASE_URL = "https://api.individual.githubcopilot.com"
+// Refresh session token if it would expire within 5 minutes
+const COPILOT_TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000
+
+type CopilotSessionCache = {
+  token: string
+  expiresAt: number
+  baseUrl: string
+}
+
+// In-memory cache keyed by GitHub OAuth token
+const copilotSessionCache = new Map<string, CopilotSessionCache>()
+
+function deriveCopilotBaseUrl(sessionToken: string): string {
+  const match = sessionToken.match(/(?:^|;)\s*proxy-ep=([^;\s]+)/i)
+  const proxyEp = match?.[1]?.trim()
+  if (!proxyEp) return DEFAULT_COPILOT_API_BASE_URL
+  const raw = /^https?:\/\//i.test(proxyEp) ? proxyEp : `https://${proxyEp}`
+  try {
+    const host = new URL(raw).hostname.replace(/^proxy\./i, "api.")
+    return `https://${host}`
+  } catch {
+    return DEFAULT_COPILOT_API_BASE_URL
+  }
+}
+
+async function resolveCopilotSession(githubToken: string): Promise<CopilotSessionCache> {
+  const cached = copilotSessionCache.get(githubToken)
+  if (cached && cached.expiresAt - Date.now() > COPILOT_TOKEN_EXPIRY_BUFFER_MS) {
+    return cached
+  }
+
+  const res = await fetch(COPILOT_TOKEN_URL, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${githubToken}`,
+      "Editor-Version": "vscode/1.99.3",
+      "User-Agent": `HopCoderX/${Installation.VERSION}`,
+      "X-Github-Api-Version": "2025-04-01",
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error(`Copilot token exchange failed: HTTP ${res.status}`)
+  }
+
+  const data = (await res.json()) as { token: string; expires_at: number }
+  // GitHub returns unix seconds; convert to ms if needed
+  const expiresAt = data.expires_at < 1e11 ? data.expires_at * 1000 : data.expires_at
+  const baseUrl = deriveCopilotBaseUrl(data.token)
+  const entry: CopilotSessionCache = { token: data.token, expiresAt, baseUrl }
+  copilotSessionCache.set(githubToken, entry)
+  return entry
+}
+
 function normalizeDomain(url: string) {
   return url.replace(/^https?:\/\//, "").replace(/\/$/, "")
 }
@@ -28,7 +86,17 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
         if (!info || info.type !== "oauth") return {}
 
         const enterpriseUrl = info.enterpriseUrl
-        const baseURL = enterpriseUrl ? `https://copilot-api.${normalizeDomain(enterpriseUrl)}` : undefined
+
+        // For individual Copilot: exchange the GitHub OAuth token for a short-lived
+        // Copilot session token and derive the correct proxy endpoint from proxy-ep.
+        // Enterprise uses a fixed copilot-api subdomain without a token exchange.
+        let baseURL: string
+        if (!enterpriseUrl) {
+          const session = await resolveCopilotSession(info.refresh).catch(() => null)
+          baseURL = session?.baseUrl ?? DEFAULT_COPILOT_API_BASE_URL
+        } else {
+          baseURL = `https://copilot-api.${normalizeDomain(enterpriseUrl)}`
+        }
 
         if (provider && provider.models) {
           for (const model of Object.values(provider.models)) {
@@ -40,20 +108,6 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                 write: 0,
               },
             }
-
-            // TODO: re-enable once messages api has higher rate limits
-            // TODO: move some of this hacky-ness to models.dev presets once we have better grasp of things here...
-            // const base = baseURL ?? model.api.url
-            // const claude = model.id.includes("claude")
-            // const url = iife(() => {
-            //   if (!claude) return base
-            //   if (base.endsWith("/v1")) return base
-            //   if (base.endsWith("/")) return `${base}v1`
-            //   return `${base}/v1`
-            // })
-
-            // model.api.url = url
-            // model.api.npm = claude ? "@ai-sdk/anthropic" : "@ai-sdk/github-copilot"
             model.api.npm = "@ai-sdk/github-copilot"
           }
         }
@@ -119,11 +173,20 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
               return { isVision: false, isAgent: false }
             })
 
+            // For individual Copilot: resolve a fresh session token (cached for ~30 min).
+            // Falls back to the raw GitHub token if exchange fails.
+            let bearerToken = info.refresh
+            if (!info.enterpriseUrl) {
+              const session = await resolveCopilotSession(info.refresh).catch(() => null)
+              if (session) bearerToken = session.token
+            }
+
             const headers: Record<string, string> = {
               "x-initiator": isAgent ? "agent" : "user",
               ...(init?.headers as Record<string, string>),
+              "Editor-Version": "vscode/1.99.3",
               "User-Agent": `HopCoderX/${Installation.VERSION}`,
-              Authorization: `Bearer ${info.refresh}`,
+              Authorization: `Bearer ${bearerToken}`,
               "Openai-Intent": "conversation-edits",
             }
 
