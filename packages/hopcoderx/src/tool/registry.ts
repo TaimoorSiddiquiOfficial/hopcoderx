@@ -41,6 +41,12 @@ import { DocUnderstandingTool } from "./docunderstand"
 import { AudioTranscriptionTool } from "./transcribe"
 import { ImageGenTool } from "./imagegen"
 import { TTSTool } from "./tts"
+import { TavilySearchTool } from "./tavily"
+import { ExaSearchTool } from "./exa"
+import { FirecrawlTool } from "./firecrawl"
+import { VideoGenTool } from "./videogen"
+import { AiDebugTool } from "./aidebug"
+import { ArchDiagramTool } from "./archdiagram"
 import { VoiceInputTool } from "./voice"
 
 export namespace ToolRegistry {
@@ -144,6 +150,12 @@ export namespace ToolRegistry {
       ImageGenTool,
       TTSTool,
       VoiceInputTool,
+      TavilySearchTool,
+      ExaSearchTool,
+      FirecrawlTool,
+      VideoGenTool,
+      AiDebugTool,
+      ArchDiagramTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),

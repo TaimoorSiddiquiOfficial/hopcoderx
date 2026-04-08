@@ -916,6 +916,96 @@ export namespace Provider {
         options: { apiKey },
       }
     },
+    // LiteLLM proxy: universal LLM proxy — supports localhost or hosted instance
+    litellm: async (input) => {
+      const config = await Config.get()
+      const baseURL =
+        Env.get("LITELLM_BASE_URL") ??
+        Env.get("LITELLM_URL") ??
+        config.provider?.["litellm"]?.options?.baseURL ??
+        "http://localhost:4000"
+      const apiKey = await iife(async () => {
+        const env = Env.get("LITELLM_API_KEY")
+        if (env) return env
+        const auth = await Auth.get(input.id)
+        if (auth?.type === "api") return auth.key
+        return "noop"
+      })
+      try {
+        const res = await fetch(`${baseURL}/models`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(2000),
+        })
+        if (res.ok) {
+          const body = (await res.json()) as { data?: Array<{ id: string }> }
+          for (const m of body.data ?? []) {
+            if (!m.id || input.models[m.id]) continue
+            input.models[m.id] = {
+              id: m.id,
+              providerID: "litellm",
+              name: m.id,
+              api: { id: m.id, url: `${baseURL}/v1`, npm: "@ai-sdk/openai-compatible" },
+              status: "active" as const,
+              capabilities: {
+                temperature: true, reasoning: false, attachment: false, toolcall: true, interleaved: false,
+                input: { text: true, audio: false, image: false, video: false, pdf: false },
+                output: { text: true, audio: false, image: false, video: false, pdf: false },
+              },
+              cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+              limit: { context: 128000, output: 16384 },
+              options: {}, headers: {}, release_date: "",
+            }
+          }
+        }
+      } catch {
+        return { autoload: false }
+      }
+      return {
+        autoload: Object.keys(input.models).length > 0,
+        options: { baseURL: `${baseURL}/v1`, apiKey },
+      }
+    },
+    // Venice AI: privacy-first uncensored models
+    venice: async (input) => {
+      const key = await iife(async () => {
+        const env = Env.get("VENICE_API_KEY")
+        if (env) return env
+        const auth = await Auth.get(input.id)
+        if (auth?.type === "api") return auth.key
+        return undefined
+      })
+      if (!key) return { autoload: false }
+      const veniceModels = [
+        { id: "llama-3.3-70b", name: "Llama 3.3 70B", ctx: 131072 },
+        { id: "llama-3.2-3b", name: "Llama 3.2 3B", ctx: 131072 },
+        { id: "mistral-31-24b", name: "Mistral 3.1 24B", ctx: 131072 },
+        { id: "dolphin-2.9.2-qwen2-72b", name: "Dolphin 72B (Uncensored)", ctx: 32768 },
+        { id: "qwen32b", name: "Qwen 32B", ctx: 32768 },
+      ]
+      for (const m of veniceModels) {
+        if (!input.models[m.id]) {
+          input.models[m.id] = {
+            id: m.id,
+            providerID: "venice",
+            name: m.name,
+            api: { id: m.id, url: "https://api.venice.ai/api/v1", npm: "@ai-sdk/openai-compatible" },
+            status: "active" as const,
+            capabilities: {
+              temperature: true, reasoning: false, attachment: false, toolcall: true, interleaved: false,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+            },
+            cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+            limit: { context: m.ctx, output: 4096 },
+            options: {}, headers: {}, release_date: "",
+          }
+        }
+      }
+      return {
+        autoload: true,
+        options: { baseURL: "https://api.venice.ai/api/v1", apiKey: key },
+      }
+    },
   }
 
   export const Model = z
@@ -1228,6 +1318,30 @@ export namespace Provider {
             status: "active",
           },
         },
+      }
+    }
+
+    // LiteLLM proxy: universal LLM gateway (localhost or hosted)
+    if (!database["litellm"]) {
+      database["litellm"] = {
+        id: "litellm",
+        name: "LiteLLM",
+        source: "custom",
+        env: ["LITELLM_BASE_URL", "LITELLM_API_KEY"],
+        options: { baseURL: "http://localhost:4000/v1" },
+        models: {},
+      }
+    }
+
+    // Venice AI: privacy-first uncensored models
+    if (!database["venice"]) {
+      database["venice"] = {
+        id: "venice",
+        name: "Venice AI",
+        source: "custom",
+        env: ["VENICE_API_KEY"],
+        options: { baseURL: "https://api.venice.ai/api/v1" },
+        models: {},
       }
     }
 

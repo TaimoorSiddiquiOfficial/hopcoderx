@@ -49,6 +49,8 @@ import { WorktreeCommand } from "./cli/cmd/worktree"
 import { TailscaleCommand } from "./cli/cmd/tailscale"
 import { PairCommand } from "./cli/cmd/pair"
 import { HubCommand } from "./cli/cmd/hub"
+import { PersonaCommand } from "./cli/cmd/persona"
+import { PromptsCommand } from "./cli/cmd/prompts"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -183,6 +185,8 @@ const cli = yargs(hideBin(process.argv))
   .command(TailscaleCommand)
   .command(PairCommand)
   .command(HubCommand)
+  .command(PersonaCommand)
+  .command(PromptsCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
