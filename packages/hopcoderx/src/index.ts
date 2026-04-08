@@ -35,6 +35,9 @@ import { SecretsCommand } from "./cli/cmd/secrets"
 import { SecurityCommand } from "./cli/cmd/security"
 import { ReplayCommand } from "./cli/cmd/replay"
 import { AnalyticsCommand } from "./cli/cmd/analytics"
+import { MemoryCommand } from "./cli/cmd/memory"
+import { SandboxCommand } from "./cli/cmd/sandbox"
+import { AccessibilityCommand } from "./cli/cmd/accessibility"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -155,6 +158,9 @@ const cli = yargs(hideBin(process.argv))
   .command(SecurityCommand)
   .command(ReplayCommand)
   .command(AnalyticsCommand)
+  .command(MemoryCommand)
+  .command(SandboxCommand)
+  .command(AccessibilityCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||

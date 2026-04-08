@@ -613,6 +613,84 @@ export namespace Provider {
         },
       }
     },
+    // Hugging Face Inference API: OpenAI-compatible endpoint
+    huggingface: async (input) => {
+      const key = input.key ?? Env.get("HF_TOKEN") ?? Env.get("HUGGINGFACE_API_KEY")
+      if (!key) return { autoload: false }
+      // A curated list of coding-relevant HF Inference API models
+      const hfModels = [
+        { id: "Qwen/Qwen2.5-Coder-32B-Instruct", name: "Qwen2.5 Coder 32B", ctx: 32768 },
+        { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen2.5 72B", ctx: 131072 },
+        { id: "meta-llama/Meta-Llama-3.1-70B-Instruct", name: "Llama 3.1 70B", ctx: 131072 },
+        { id: "mistralai/Mistral-7B-Instruct-v0.3", name: "Mistral 7B v0.3", ctx: 32768 },
+        { id: "deepseek-ai/DeepSeek-Coder-V2-Instruct", name: "DeepSeek Coder V2", ctx: 163840 },
+        { id: "bigcode/starcoder2-15b", name: "StarCoder2 15B", ctx: 16384 },
+      ]
+      for (const m of hfModels) {
+        if (!input.models[m.id]) {
+          input.models[m.id] = {
+            id: m.id,
+            providerID: "huggingface",
+            name: m.name,
+            family: "llama",
+            api: { id: m.id, url: "https://api-inference.huggingface.co/v1", npm: "@ai-sdk/openai-compatible" },
+            status: "active" as const,
+            capabilities: {
+              temperature: true, reasoning: false, attachment: false, toolcall: true, interleaved: false,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+            },
+            cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+            limit: { context: m.ctx, output: 4096 },
+            options: {},
+            headers: {},
+            release_date: "",
+          }
+        }
+      }
+      return {
+        autoload: true,
+        options: { baseURL: "https://api-inference.huggingface.co/v1", apiKey: key },
+      }
+    },
+    // NVIDIA NIM: GPU-accelerated model serving
+    nvidia: async (input) => {
+      const key = input.key ?? Env.get("NVIDIA_API_KEY")
+      if (!key) return { autoload: false }
+      const nimModels = [
+        { id: "nvidia/llama-3.1-nemotron-70b-instruct", name: "Llama 3.1 Nemotron 70B", ctx: 131072 },
+        { id: "meta/llama-3.1-405b-instruct", name: "Llama 3.1 405B", ctx: 131072 },
+        { id: "meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B", ctx: 131072 },
+        { id: "mistralai/codestral-22b-instruct-v0.1", name: "Codestral 22B", ctx: 32768 },
+        { id: "deepseek-ai/deepseek-coder-6.7b-instruct", name: "DeepSeek Coder 6.7B", ctx: 16384 },
+      ]
+      for (const m of nimModels) {
+        if (!input.models[m.id]) {
+          input.models[m.id] = {
+            id: m.id,
+            providerID: "nvidia",
+            name: m.name,
+            family: "llama",
+            api: { id: m.id, url: "https://integrate.api.nvidia.com/v1", npm: "@ai-sdk/openai-compatible" },
+            status: "active" as const,
+            capabilities: {
+              temperature: true, reasoning: false, attachment: false, toolcall: true, interleaved: false,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+            },
+            cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+            limit: { context: m.ctx, output: 4096 },
+            options: {},
+            headers: {},
+            release_date: "",
+          }
+        }
+      }
+      return {
+        autoload: true,
+        options: { baseURL: "https://integrate.api.nvidia.com/v1", apiKey: key },
+      }
+    },
     gitlab: async (input) => {
       const instanceUrl = Env.get("GITLAB_INSTANCE_URL") || "https://gitlab.com"
 
@@ -1032,6 +1110,30 @@ export namespace Provider {
         source: "custom",
         env: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
         options: {},
+        models: {},
+      }
+    }
+
+    // Hugging Face Inference API
+    if (!database["huggingface"]) {
+      database["huggingface"] = {
+        id: "huggingface",
+        name: "Hugging Face",
+        source: "custom",
+        env: ["HF_TOKEN", "HUGGINGFACE_API_KEY"],
+        options: { baseURL: "https://api-inference.huggingface.co/v1" },
+        models: {},
+      }
+    }
+
+    // NVIDIA NIM (GPU-accelerated inference)
+    if (!database["nvidia"]) {
+      database["nvidia"] = {
+        id: "nvidia",
+        name: "NVIDIA NIM",
+        source: "custom",
+        env: ["NVIDIA_API_KEY"],
+        options: { baseURL: "https://integrate.api.nvidia.com/v1" },
         models: {},
       }
     }
