@@ -30,6 +30,8 @@ import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import { DoctorCommand } from "./cli/cmd/doctor"
 import { OnboardCommand } from "./cli/cmd/onboard"
+import { StatusCommand } from "./cli/cmd/status"
+import { SecretsCommand } from "./cli/cmd/secrets"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -145,6 +147,8 @@ const cli = yargs(hideBin(process.argv))
   .command(DbCommand)
   .command(DoctorCommand)
   .command(OnboardCommand)
+  .command(StatusCommand)
+  .command(SecretsCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
