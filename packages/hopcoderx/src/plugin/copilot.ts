@@ -3,84 +3,55 @@ import { Installation } from "@/installation"
 import { iife } from "@/util/iife"
 
 const CLIENT_ID = "Ov23liRLmeeUr4aUU5cq"
-const CLIENT_SECRET = "7a25fa8c56c36d71ef803791bd16099afe901f4f"
 // Add a small safety buffer when polling to avoid hitting the server
 // slightly too early due to clock skew / timer drift.
 const OAUTH_POLLING_SAFETY_MARGIN_MS = 3000 // 3 seconds
 
-const COPILOT_TOKEN_URL = "https://api.github.com/copilot_internal/v2/token"
-const DEFAULT_COPILOT_API_BASE_URL = "https://api.individual.githubcopilot.com"
-// Refresh session token if it would expire within 5 minutes
-const COPILOT_TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000
-
-type CopilotSessionCache = {
-  token: string
-  expiresAt: number
-  baseUrl: string
+// Base URL for the GitHub Copilot API.
+// The raw GitHub OAuth token (ghu_...) is accepted directly — no token exchange needed.
+function base(enterpriseUrl?: string): string {
+  return enterpriseUrl ? `https://copilot-api.${normalizeDomain(enterpriseUrl)}` : "https://api.githubcopilot.com"
 }
 
-// In-memory cache keyed by GitHub OAuth token
-const copilotSessionCache = new Map<string, CopilotSessionCache>()
-
-function deriveCopilotBaseUrl(sessionToken: string): string {
-  const match = sessionToken.match(/(?:^|;)\s*proxy-ep=([^;\s]+)/i)
-  const proxyEp = match?.[1]?.trim()
-  if (!proxyEp) return DEFAULT_COPILOT_API_BASE_URL
-  const raw = /^https?:\/\//i.test(proxyEp) ? proxyEp : `https://${proxyEp}`
-  try {
-    const host = new URL(raw).hostname.replace(/^proxy\./i, "api.")
-    return `https://${host}`
-  } catch {
-    return DEFAULT_COPILOT_API_BASE_URL
-  }
-}
-
-async function resolveCopilotSession(githubToken: string): Promise<CopilotSessionCache> {
-  const cached = copilotSessionCache.get(githubToken)
-  if (cached && cached.expiresAt - Date.now() > COPILOT_TOKEN_EXPIRY_BUFFER_MS) {
-    return cached
-  }
-
-  const res = await fetch(COPILOT_TOKEN_URL, {
-    method: "GET",
+/**
+ * Fetch the live model catalog from the Copilot API.
+ * Returns a Map of api.id → {model_picker_enabled, limits, capabilities} for
+ * models that the API says this user can actually access.
+ */
+async function fetchCopilotModels(
+  baseURL: string,
+  githubToken: string,
+): Promise<Map<string, { model_picker_enabled: boolean; context: number; output: number; toolcall: boolean; vision: boolean }>> {
+  const res = await fetch(`${baseURL}/models`, {
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${githubToken}`,
-      "Editor-Version": "vscode/1.99.3",
       "User-Agent": `HopCoderX/${Installation.VERSION}`,
-      "X-Github-Api-Version": "2025-04-01",
     },
+    signal: AbortSignal.timeout(5_000),
   })
-
-  if (!res.ok) {
-    throw new Error(`Copilot token exchange failed: HTTP ${res.status}`)
+  if (!res.ok) throw new Error(`Copilot /models returned HTTP ${res.status}`)
+  const json = (await res.json()) as {
+    data?: {
+      id: string
+      model_picker_enabled?: boolean
+      capabilities?: {
+        limits?: { max_context_window_tokens?: number; max_output_tokens?: number }
+        supports?: { tool_calls?: boolean; vision?: boolean }
+      }
+    }[]
   }
-
-  const data = (await res.json()) as { token: string; expires_at: number }
-  // GitHub returns unix seconds; convert to ms if needed
-  const expiresAt = data.expires_at < 1e11 ? data.expires_at * 1000 : data.expires_at
-  const baseUrl = deriveCopilotBaseUrl(data.token)
-  const entry: CopilotSessionCache = { token: data.token, expiresAt, baseUrl }
-  copilotSessionCache.set(githubToken, entry)
-  return entry
-}
-
-/** Fetch the live model catalog from the Copilot API and return IDs as a Set. */
-async function fetchCopilotModelIds(baseURL: string, sessionToken: string | undefined): Promise<Set<string>> {
-  if (!sessionToken) return new Set()
-  const res = await fetch(`${baseURL}/models`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${sessionToken}`,
-      "Editor-Version": "vscode/1.99.3",
-      "User-Agent": `HopCoderX/${Installation.VERSION}`,
-    },
-  })
-  if (!res.ok) return new Set()
-  const json = (await res.json()) as { data?: { id: string }[]; models?: { id: string }[] }
-  const items = json.data ?? json.models ?? []
-  return new Set(items.map((m) => m.id))
+  const result = new Map<string, { model_picker_enabled: boolean; context: number; output: number; toolcall: boolean; vision: boolean }>()
+  for (const m of json.data ?? []) {
+    result.set(m.id, {
+      model_picker_enabled: m.model_picker_enabled ?? true,
+      context: m.capabilities?.limits?.max_context_window_tokens ?? 0,
+      output: m.capabilities?.limits?.max_output_tokens ?? 0,
+      toolcall: m.capabilities?.supports?.tool_calls ?? true,
+      vision: m.capabilities?.supports?.vision ?? false,
+    })
+  }
+  return result
 }
 
 function normalizeDomain(url: string) {
@@ -103,42 +74,38 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
         const info = await getAuth()
         if (!info || info.type !== "oauth") return {}
 
-        const enterpriseUrl = info.enterpriseUrl
-
-        // For individual Copilot: exchange the GitHub OAuth token for a short-lived
-        // Copilot session token and derive the correct proxy endpoint from proxy-ep.
-        // Enterprise uses a fixed copilot-api subdomain without a token exchange.
-        let baseURL: string
-        let sessionToken: string | undefined
-        if (!enterpriseUrl) {
-          const session = await resolveCopilotSession(info.refresh).catch(() => null)
-          baseURL = session?.baseUrl ?? DEFAULT_COPILOT_API_BASE_URL
-          sessionToken = session?.token
-        } else {
-          baseURL = `https://copilot-api.${normalizeDomain(enterpriseUrl)}`
-          sessionToken = info.refresh
-        }
+        const baseURL = base(info.enterpriseUrl)
 
         // Fetch the live model list from the Copilot API so we only expose
-        // models that are actually available for this user's subscription.
-        const availableModelIds = await fetchCopilotModelIds(baseURL, sessionToken).catch(() => null)
+        // models that are actually available and picker-enabled for this user.
+        // Uses the raw GitHub OAuth token directly — no token exchange needed.
+        const liveModels = await fetchCopilotModels(baseURL, info.refresh).catch(() => null)
 
         if (provider && provider.models) {
           for (const [id, model] of Object.entries(provider.models)) {
-            // Remove models not in the live catalog (prevents "model not supported")
-            if (availableModelIds && !availableModelIds.has(id)) {
+            // Match by api.id (which equals the snapshot model id)
+            const live = liveModels?.get(model.api.id ?? id)
+
+            // Remove models not in the live catalog or not picker-enabled
+            if (liveModels && (!live || !live.model_picker_enabled)) {
               delete provider.models[id]
               continue
             }
-            model.cost = {
-              input: 0,
-              output: 0,
-              cache: {
-                read: 0,
-                write: 0,
-              },
-            }
+
+            // Patch cost and SDK package
+            model.cost = { input: 0, output: 0, cache: { read: 0, write: 0 } }
             model.api.npm = "@ai-sdk/github-copilot"
+
+            // Update limits from the live API response when available
+            if (live) {
+              if (live.context > 0) model.limit.context = live.context
+              if (live.output > 0) model.limit.output = live.output
+              model.capabilities.toolcall = live.toolcall
+              if (live.vision) {
+                model.capabilities.input.image = true
+                model.capabilities.attachment = true
+              }
+            }
           }
         }
 
@@ -203,20 +170,11 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
               return { isVision: false, isAgent: false }
             })
 
-            // For individual Copilot: resolve a fresh session token (cached for ~30 min).
-            // Falls back to the raw GitHub token if exchange fails.
-            let bearerToken = info.refresh
-            if (!info.enterpriseUrl) {
-              const session = await resolveCopilotSession(info.refresh).catch(() => null)
-              if (session) bearerToken = session.token
-            }
-
             const headers: Record<string, string> = {
               "x-initiator": isAgent ? "agent" : "user",
               ...(init?.headers as Record<string, string>),
-              "Editor-Version": "vscode/1.99.3",
               "User-Agent": `HopCoderX/${Installation.VERSION}`,
-              Authorization: `Bearer ${bearerToken}`,
+              Authorization: `Bearer ${info.refresh}`,
               "Openai-Intent": "conversation-edits",
             }
 
@@ -278,12 +236,10 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
             const deploymentType = inputs.deploymentType || "github.com"
 
             let domain = "github.com"
-            let actualProvider = "github-copilot"
 
             if (deploymentType === "enterprise") {
               const enterpriseUrl = inputs.enterpriseUrl
               domain = normalizeDomain(enterpriseUrl!)
-              actualProvider = "github-copilot-enterprise"
             }
 
             const urls = getUrls(domain)
@@ -346,7 +302,6 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                       refresh: string
                       access: string
                       expires: number
-                      provider?: string
                       enterpriseUrl?: string
                     } = {
                       type: "success",
@@ -355,8 +310,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                       expires: 0,
                     }
 
-                    if (actualProvider === "github-copilot-enterprise") {
-                      result.provider = "github-copilot-enterprise"
+                    if (deploymentType === "enterprise") {
                       result.enterpriseUrl = domain
                     }
 
