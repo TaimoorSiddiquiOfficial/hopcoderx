@@ -65,6 +65,24 @@ async function resolveCopilotSession(githubToken: string): Promise<CopilotSessio
   return entry
 }
 
+/** Fetch the live model catalog from the Copilot API and return IDs as a Set. */
+async function fetchCopilotModelIds(baseURL: string, sessionToken: string | undefined): Promise<Set<string>> {
+  if (!sessionToken) return new Set()
+  const res = await fetch(`${baseURL}/models`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${sessionToken}`,
+      "Editor-Version": "vscode/1.99.3",
+      "User-Agent": `HopCoderX/${Installation.VERSION}`,
+    },
+  })
+  if (!res.ok) return new Set()
+  const json = (await res.json()) as { data?: { id: string }[]; models?: { id: string }[] }
+  const items = json.data ?? json.models ?? []
+  return new Set(items.map((m) => m.id))
+}
+
 function normalizeDomain(url: string) {
   return url.replace(/^https?:\/\//, "").replace(/\/$/, "")
 }
@@ -91,15 +109,27 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
         // Copilot session token and derive the correct proxy endpoint from proxy-ep.
         // Enterprise uses a fixed copilot-api subdomain without a token exchange.
         let baseURL: string
+        let sessionToken: string | undefined
         if (!enterpriseUrl) {
           const session = await resolveCopilotSession(info.refresh).catch(() => null)
           baseURL = session?.baseUrl ?? DEFAULT_COPILOT_API_BASE_URL
+          sessionToken = session?.token
         } else {
           baseURL = `https://copilot-api.${normalizeDomain(enterpriseUrl)}`
+          sessionToken = info.refresh
         }
 
+        // Fetch the live model list from the Copilot API so we only expose
+        // models that are actually available for this user's subscription.
+        const availableModelIds = await fetchCopilotModelIds(baseURL, sessionToken).catch(() => null)
+
         if (provider && provider.models) {
-          for (const model of Object.values(provider.models)) {
+          for (const [id, model] of Object.entries(provider.models)) {
+            // Remove models not in the live catalog (prevents "model not supported")
+            if (availableModelIds && !availableModelIds.has(id)) {
+              delete provider.models[id]
+              continue
+            }
             model.cost = {
               input: 0,
               output: 0,
