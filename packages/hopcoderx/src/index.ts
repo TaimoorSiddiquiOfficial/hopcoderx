@@ -51,6 +51,9 @@ import { PairCommand } from "./cli/cmd/pair"
 import { HubCommand } from "./cli/cmd/hub"
 import { PersonaCommand } from "./cli/cmd/persona"
 import { PromptsCommand } from "./cli/cmd/prompts"
+import { CostCommand } from "./cli/cmd/cost"
+import { SbomCommand } from "./cli/cmd/sbom"
+import { DiffCommand } from "./cli/cmd/diff"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -187,6 +190,9 @@ const cli = yargs(hideBin(process.argv))
   .command(HubCommand)
   .command(PersonaCommand)
   .command(PromptsCommand)
+  .command(CostCommand)
+  .command(SbomCommand)
+  .command(DiffCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
