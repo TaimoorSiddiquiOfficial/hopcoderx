@@ -49,6 +49,9 @@ export namespace Skill {
   const HOPCODERX_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
   const SKILL_PATTERN = "**/SKILL.md"
 
+  // Built-in skills bundled with HopCoderX (lowest priority — user skills override)
+  const BUILTIN_DIR = path.join(import.meta.dir, "builtin")
+
   export const state = Instance.state(async () => {
     const skills: Record<string, Info> = {}
     const dirs = new Set<string>()
@@ -99,6 +102,19 @@ export namespace Skill {
         .catch((error) => {
           log.error(`failed to scan ${scope} skills`, { dir: root, error })
         })
+    }
+
+    // Load built-in skills first (lowest priority — all user/external skills override these)
+    if (await Filesystem.isDir(BUILTIN_DIR)) {
+      const builtinMatches = await Glob.scan(SKILL_PATTERN, {
+        cwd: BUILTIN_DIR,
+        absolute: true,
+        include: "file",
+        symlink: false,
+      }).catch(() => [] as string[])
+      for (const match of builtinMatches) {
+        await addSkill(match)
+      }
     }
 
     // Scan external skill directories (.claude/skills/, .agents/skills/, etc.)
