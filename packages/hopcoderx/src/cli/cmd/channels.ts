@@ -19,6 +19,10 @@ import { DiscordChannel } from "../../channels/discord"
 import { TeamsChannel } from "../../channels/teams"
 import { WhatsAppChannel } from "../../channels/whatsapp"
 import { MatrixChannel } from "../../channels/matrix"
+import { SignalChannel } from "../../channels/signal"
+import { IRCChannel } from "../../channels/irc"
+import { MattermostChannel } from "../../channels/mattermost"
+import { LINEChannel } from "../../channels/line"
 
 // Register built-in channels on first import
 ChannelRegistry.register(new GitHubIssuesChannel())
@@ -29,6 +33,10 @@ ChannelRegistry.register(new DiscordChannel())
 ChannelRegistry.register(new TeamsChannel())
 ChannelRegistry.register(new WhatsAppChannel())
 ChannelRegistry.register(new MatrixChannel())
+ChannelRegistry.register(new SignalChannel())
+ChannelRegistry.register(new IRCChannel())
+ChannelRegistry.register(new MattermostChannel())
+ChannelRegistry.register(new LINEChannel())
 
 export const ChannelsCommand = cmd({
   command: "channels <action>",

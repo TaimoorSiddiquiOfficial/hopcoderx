@@ -11,6 +11,7 @@ const SUPPORTED_IDES = [
   { name: "Visual Studio Code" as const, cmd: "code" },
   { name: "Cursor" as const, cmd: "cursor" },
   { name: "VSCodium" as const, cmd: "codium" },
+  { name: "HopCoder" as const, cmd: "hopcoder" },
 ]
 
 export namespace Ide {
@@ -35,7 +36,7 @@ export namespace Ide {
   )
 
   export function ide() {
-    if (process.env["TERM_PROGRAM"] === "vscode") {
+    if (process.env["TERM_PROGRAM"] === "vscode" || process.env["TERM_PROGRAM"] === "hopcoder") {
       const v = process.env["GIT_ASKPASS"]
       for (const ide of SUPPORTED_IDES) {
         if (v?.includes(ide.name)) return ide.name
@@ -45,7 +46,11 @@ export namespace Ide {
   }
 
   export function alreadyInstalled() {
-    return process.env["HOPCODERX_CALLER"] === "vscode" || process.env["HOPCODERX_CALLER"] === "vscode-insiders"
+    return (
+      process.env["HOPCODERX_CALLER"] === "vscode" ||
+      process.env["HOPCODERX_CALLER"] === "vscode-insiders" ||
+      process.env["HOPCODERX_CALLER"] === "hopcoder"
+    )
   }
 
   export async function install(ide: (typeof SUPPORTED_IDES)[number]["name"]) {
