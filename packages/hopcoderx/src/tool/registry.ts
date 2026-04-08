@@ -39,6 +39,8 @@ import { RecallMemoryTool, RememberTool } from "./codemem"
 import { ImageUnderstandingTool } from "./imageunderstand"
 import { DocUnderstandingTool } from "./docunderstand"
 import { AudioTranscriptionTool } from "./transcribe"
+import { ImageGenTool } from "./imagegen"
+import { TTSTool } from "./tts"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -138,6 +140,8 @@ export namespace ToolRegistry {
       ImageUnderstandingTool,
       DocUnderstandingTool,
       AudioTranscriptionTool,
+      ImageGenTool,
+      TTSTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
