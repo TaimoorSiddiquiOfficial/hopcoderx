@@ -138,14 +138,21 @@ export namespace Installation {
         })
         break
       case "npm":
-        cmd = $`npm install -g hopcoderx-ai@${target}`
-        break
       case "pnpm":
-        cmd = $`pnpm install -g hopcoderx-ai@${target}`
+      case "bun": {
+        // On Windows, npm/pnpm/bun cannot overwrite a running executable (EBUSY -4082).
+        // Renaming the running .exe is allowed though — free the name so the installer
+        // can write a fresh binary at the same path.
+        if (process.platform === "win32") {
+          const execPath = process.execPath
+          const oldPath = execPath + ".old"
+          await $`powershell -NoProfile -NonInteractive -Command "if (Test-Path '${execPath}') { try { Rename-Item -Path '${execPath}' -NewName '${path.basename(oldPath)}' -Force -ErrorAction Stop } catch {} }"`.throws(false).quiet()
+        }
+        if (method === "npm") cmd = $`npm install -g hopcoderx-ai@${target}`
+        else if (method === "pnpm") cmd = $`pnpm install -g hopcoderx-ai@${target}`
+        else cmd = $`bun install -g hopcoderx-ai@${target}`
         break
-      case "bun":
-        cmd = $`bun install -g hopcoderx-ai@${target}`
-        break
+      }
       case "brew": {
         const formula = await getBrewFormula()
         if (formula.includes("/")) {
@@ -186,7 +193,57 @@ export namespace Installation {
       stdout: result.stdout.toString(),
       stderr: result.stderr.toString(),
     })
+    // Clean up the renamed .old backup on Windows (best-effort)
+    if (process.platform === "win32") {
+      const oldPath = process.execPath + ".old"
+      await $`powershell -NoProfile -NonInteractive -Command "Remove-Item -Path '${oldPath}' -Force -ErrorAction SilentlyContinue"`.throws(false).quiet()
+    }
     await $`${process.execPath} --version`.nothrow().quiet().text()
+  }
+
+  /**
+   * Returns true if the given stderr string indicates a Windows EBUSY error
+   * (the running executable could not be overwritten by the package manager).
+   */
+  export function isEbusyError(stderr: string): boolean {
+    return process.platform === "win32" && (stderr.includes("EBUSY") || stderr.includes("resource busy or locked") || stderr.includes("-4082"))
+  }
+
+  /**
+   * Writes and launches a detached PowerShell script that waits for the current
+   * process to exit, then retries the npm upgrade.  Call this when `isEbusyError`
+   * is true and the rename trick was not sufficient.
+   */
+  export async function scheduleWindowsUpgrade(target: string, method: "npm" | "pnpm" | "bun"): Promise<void> {
+    const pid = process.pid
+    const installCmd = method === "npm"
+      ? `npm install -g hopcoderx-ai@${target}`
+      : method === "pnpm"
+      ? `pnpm install -g hopcoderx-ai@${target}`
+      : `bun install -g hopcoderx-ai@${target}`
+    const oldBackup = process.execPath.replace(/\\/g, "\\\\") + ".old"
+    const script = [
+      `# HopCoderX deferred upgrade — auto-generated`,
+      `$pid = ${pid}`,
+      `Write-Host "Waiting for HopCoderX (PID $pid) to exit..."`,
+      `try { Wait-Process -Id $pid -Timeout 60 -ErrorAction SilentlyContinue } catch {}`,
+      `Start-Sleep -Seconds 1`,
+      `Write-Host "Running: ${installCmd}"`,
+      `Invoke-Expression "${installCmd}"`,
+      `# Clean up backup`,
+      `if (Test-Path "${oldBackup}") { Remove-Item -Force "${oldBackup}" -ErrorAction SilentlyContinue }`,
+      `Write-Host "HopCoderX upgraded to ${target}. You can now relaunch it."`,
+    ].join("\r\n")
+
+    const tmpDir = process.env["TEMP"] ?? process.env["TMP"] ?? "C:\\Temp"
+    const psFile = path.join(tmpDir, "hopcoderx-upgrade.ps1")
+    await Bun.write(psFile, script)
+
+    // Launch detached — survives after the current process exits
+    Bun.spawn(
+      ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", psFile],
+      { detached: true, stdio: ["ignore", "ignore", "ignore"] },
+    ).unref()
   }
 
   export const VERSION = typeof HOPCODERX_VERSION === "string" ? HOPCODERX_VERSION : "local"

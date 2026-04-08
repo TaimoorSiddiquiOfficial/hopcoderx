@@ -60,6 +60,25 @@ export const UpgradeCommand = {
         // necessary because choco only allows install/upgrade in elevated terminals
         if (method === "choco" && err.data.stderr.includes("not running from an elevated command shell")) {
           prompts.log.error("Please run the terminal as Administrator and try again")
+        } else if (Installation.isEbusyError(err.data.stderr) && (method === "npm" || method === "pnpm" || method === "bun")) {
+          // Windows: hopcoderx.exe is locked — schedule a deferred upgrade via PS1
+          prompts.log.warn("HopCoderX is currently running — cannot overwrite the binary directly.")
+          const schedule = await prompts.select({
+            message: "Schedule upgrade to run automatically after you close HopCoderX?",
+            options: [
+              { label: "Yes — schedule and exit", value: "schedule" },
+              { label: "No — I'll run it manually", value: "manual" },
+            ],
+            initialValue: "schedule",
+          })
+          if (prompts.isCancel(schedule) || schedule === "manual") {
+            prompts.log.info(`Manual fix — close HopCoderX, then run:\n  ${method} install -g hopcoderx-ai@${target}`)
+          } else {
+            await Installation.scheduleWindowsUpgrade(target, method as "npm" | "pnpm" | "bun")
+            prompts.log.success(
+              `Upgrade to ${target} scheduled!\nClose HopCoderX now and the upgrade will complete automatically.`,
+            )
+          }
         } else {
           prompts.log.error(err.data.stderr)
         }
