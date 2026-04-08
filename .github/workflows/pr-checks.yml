@@ -26,7 +26,6 @@ jobs:
 
       - name: Lint with Biome
         run: bunx @biomejs/biome lint .
-        continue-on-error: true
 
   typecheck:
     name: Typecheck

@@ -464,6 +464,96 @@ export namespace Provider {
         },
       }
     },
+    // Ollama local: auto-discovers running models from localhost:11434 (no API key needed)
+    ollama: async (input) => {
+      const base =
+        Env.get("OLLAMA_HOST") ?? (await Config.get()).provider?.["ollama"]?.options?.baseURL ?? "http://127.0.0.1:11434"
+      try {
+        const res = await fetch(`${base}/api/tags`, {
+          signal: AbortSignal.timeout(2000),
+        })
+        if (!res.ok) return { autoload: false }
+        const body = (await res.json()) as { models?: Array<{ name: string; model: string }> }
+        for (const m of body.models ?? []) {
+          const id = m.name ?? m.model
+          if (!id) continue
+          input.models[id] = {
+            id,
+            providerID: "ollama",
+            name: id,
+            api: { id, url: `${base}/v1`, npm: "@ai-sdk/openai-compatible" },
+            status: "active",
+            capabilities: {
+              temperature: true,
+              reasoning: false,
+              attachment: false,
+              toolcall: true,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+              interleaved: false,
+            },
+            cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+            limit: { context: 128000, output: 16384 },
+            options: {},
+            headers: {},
+            release_date: "",
+          }
+        }
+      } catch {
+        return { autoload: false }
+      }
+      return {
+        autoload: Object.keys(input.models).length > 0,
+        options: { baseURL: `${base}/v1`, apiKey: "ollama" },
+      }
+    },
+    // LM Studio local: auto-discovers models from localhost:1234 (no API key needed)
+    lmstudio: async (input) => {
+      const config = await Config.get()
+      const base =
+        Env.get("LMSTUDIO_API_KEY")
+          ? undefined
+          : config.provider?.["lmstudio"]?.options?.baseURL ?? "http://127.0.0.1:1234/v1"
+      if (!base) return { autoload: false } // has API key — use standard models.dev flow
+      try {
+        const res = await fetch(`${base}/models`, {
+          signal: AbortSignal.timeout(2000),
+        })
+        if (!res.ok) return { autoload: false }
+        const body = (await res.json()) as { data?: Array<{ id: string }> }
+        for (const m of body.data ?? []) {
+          if (!m.id) continue
+          if (input.models[m.id]) continue // already in models.dev
+          input.models[m.id] = {
+            id: m.id,
+            providerID: "lmstudio",
+            name: m.id,
+            api: { id: m.id, url: base, npm: "@ai-sdk/openai-compatible" },
+            status: "active",
+            capabilities: {
+              temperature: true,
+              reasoning: false,
+              attachment: false,
+              toolcall: true,
+              input: { text: true, audio: false, image: false, video: false, pdf: false },
+              output: { text: true, audio: false, image: false, video: false, pdf: false },
+              interleaved: false,
+            },
+            cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+            limit: { context: 128000, output: 16384 },
+            options: {},
+            headers: {},
+            release_date: "",
+          }
+        }
+      } catch {
+        return { autoload: false }
+      }
+      return {
+        autoload: Object.keys(input.models).length > 0,
+        options: { baseURL: base, apiKey: "lmstudio" },
+      }
+    },
     gitlab: async (input) => {
       const instanceUrl = Env.get("GITLAB_INSTANCE_URL") || "https://gitlab.com"
 
@@ -834,6 +924,18 @@ export namespace Provider {
         name: "HopCoderX BDR",
         source: "custom",
         env: ["HOPCODERX_BDR_API_KEY"],
+        options: {},
+        models: {},
+      }
+    }
+
+    // Built-in local Ollama provider (no API key required — auto-discovers from localhost)
+    if (!database["ollama"]) {
+      database["ollama"] = {
+        id: "ollama",
+        name: "Ollama (Local)",
+        source: "custom",
+        env: [],
         options: {},
         models: {},
       }
