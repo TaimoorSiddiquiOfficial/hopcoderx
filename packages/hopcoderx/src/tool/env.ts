@@ -193,7 +193,7 @@ export const EnvTool = Tool.define("env", {
         }
         newContent = lines.join("\n")
       } else {
-        newContent = lines.filter((_, i) => i !== idx).join("\n")
+        newContent = idx >= 0 ? lines.filter((_, i) => i !== idx).join("\n") : content
       }
     } else {
       newContent = serializeEnv(vars)

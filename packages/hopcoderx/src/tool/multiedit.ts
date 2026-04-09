@@ -55,7 +55,7 @@ export const MultiEditTool = Tool.define("multiedit", {
       }
     }
     return {
-      title: path.relative(Instance.worktree, params.filePath),
+      title: [...new Set(params.edits.map((e) => path.relative(Instance.worktree, e.filePath)))].join(", "),
       metadata: {
         results: results.map((r) => r.metadata),
         rolledBack: false,

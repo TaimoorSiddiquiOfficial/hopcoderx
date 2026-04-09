@@ -47,6 +47,13 @@ export const ComposeTool = Tool.define("compose", {
     let lastOutput = ""
     const pipelineName = params.name ?? "compose"
 
+    const { ToolRegistry } = await import("./registry")
+    const ctxModel = ctx.extra?.model as { id?: string; providerID?: string } | undefined
+    const availableTools = await ToolRegistry.tools({
+      modelID: ctxModel?.id ?? "",
+      providerID: ctxModel?.providerID ?? "",
+    })
+
     for (let i = 0; i < params.steps.length; i++) {
       const step = params.steps[i]!
       const stepNum = i + 1
@@ -69,15 +76,9 @@ export const ComposeTool = Tool.define("compose", {
 
       // Dynamically call the tool
       try {
-        const { ToolRegistry } = await import("./registry")
-        const ctxModel = ctx.extra?.model as { id?: string; providerID?: string } | undefined
-        const tools = await ToolRegistry.tools({
-          modelID: ctxModel?.id ?? "",
-          providerID: ctxModel?.providerID ?? "",
-        })
-        const toolDef = tools.find((t) => t.id === step.tool)
+        const toolDef = availableTools.find((t) => t.id === step.tool)
         if (!toolDef) {
-          const err = `Tool '${step.tool}' not found. Available: ${tools.map((t) => t.id).slice(0, 20).join(", ")}`
+          const err = `Tool '${step.tool}' not found. Available: ${availableTools.map((t) => t.id).slice(0, 20).join(", ")}`
           if (params.stop_on_error) {
             results.push({ step: stepNum, tool: step.tool, output: err, error: err })
             break

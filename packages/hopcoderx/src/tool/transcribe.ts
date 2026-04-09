@@ -16,7 +16,7 @@ import { z } from "zod"
 import { Tool } from "../tool/tool"
 import { existsSync } from "fs"
 import { readFile } from "fs/promises"
-import { extname } from "path"
+import { extname, basename } from "path"
 import { execFile } from "child_process"
 import { promisify } from "util"
 
@@ -34,7 +34,7 @@ async function transcribeWithOpenAIWhisper(filePath: string, apiKey: string, lan
   const mime = ext === "mp3" ? "audio/mpeg" : ext === "wav" ? "audio/wav" : "audio/mpeg"
 
   const formData = new FormData()
-  formData.append("file", new Blob([buffer.buffer as ArrayBuffer], { type: mime }), `audio.${ext}`)
+  formData.append("file", new Blob([buffer.buffer as ArrayBuffer], { type: mime }), basename(filePath))
   formData.append("model", "whisper-1")
   if (language) formData.append("language", language)
 

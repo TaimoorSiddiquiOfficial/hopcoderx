@@ -48,6 +48,7 @@ import { VideoGenTool } from "./videogen"
 import { AiDebugTool } from "./aidebug"
 import { ArchDiagramTool } from "./archdiagram"
 import { DuckDuckGoSearchTool } from "./duckduckgo"
+import { MultiEditTool } from "./multiedit"
 import { GitTool } from "./git"
 import { HttpTool } from "./http"
 import { PackageTool } from "./package"
@@ -143,7 +144,7 @@ export namespace ToolRegistry {
       TaskTool,
       WebFetchTool,
       TodoWriteTool,
-      // TodoReadTool,
+      TodoReadTool,
       WebSearchTool,
       CodeSearchTool,
       ...(config.experimental?.semantic_search?.enabled !== false ? [SemanticSearchTool] : []),
@@ -182,6 +183,7 @@ export namespace ToolRegistry {
       DeployTool,
       CacheTool,
       ComposeTool,
+      MultiEditTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),

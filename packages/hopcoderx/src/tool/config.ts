@@ -45,7 +45,7 @@ function resolveConfigPath(nameOrPath: string, base: string): string | null {
 function tryParse(content: string): { parsed: unknown; isJson: boolean; isYaml: boolean } {
   // Try JSON (with trailing commas stripped for JSONC)
   try {
-    const clean = content.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    const clean = content.replace(/^\s*\/\/[^\n]*/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
     const parsed = JSON.parse(clean)
     return { parsed, isJson: true, isYaml: false }
   } catch {}
