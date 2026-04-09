@@ -93,6 +93,9 @@ export interface Channel {
   /** Stop listening */
   stopListening?(): Promise<void>
 
+  /** Send a typing indicator (best-effort, non-fatal if unsupported) */
+  sendTyping?(to: string, typing?: boolean): Promise<void>
+
   /** Check if credentials are available */
   isAvailable(): boolean
 
@@ -138,6 +141,11 @@ export const ChannelRegistry = {
     if (!ch) throw new Error(`Channel '${channelId}' not registered`)
     if (!ch.isAvailable()) throw new Error(`Channel '${channelId}' not configured (missing env vars)`)
     await ch.send(to, reply)
+  },
+
+  async sendTyping(channelId: string, to: string, typing = true): Promise<void> {
+    const ch = this.get(channelId)
+    if (ch?.sendTyping) await ch.sendTyping(to, typing).catch(() => {/* best-effort */})
   },
 
   async diagnose(channelId: string): Promise<ChannelDiagnostic> {

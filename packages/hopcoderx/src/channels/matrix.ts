@@ -11,7 +11,7 @@
  *   MATRIX_ROOM_IDS=!room1:matrix.org,!room2:matrix.org  (rooms to listen in)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -81,11 +81,74 @@ export class MatrixChannel implements Channel {
     this.abortController?.abort()
   }
 
+  /** Send plain text message */
   async send(to: string, reply: ChannelReply): Promise<void> {
     if (!to) throw new Error("Matrix: room ID required as `to`")
     const txnId = `hop-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const content = { msgtype: "m.text", body: reply.text }
     await this.matrixPut(`/rooms/${encodeURIComponent(to)}/send/m.room.message/${txnId}`, content)
+  }
+
+  /** Send a typing notification to a room */
+  async sendTyping(to: string, typing = true, timeoutMs = 5000): Promise<void> {
+    const myId = process.env.MATRIX_USER_ID
+    if (!myId || !to) return
+    await this.matrixRequest("PUT", `/rooms/${encodeURIComponent(to)}/typing/${encodeURIComponent(myId)}`, {
+      typing,
+      timeout: timeoutMs,
+    }).catch(() => {/* non-fatal */})
+  }
+
+  /** Send an HTML-formatted message (falls back to plain body for clients without HTML support) */
+  async sendFormatted(to: string, plainText: string, html: string): Promise<void> {
+    if (!to) throw new Error("Matrix: room ID required as `to`")
+    const txnId = `hop-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const content = {
+      msgtype: "m.text",
+      body: plainText,
+      format: "org.matrix.custom.html",
+      formatted_body: html,
+    }
+    await this.matrixPut(`/rooms/${encodeURIComponent(to)}/send/m.room.message/${txnId}`, content)
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const hasToken = !!process.env.MATRIX_ACCESS_TOKEN
+    checks.push({ name: "env:MATRIX_ACCESS_TOKEN", ok: hasToken, detail: hasToken ? "set" : "missing" })
+
+    const hasHomeserver = !!process.env.MATRIX_HOMESERVER_URL
+    checks.push({
+      name: "env:MATRIX_HOMESERVER_URL",
+      ok: hasHomeserver,
+      detail: hasHomeserver ? process.env.MATRIX_HOMESERVER_URL! : "using default (https://matrix.org)",
+    })
+
+    let whoamiOk = false
+    let userId = ""
+    if (hasToken) {
+      try {
+        const res = await fetch(`${this.homeserver}/_matrix/client/v3/account/whoami`, {
+          headers: { Authorization: `Bearer ${process.env.MATRIX_ACCESS_TOKEN}` },
+        })
+        if (res.ok) {
+          const data = await res.json() as { user_id: string }
+          userId = data.user_id
+          whoamiOk = true
+        }
+      } catch {
+        whoamiOk = false
+      }
+    }
+    checks.push({ name: "api:whoami", ok: whoamiOk, detail: whoamiOk ? userId : "failed — check token/homeserver" })
+
+    const ok = hasToken && whoamiOk
+    return {
+      channelId: "matrix",
+      ok,
+      summary: ok ? `Connected as ${userId}` : "Not configured or token invalid",
+      checks,
+    }
   }
 
   private async matrixRequest(method: string, path: string, body?: unknown): Promise<any> {

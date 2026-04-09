@@ -118,6 +118,11 @@ export class TelegramChannel implements Channel {
     await this.bot.api.sendDocument(Number(to), fileUrl, { caption })
   }
 
+  async sendTyping(to: string): Promise<void> {
+    if (!this.bot) return
+    await this.bot.api.sendChatAction(Number(to), "typing").catch(() => {/* best-effort */})
+  }
+
   async diagnose(): Promise<ChannelDiagnostic> {
     const checks: ChannelDiagnostic["checks"] = []
     const hasToken = !!process.env.TELEGRAM_BOT_TOKEN
