@@ -48,6 +48,18 @@ import { VideoGenTool } from "./videogen"
 import { AiDebugTool } from "./aidebug"
 import { ArchDiagramTool } from "./archdiagram"
 import { DuckDuckGoSearchTool } from "./duckduckgo"
+import { GitTool } from "./git"
+import { HttpTool } from "./http"
+import { PackageTool } from "./package"
+import { EnvTool } from "./env"
+import { ReviewTool } from "./review"
+import { ConfigTool } from "./config"
+import { DatabaseTool } from "./database"
+import { BrowserTool } from "./browser"
+import { RefactorTool } from "./refactor"
+import { DeployTool } from "./deploy"
+import { CacheTool } from "./cache"
+import { ComposeTool } from "./compose"
 import { VoiceInputTool } from "./voice"
 
 export namespace ToolRegistry {
@@ -158,6 +170,18 @@ export namespace ToolRegistry {
       AiDebugTool,
       ArchDiagramTool,
       DuckDuckGoSearchTool,
+      GitTool,
+      HttpTool,
+      PackageTool,
+      EnvTool,
+      ReviewTool,
+      ConfigTool,
+      DatabaseTool,
+      BrowserTool,
+      RefactorTool,
+      DeployTool,
+      CacheTool,
+      ComposeTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
