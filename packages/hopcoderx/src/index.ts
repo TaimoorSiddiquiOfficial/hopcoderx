@@ -54,6 +54,7 @@ import { PromptsCommand } from "./cli/cmd/prompts"
 import { CostCommand } from "./cli/cmd/cost"
 import { SbomCommand } from "./cli/cmd/sbom"
 import { DiffCommand } from "./cli/cmd/diff"
+import { PermissionCommand } from "./cli/cmd/permission"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
@@ -193,6 +194,7 @@ const cli = yargs(hideBin(process.argv))
   .command(CostCommand)
   .command(SbomCommand)
   .command(DiffCommand)
+  .command(PermissionCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||

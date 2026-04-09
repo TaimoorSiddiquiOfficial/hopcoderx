@@ -119,4 +119,87 @@ describe("tool.registry", () => {
       },
     })
   })
+
+  // ─── byCapability ─────────────────────────────────────────────────────────
+
+  describe("byCapability", () => {
+    test("returns empty array for empty caps list", async () => {
+      await using tmp = await tmpdir()
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const tools = await ToolRegistry.byCapability([])
+          expect(tools).toEqual([])
+        },
+      })
+    })
+
+    test("returns filesystem tools", async () => {
+      await using tmp = await tmpdir()
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const tools = await ToolRegistry.byCapability(["filesystem"])
+          const ids = tools.map((t) => t.id)
+          expect(ids).toContain("bash")
+          expect(ids).toContain("edit")
+          expect(ids).toContain("write")
+          expect(ids).toContain("read")
+          // network-only tools should not appear
+          expect(ids).not.toContain("webfetch")
+        },
+      })
+    })
+
+    test("returns network tools", async () => {
+      await using tmp = await tmpdir()
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const tools = await ToolRegistry.byCapability(["network"])
+          const ids = tools.map((t) => t.id)
+          expect(ids).toContain("webfetch")
+          expect(ids).toContain("http")
+          // filesystem-only tools should not appear
+          expect(ids).not.toContain("edit")
+          expect(ids).not.toContain("write")
+        },
+      })
+    })
+
+    test("returns read-only tools", async () => {
+      await using tmp = await tmpdir()
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const tools = await ToolRegistry.byCapability(["read-only"])
+          const ids = tools.map((t) => t.id)
+          expect(ids).toContain("read")
+          expect(ids).toContain("glob")
+          expect(ids).toContain("grep")
+          expect(ids).toContain("semanticsearch")
+          // execution tools should not appear
+          expect(ids).not.toContain("bash")
+          expect(ids).not.toContain("task")
+        },
+      })
+    })
+
+    test("union match: returns tools matching any of the given caps", async () => {
+      await using tmp = await tmpdir()
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const tools = await ToolRegistry.byCapability(["ai", "execution"])
+          const ids = tools.map((t) => t.id)
+          // ai tools (confirmed real IDs)
+          expect(ids).toContain("transcribe")
+          expect(ids).toContain("videogen")
+          // execution tools
+          expect(ids).toContain("bash")
+          expect(ids).toContain("task")
+        },
+      })
+    })
+  })
 })
