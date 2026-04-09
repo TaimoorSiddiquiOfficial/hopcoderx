@@ -291,13 +291,35 @@ export namespace SessionPrompt {
     // on the user message and will be retrieved from lastUser below
     let structuredOutput: unknown | undefined
 
+    // Incremental message loading: cache raw messages (newest-first) between
+    // loop iterations so we only query DB for messages added since last turn.
+    // This avoids re-reading the full history on every step of the agent loop.
+    let msgCacheNewestFirst: MessageV2.WithParts[] = []
+    let lastSeenMsgID = ""
+
     let step = 0
     const session = await Session.get(sessionID)
     while (true) {
       SessionStatus.set(sessionID, { type: "busy" })
       log.info("loop", { step, sessionID })
       if (abort.aborted) break
-      let msgs = await MessageV2.filterCompacted(MessageV2.stream(sessionID))
+
+      // Fetch only messages added since the last iteration and prepend to cache.
+      const newMsgs: MessageV2.WithParts[] = []
+      for await (const msg of MessageV2.streamSince({ sessionID, afterID: lastSeenMsgID })) {
+        newMsgs.push(msg)
+      }
+      if (newMsgs.length > 0) {
+        msgCacheNewestFirst = [...newMsgs, ...msgCacheNewestFirst]
+        lastSeenMsgID = newMsgs[0].info.id // newMsgs is newest-first
+      }
+
+      // filterCompacted expects newest-first async iterable
+      let msgs = await MessageV2.filterCompacted(
+        (async function* () {
+          for (const m of msgCacheNewestFirst) yield m
+        })(),
+      )
 
       let lastUser: MessageV2.User | undefined
       let lastAssistant: MessageV2.Assistant | undefined

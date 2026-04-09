@@ -6,7 +6,7 @@ import { Identifier } from "../id/id"
 import { LSP } from "../lsp"
 import { Snapshot } from "@/snapshot"
 import { fn } from "@/util/fn"
-import { Database, eq, desc, inArray } from "@/storage/db"
+import { Database, eq, desc, inArray, gt, and } from "@/storage/db"
 import { MessageTable, PartTable } from "./session.sql"
 import { ProviderTransform } from "@/provider/transform"
 import { STATUS_CODES } from "http"
@@ -765,6 +765,69 @@ export namespace MessageV2 {
       if (rows.length < size) break
     }
   })
+
+  /**
+   * Like `stream` but only yields messages with id > afterID (newest-first).
+   * Used for incremental loading: on the first call pass "", on subsequent
+   * calls pass the id of the most-recently-seen message.
+   */
+  export const streamSince = fn(
+    z.object({ sessionID: Identifier.schema("session"), afterID: z.string() }),
+    async function* ({ sessionID, afterID }) {
+      const size = 50
+      let offset = 0
+      while (true) {
+        const where =
+          afterID === ""
+            ? eq(MessageTable.session_id, sessionID)
+            : and(eq(MessageTable.session_id, sessionID), gt(MessageTable.id, afterID))
+        const rows = Database.use((db) =>
+          db
+            .select()
+            .from(MessageTable)
+            .where(where)
+            .orderBy(desc(MessageTable.time_created))
+            .limit(size)
+            .offset(offset)
+            .all(),
+        )
+        if (rows.length === 0) break
+
+        const ids = rows.map((row) => row.id)
+        const partsByMessage = new Map<string, MessageV2.Part[]>()
+        const partRows = Database.use((db) =>
+          db
+            .select()
+            .from(PartTable)
+            .where(inArray(PartTable.message_id, ids))
+            .orderBy(PartTable.message_id, PartTable.id)
+            .all(),
+        )
+        for (const row of partRows) {
+          const part = {
+            ...row.data,
+            id: row.id,
+            sessionID: row.session_id,
+            messageID: row.message_id,
+          } as MessageV2.Part
+          const list = partsByMessage.get(row.message_id)
+          if (list) list.push(part)
+          else partsByMessage.set(row.message_id, [part])
+        }
+
+        for (const row of rows) {
+          const info = { ...row.data, id: row.id, sessionID: row.session_id } as MessageV2.Info
+          yield {
+            info,
+            parts: partsByMessage.get(row.id) ?? [],
+          }
+        }
+
+        offset += rows.length
+        if (rows.length < size) break
+      }
+    },
+  )
 
   export const parts = fn(Identifier.schema("message"), async (message_id) => {
     const rows = Database.use((db) =>
