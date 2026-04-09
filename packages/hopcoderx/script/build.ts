@@ -183,7 +183,6 @@ for (const item of targets) {
       conditions: ["browser"],
       tsconfig: "./tsconfig.json",
       plugins: [solidPlugin],
-      sourcemap: "external",
       compile: {
         autoloadBunfig: false,
         autoloadDotenv: false,
@@ -208,11 +207,14 @@ for (const item of targets) {
     const msg = err instanceof Error ? err.message : String(err)
     const stack = err instanceof Error ? err.stack : ""
     const cause = err instanceof Error && err.cause ? String(err.cause) : ""
+    const errors = (err as any)?.errors
     console.error(`build error for ${name}:`, msg)
     if (stack) console.error(`stack:`, stack)
     if (cause) console.error(`cause:`, cause)
+    if (errors?.length) console.error(`errors:`, JSON.stringify(errors, null, 2))
     if (process.env.GITHUB_ACTIONS) {
-      const detail = [msg, cause, stack].filter(Boolean).join(" | ")
+      const errDetail = errors?.length ? errors.map((e: any) => e?.message ?? String(e)).join("; ") : ""
+      const detail = [msg, errDetail, cause].filter(Boolean).join(" | ")
       console.log(`::error title=Bun.build ${name}::${detail}`)
     }
     continue
