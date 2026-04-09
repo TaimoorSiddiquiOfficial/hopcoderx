@@ -42,9 +42,36 @@ export const BrowserTool= Tool.define("browser", {
       metadata: { action: params.action, url: params.url },
     })
 
-        // @ts-ignore - playwright-core is an optional peer dependency
-        const { chromium } = await import("playwright-core")
-    const browser = await chromium.launch({ headless: true })
+    let pw: any
+    try {
+      // @ts-ignore - playwright-core is an optional peer dependency
+      pw = await import("playwright-core")
+    } catch {
+      return {
+        title: "browser: playwright-core not installed",
+        output: [
+          "playwright-core is not installed. Install it with:",
+          "  bun add playwright-core",
+          "Then install a browser:",
+          "  bunx playwright install chromium",
+        ].join("\n"),
+        metadata: {} as Meta,
+      }
+    }
+
+    let browser: any
+    try {
+      browser = await pw.chromium.launch({ headless: true })
+    } catch {
+      return {
+        title: "browser: no browser available",
+        output: [
+          "No Chromium browser found. Install one with:",
+          "  bunx playwright install chromium",
+        ].join("\n"),
+        metadata: {} as Meta,
+      }
+    }
 
     try {
       const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
