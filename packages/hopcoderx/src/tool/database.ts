@@ -31,6 +31,32 @@ async function runSqlite(dbPath: string, sql: string): Promise<{ rows: Record<st
   }
 }
 
+async function runSqliteMigration(dbPath: string, statements: string[]): Promise<string[]> {
+  const { Database } = await import("bun:sqlite")
+  const db = new Database(dbPath, { readonly: false })
+  const results: string[] = []
+  try {
+    db.exec("BEGIN")
+    for (const stmt of statements) {
+      const prepared = db.prepare(stmt)
+      const result = prepared.run() as { changes: number }
+      results.push(`✅ ${stmt.slice(0, 60)}${stmt.length > 60 ? "…" : ""}${result.changes !== undefined ? ` (${result.changes} rows affected)` : ""}`)
+    }
+    db.exec("COMMIT")
+  } catch (e: any) {
+    db.exec("ROLLBACK")
+    throw e
+  } finally {
+    db.close()
+  }
+  return results
+}
+
+async function listTables(dbPath: string): Promise<string[]> {
+  const { rows } = await runSqlite(dbPath, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+  return rows.map((r) => r["name"] as string)
+}
+
 async function getSchema(dbPath: string): Promise<string> {
   const { rows } = await runSqlite(dbPath, "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
   if (!rows.length) return "No tables found."
@@ -76,11 +102,11 @@ export const DatabaseTool = Tool.define("database", {
     const op = params.operation
 
     if (op === "tables") {
-      const { rows } = await runSqlite(dbPath, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+      const names = await listTables(dbPath)
       return {
         title: "database tables",
-        output: rows.length ? rows.map((r) => `  ${r["name"]}`).join("\n") : "No tables found.",
-        metadata: { count: rows.length } as Meta,
+        output: names.length ? names.map((n) => `  ${n}`).join("\n") : "No tables found.",
+        metadata: { count: names.length } as Meta,
       }
     }
 
@@ -102,22 +128,33 @@ export const DatabaseTool = Tool.define("database", {
 
     if (op === "migrate") {
       if (!params.sql) return { title: "database migrate", output: "Error: `sql` is required", metadata: {} as Meta }
-      // Split on semicolons and run each statement
       const statements = params.sql.split(";").map((s) => s.trim()).filter(Boolean)
-      const results: string[] = []
-      for (const stmt of statements) {
-        const { rowsAffected } = await runSqlite(dbPath, stmt)
-        results.push(`✅ ${stmt.slice(0, 60)}${stmt.length > 60 ? "…" : ""}${rowsAffected !== undefined ? ` (${rowsAffected} rows affected)` : ""}`)
-      }
-      return {
-        title: `database migrate (${statements.length} statements)`,
-        output: results.join("\n"),
-        metadata: { statements: statements.length } as Meta,
+      try {
+        const results = await runSqliteMigration(dbPath, statements)
+        return {
+          title: `database migrate (${statements.length} statements)`,
+          output: results.join("\n"),
+          metadata: { statements: statements.length } as Meta,
+        }
+      } catch (e: any) {
+        return {
+          title: "database migrate — error (rolled back)",
+          output: `Migration failed and was rolled back.\n${e?.message ?? String(e)}`,
+          metadata: { error: true } as Meta,
+        }
       }
     }
 
     if (op === "export") {
       if (!params.table) return { title: "database export", output: "Error: `table` is required for export", metadata: {} as Meta }
+      const validTables = await listTables(dbPath)
+      if (!validTables.includes(params.table)) {
+        return {
+          title: "database export",
+          output: `Table '${params.table}' not found. Available tables: ${validTables.join(", ") || "(none)"}`,
+          metadata: {} as Meta,
+        }
+      }
       const { rows } = await runSqlite(dbPath, `SELECT * FROM "${params.table}" LIMIT ${params.limit ?? 1000}`)
       if (!rows.length) return { title: "database export", output: "No rows to export.", metadata: {} as Meta }
       const keys = Object.keys(rows[0]!)

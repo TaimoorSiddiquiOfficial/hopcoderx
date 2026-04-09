@@ -193,6 +193,48 @@ export const RefactorTool = Tool.define("refactor", {
       }
     }
 
+    if (op === "inline_variable") {
+      if (!params.file || !params.old_name) {
+        return { title: "refactor inline_variable", output: "Error: `file` and `old_name` are required", metadata: {} as Meta }
+      }
+      const filePath = path.isAbsolute(params.file) ? params.file : path.join(base, params.file)
+      if (!existsSync(filePath)) return { title: "refactor inline_variable", output: `File not found: ${params.file}`, metadata: {} as Meta }
+
+      const content = await readFile(filePath, "utf8")
+      const name = params.old_name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+      // Match: const/let/var name[: Type] = <value>;  (single line only)
+      const declRegex = new RegExp(`^([ \\t]*)(?:const|let|var)\\s+${name}(?:\\s*:[^=]+)?\\s*=\\s*(.+?)\\s*;?\\s*$`, "m")
+      const declMatch = declRegex.exec(content)
+      if (!declMatch) {
+        return { title: "refactor inline_variable", output: `Could not find single-line declaration for '${params.old_name}'`, metadata: {} as Meta }
+      }
+
+      const rawValue = declMatch[2]!.trim()
+      const usageRegex = new RegExp(`\\b${name}\\b`, "g")
+      // Count usages excluding the declaration line
+      const declLine = declMatch[0]
+      const contentWithoutDecl = content.replace(declLine, "")
+      const usages = (contentWithoutDecl.match(usageRegex) ?? []).length
+
+      if (params.dry_run) {
+        return {
+          title: "refactor inline_variable [dry-run]",
+          output: `Would inline '${params.old_name}' = ${rawValue}\nWould replace ${usages} usage(s) and remove declaration`,
+          metadata: { dryRun: true, usages } as Meta,
+        }
+      }
+
+      // Replace all usages with the value, then remove the declaration line
+      const inlined = contentWithoutDecl.replace(usageRegex, rawValue)
+      await writeFile(filePath, inlined, "utf8")
+      return {
+        title: `refactor inline_variable → ${params.old_name}`,
+        output: `✅ Inlined '${params.old_name}' = ${rawValue}\nReplaced ${usages} usage(s) and removed declaration in ${params.file}`,
+        metadata: { file: params.file, variable: params.old_name, value: rawValue, usagesReplaced: usages } as Meta,
+      }
+    }
+
     return { title: "refactor", output: "Unknown operation", metadata: {} as Meta }
   },
 })

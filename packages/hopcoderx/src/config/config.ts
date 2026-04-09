@@ -288,7 +288,9 @@ export namespace Config {
     await BunProc.run(
       [
         "install",
-        // TODO: get rid of this case (see: https://github.com/oven-sh/bun/issues/19936)
+        // Workaround: bun install is pathologically slow with a proxy when the cache
+        // is populated. --no-cache bypasses this. Remove once oven-sh/bun#19936 is fixed.
+        // Still unresolved as of Bun 1.3.9.
         ...(proxied() ? ["--no-cache"] : []),
       ],
       { cwd: dir },

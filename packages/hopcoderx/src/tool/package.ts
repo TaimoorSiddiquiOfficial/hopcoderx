@@ -81,7 +81,7 @@ function buildCmd(pm: PM, op: (typeof OPERATIONS)[number], packages: string[], e
         case "install": return ["pip", "install", "-r", "requirements.txt", ...extra]
         case "add": return ["pip", "install", ...packages, ...extra]
         case "remove": return ["pip", "uninstall", "-y", ...packages, ...extra]
-        case "update": return packages.length ? ["pip", "install", "--upgrade", ...packages, ...extra] : ["pip", "list", "--outdated"]
+        case "update": return packages.length ? ["pip", "install", "--upgrade", ...packages, ...extra] : ["pip", "install", "--upgrade", "pip"]
         case "audit": return ["pip", "audit", ...extra]  // pip-audit if installed
         case "outdated": return ["pip", "list", "--outdated", ...extra]
         case "list": return ["pip", "list", ...extra]

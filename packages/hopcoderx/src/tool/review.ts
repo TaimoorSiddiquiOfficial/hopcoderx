@@ -33,7 +33,7 @@ const SECURITY_PATTERNS: Array<{ pattern: RegExp; message: string; severity: Fin
   // XSS
   { pattern: /innerHTML\s*=\s*[^'"`][^;]+;|document\.write\s*\(/i, message: "Potential XSS: unsanitized DOM assignment or document.write", severity: "high", category: "XSS" },
   // Path traversal
-  { pattern: /\.\.\//g, message: "Path traversal pattern (../) detected — validate user input", severity: "high", category: "Path Traversal" },
+  { pattern: /\.\.\//, message: "Path traversal pattern (../) detected — validate user input", severity: "high", category: "Path Traversal" },
   // Hardcoded secrets
   { pattern: /(?:password|secret|api.?key|token)\s*[:=]\s*['"`][^'"`]{8,}/i, message: "Possible hardcoded secret or credential", severity: "critical", category: "Hardcoded Secret" },
   // Command injection
