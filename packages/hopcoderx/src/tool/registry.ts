@@ -62,6 +62,7 @@ import { DeployTool } from "./deploy"
 import { CacheTool } from "./cache"
 import { ComposeTool } from "./compose"
 import { VoiceInputTool } from "./voice"
+import { CanvasTool } from "./canvas"
 
 // ─── Capability map ────────────────────────────────────────────────────────
 // Centralised capability declarations for built-in tools so individual tool
@@ -97,6 +98,7 @@ const TOOL_CAPABILITIES: Partial<Record<string, Tool.Info["capabilities"]>> = {
   git: ["filesystem", "execution"],
   package: ["execution", "network"],
   lsp: ["read-only"],
+  canvas: ["network"],
 }
 
 export namespace ToolRegistry {
@@ -220,6 +222,7 @@ export namespace ToolRegistry {
       CacheTool,
       ComposeTool,
       MultiEditTool,
+      CanvasTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
