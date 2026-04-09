@@ -1,5 +1,5 @@
 /**
- * Telegram channel for HopCoderX.
+ * Telegram channel for HopCoderX — powered by Grammy.
  *
  * Personal coding assistant via Telegram bot.
  * Send code snippets, get reviews, trigger CI, check deployment status.
@@ -7,29 +7,13 @@
  * Setup:
  *   TELEGRAM_BOT_TOKEN=123456:ABC-xxx   (from @BotFather)
  *   TELEGRAM_ALLOWED_IDS=12345,67890    (comma-separated chat IDs allowed to use the bot)
- *   TELEGRAM_POLL_TIMEOUT=30            (long-poll timeout in seconds)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import { Bot, type Context } from "grammy"
+import { run, sequentialize } from "@grammyjs/runner"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
-
-interface TgMessage {
-  message_id: number
-  chat: { id: number; type: string; username?: string }
-  from?: { id: number; username?: string; first_name: string }
-  text?: string
-  document?: { file_id: string; file_name?: string; mime_type?: string }
-  photo?: Array<{ file_id: string }>
-  date: number
-}
-
-interface TgUpdate {
-  update_id: number
-  message?: TgMessage
-  edited_message?: TgMessage
-  callback_query?: { id: string; message?: TgMessage; data?: string }
-}
 
 export class TelegramChannel implements Channel {
   readonly config: ChannelConfig = {
@@ -40,28 +24,27 @@ export class TelegramChannel implements Channel {
     canSend: true,
   }
 
-  private token = process.env.TELEGRAM_BOT_TOKEN ?? ""
-  private allowedIds = new Set(
-    (process.env.TELEGRAM_ALLOWED_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean)
-  )
-  private pollTimeout = parseInt(process.env.TELEGRAM_POLL_TIMEOUT ?? "30", 10)
+  private bot: Bot | null = null
   private handlers: Handler[] = []
-  private _polling = false
-  private _offset = 0
+  private allowedIds: Set<string>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private runner: any = null
+
+  constructor() {
+    this.allowedIds = new Set(
+      (process.env.TELEGRAM_ALLOWED_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+    )
+  }
 
   isAvailable(): boolean {
-    return !!this.token
+    return !!process.env.TELEGRAM_BOT_TOKEN
   }
 
   async init(): Promise<void> {
-    if (!this.isAvailable()) return
-    // Confirm bot token works
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${this.token}/getMe`)
-      if (!res.ok) throw new Error(`getMe failed: ${res.status}`)
-    } catch (e) {
-      console.warn("[telegram channel] init failed:", e)
-    }
+    if (!this.isAvailable() || this.bot) return
+    this.bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!)
+    await this.bot.api.getMe()
+    console.log("[telegram] Bot ready")
   }
 
   onMessage(handler: Handler): void {
@@ -71,73 +54,129 @@ export class TelegramChannel implements Channel {
   async startListening(): Promise<void> {
     if (!this.isAvailable()) return
     await this.init()
-    this._polling = true
-    void this.longPoll()
+    const bot = this.bot!
+
+    // Sequentialize to prevent concurrent updates for the same chat
+    bot.use(sequentialize((ctx: Context) => String(ctx.chat?.id ?? ctx.from?.id ?? "unknown")))
+
+    bot.on("message", async (ctx: Context) => {
+      const msg = ctx.message!
+      const chatId = String(msg.chat.id)
+
+      if (this.allowedIds.size > 0 && !this.allowedIds.has(chatId)) {
+        await ctx.reply("You are not authorized to use this bot.")
+        return
+      }
+
+      const text = msg.text ?? msg.caption ?? ""
+      const channelMsg: ChannelMessage = {
+        id: String(msg.message_id),
+        channelId: "telegram",
+        threadId: chatId,
+        from: msg.from?.username ?? msg.from?.first_name ?? chatId,
+        text,
+        attachments: extractAttachments(msg),
+        timestamp: msg.date * 1_000,
+        raw: msg as unknown as Record<string, unknown>,
+      }
+      for (const h of this.handlers) {
+        await h(channelMsg).catch((err) => console.error("[telegram] handler error:", err))
+      }
+    })
+
+    this.runner = run(bot)
+    console.log("[telegram] Polling started")
   }
 
   async stopListening(): Promise<void> {
-    this._polling = false
-  }
-
-  private async longPoll(): Promise<void> {
-    while (this._polling) {
-      try {
-        const res = await fetch(
-          `https://api.telegram.org/bot${this.token}/getUpdates?offset=${this._offset}&timeout=${this.pollTimeout}`
-        )
-        if (!res.ok) {
-          await new Promise((r) => setTimeout(r, 5000))
-          continue
-        }
-        const data = (await res.json()) as { ok: boolean; result: TgUpdate[] }
-        for (const update of data.result ?? []) {
-          this._offset = update.update_id + 1
-          const tgMsg = update.message ?? update.edited_message
-          if (!tgMsg) continue
-
-          const chatId = String(tgMsg.chat.id)
-          if (this.allowedIds.size > 0 && !this.allowedIds.has(chatId)) {
-            await this.sendRaw(tgMsg.chat.id, "❌ You are not authorized to use this bot.")
-            continue
-          }
-
-          const msg: ChannelMessage = {
-            id: String(update.update_id),
-            channelId: "telegram",
-            threadId: chatId,
-            from: tgMsg.from?.username ?? tgMsg.from?.first_name ?? chatId,
-            text: tgMsg.text ?? "",
-            timestamp: tgMsg.date * 1000,
-            raw: tgMsg,
-          }
-          for (const h of this.handlers) await h(msg)
-        }
-      } catch (e) {
-        console.warn("[telegram channel] poll error:", e)
-        await new Promise((r) => setTimeout(r, 5000))
-      }
-    }
+    await this.runner?.stop()
+    this.runner = null
   }
 
   async send(to: string, reply: ChannelReply): Promise<void> {
-    if (!this.isAvailable()) throw new Error("Telegram channel not configured")
-    const chatId = parseInt(to, 10)
+    if (!this.bot) throw new Error("Telegram: call init() first")
+    const chatId = Number(to)
     if (isNaN(chatId)) throw new Error(`Invalid Telegram chat ID: ${to}`)
-    await this.sendRaw(chatId, reply.text, reply.threadId)
+
+    // Split long messages (Telegram max is 4096 chars)
+    const chunks = splitMessage(reply.text, 4_096)
+    for (const chunk of chunks) {
+      await this.bot.api.sendMessage(chatId, chunk, {
+        parse_mode: "Markdown",
+        ...(reply.threadId ? { reply_parameters: { message_id: Number(reply.threadId) } } : {}),
+      })
+    }
   }
 
-  private async sendRaw(chatId: number, text: string, replyToMsgId?: string): Promise<void> {
-    const body: Record<string, any> = {
-      chat_id: chatId,
-      text: text.slice(0, 4096),
-      parse_mode: "Markdown",
-    }
-    if (replyToMsgId) body.reply_to_message_id = parseInt(replyToMsgId, 10)
-    const res = await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) throw new Error(`Telegram sendMessage failed: ${res.status} ${await res.text()}`)
+  async sendPhoto(to: string, photoUrl: string, caption?: string): Promise<void> {
+    if (!this.bot) throw new Error("Telegram: call init() first")
+    await this.bot.api.sendPhoto(Number(to), photoUrl, { caption })
   }
+
+  async sendDocument(to: string, fileUrl: string, caption?: string): Promise<void> {
+    if (!this.bot) throw new Error("Telegram: call init() first")
+    await this.bot.api.sendDocument(Number(to), fileUrl, { caption })
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const hasToken = !!process.env.TELEGRAM_BOT_TOKEN
+    checks.push({ name: "env:TELEGRAM_BOT_TOKEN", ok: hasToken, detail: hasToken ? "set" : "missing" })
+
+    let botOk = false
+    let botUsername = ""
+    if (hasToken) {
+      try {
+        const bot = this.bot ?? new Bot(process.env.TELEGRAM_BOT_TOKEN!)
+        const me = await bot.api.getMe()
+        botOk = true
+        botUsername = `@${me.username}`
+      } catch (err) {
+        botOk = false
+      }
+    }
+    checks.push({ name: "api:getMe", ok: botOk, detail: botOk ? botUsername : "failed — check token" })
+
+    const ok = hasToken && botOk
+    return {
+      channelId: "telegram",
+      ok,
+      summary: ok ? `Connected as ${botUsername}` : "Not configured or token invalid",
+      checks,
+    }
+  }
+}
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+function extractAttachments(msg: NonNullable<Context["message"]>): ChannelMessage["attachments"] {
+  const attachments: NonNullable<ChannelMessage["attachments"]> = []
+  if (msg.photo) {
+    const largest = msg.photo[msg.photo.length - 1]
+    attachments.push({ name: `photo_${largest.file_id}.jpg`, mimeType: "image/jpeg" })
+  }
+  if (msg.document) {
+    attachments.push({
+      name: msg.document.file_name ?? msg.document.file_id,
+      mimeType: msg.document.mime_type,
+    })
+  }
+  if (msg.voice) {
+    attachments.push({ name: `voice_${msg.voice.file_id}.ogg`, mimeType: "audio/ogg" })
+  }
+  if (msg.audio) {
+    attachments.push({ name: msg.audio.file_name ?? msg.audio.file_id, mimeType: msg.audio.mime_type })
+  }
+  return attachments.length ? attachments : undefined
+}
+
+function splitMessage(text: string, maxLen: number): string[] {
+  if (text.length <= maxLen) return [text]
+  const chunks: string[] = []
+  let pos = 0
+  while (pos < text.length) {
+    chunks.push(text.slice(pos, pos + maxLen))
+    pos += maxLen
+  }
+  return chunks
 }

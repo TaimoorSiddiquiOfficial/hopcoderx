@@ -95,6 +95,21 @@ export interface Channel {
 
   /** Check if credentials are available */
   isAvailable(): boolean
+
+  /**
+   * Run a health check and return a diagnostic report.
+   * Should verify config validity, connectivity, and auth state without side effects.
+   */
+  diagnose?(): Promise<ChannelDiagnostic>
+}
+
+export interface ChannelDiagnostic {
+  channelId: string
+  ok: boolean
+  /** Human-readable status summary */
+  summary: string
+  /** Individual check results */
+  checks: Array<{ name: string; ok: boolean; detail?: string }>
 }
 
 // ─── Registry ──────────────────────────────────────────────────────────────────
@@ -123,5 +138,30 @@ export const ChannelRegistry = {
     if (!ch) throw new Error(`Channel '${channelId}' not registered`)
     if (!ch.isAvailable()) throw new Error(`Channel '${channelId}' not configured (missing env vars)`)
     await ch.send(to, reply)
+  },
+
+  async diagnose(channelId: string): Promise<ChannelDiagnostic> {
+    const ch = this.get(channelId)
+    if (!ch) {
+      return { channelId, ok: false, summary: `Channel '${channelId}' not registered`, checks: [] }
+    }
+    if (ch.diagnose) return ch.diagnose()
+    // Fallback: basic config check
+    const missingEnv = ch.config.envVars.filter((v) => !process.env[v])
+    const ok = missingEnv.length === 0
+    return {
+      channelId,
+      ok,
+      summary: ok ? "Config present" : `Missing env vars: ${missingEnv.join(", ")}`,
+      checks: ch.config.envVars.map((v) => ({
+        name: `env:${v}`,
+        ok: !!process.env[v],
+        detail: process.env[v] ? "set" : "missing",
+      })),
+    }
+  },
+
+  async diagnoseAll(): Promise<ChannelDiagnostic[]> {
+    return Promise.all(Array.from(_channels.keys()).map((id) => this.diagnose(id)))
   },
 }

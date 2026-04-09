@@ -26,7 +26,7 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys"
 import type { WASocket, ConnectionState } from "@whiskeysockets/baileys"
 import QRCode from "qrcode"
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -267,6 +267,34 @@ export class WhatsAppChannel implements Channel {
     this._closeSock()
   }
 
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const authDir = this.authDir
+
+    // Check auth dir exists and has creds
+    let hasCreds = false
+    try {
+      const fs = await import("node:fs/promises")
+      const credsFile = path.join(authDir, "creds.json")
+      await fs.access(credsFile)
+      hasCreds = true
+    } catch {
+      hasCreds = false
+    }
+    checks.push({ name: "auth:creds", ok: hasCreds, detail: hasCreds ? authDir : "not linked — run startQrLogin()" })
+
+    // Check socket connectivity
+    const connected = !!this.sock
+    checks.push({ name: "socket:connected", ok: connected, detail: connected ? "open" : "not connected" })
+
+    const ok = hasCreds
+    return {
+      channelId: "whatsapp",
+      ok,
+      summary: ok ? (connected ? "Linked and connected" : "Linked (not listening)") : "Not linked — scan QR to set up",
+      checks,
+    }
+  }
   async send(to: string, reply: ChannelReply): Promise<void> {
     const sock = this._requireSock()
     const jid = toJid(to)
