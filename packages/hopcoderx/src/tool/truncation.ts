@@ -11,6 +11,8 @@ import { Glob } from "../util/glob"
 export namespace Truncate {
   export const MAX_LINES = 2000
   export const MAX_BYTES = 50 * 1024
+  // Head+tail split ratio: keep this share from the head, same from the tail
+  const BOTH_HEAD_RATIO = 0.4
   export const DIR = path.join(Global.Path.data, "tool-output")
   export const GLOB = path.join(DIR, "*")
   const RETENTION_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -21,7 +23,7 @@ export namespace Truncate {
   export interface Options {
     maxLines?: number
     maxBytes?: number
-    direction?: "head" | "tail"
+    direction?: "head" | "tail" | "both"
   }
 
   export function init() {
@@ -51,12 +53,53 @@ export namespace Truncate {
   export async function output(text: string, options: Options = {}, agent?: Agent.Info): Promise<Result> {
     const maxLines = options.maxLines ?? MAX_LINES
     const maxBytes = options.maxBytes ?? MAX_BYTES
-    const direction = options.direction ?? "head"
+    const direction = options.direction ?? "both"
     const lines = text.split("\n")
     const totalBytes = Buffer.byteLength(text, "utf-8")
 
     if (lines.length <= maxLines && totalBytes <= maxBytes) {
       return { content: text, truncated: false }
+    }
+
+    // head+tail: preserve beginning and end, drop the middle
+    if (direction === "both") {
+      const headMax = Math.floor(maxLines * BOTH_HEAD_RATIO)
+      const tailMax = Math.floor(maxLines * BOTH_HEAD_RATIO)
+      const byteBudget = Math.floor(maxBytes * BOTH_HEAD_RATIO)
+
+      const headLines: string[] = []
+      let headBytes = 0
+      for (let i = 0; i < lines.length && headLines.length < headMax; i++) {
+        const sz = Buffer.byteLength(lines[i], "utf-8") + (headLines.length > 0 ? 1 : 0)
+        if (headBytes + sz > byteBudget) break
+        headLines.push(lines[i])
+        headBytes += sz
+      }
+
+      const tailLines: string[] = []
+      let tailBytes = 0
+      for (let i = lines.length - 1; i >= headLines.length && tailLines.length < tailMax; i--) {
+        const sz = Buffer.byteLength(lines[i], "utf-8") + (tailLines.length > 0 ? 1 : 0)
+        if (tailBytes + sz > byteBudget) break
+        tailLines.unshift(lines[i])
+        tailBytes += sz
+      }
+
+      const removed = lines.length - headLines.length - tailLines.length
+      const id = Identifier.ascending("tool")
+      const filepath = path.join(DIR, id)
+      await Filesystem.write(filepath, text)
+
+      const hint = hasTaskTool(agent)
+        ? `Full output saved to: ${filepath}\nUse the Task tool to delegate reading this file.`
+        : `Full output saved to: ${filepath}\nUse Grep to search or Read with offset/limit to view sections.`
+
+      const preview =
+        headLines.join("\n") +
+        `\n\n... ${removed} lines truncated (${removed} of ${lines.length} total) ...\n\n${hint}\n\n` +
+        tailLines.join("\n")
+
+      return { content: preview, truncated: true, outputPath: filepath }
     }
 
     const out: string[] = []

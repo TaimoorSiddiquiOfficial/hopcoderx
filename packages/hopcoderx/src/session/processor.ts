@@ -161,6 +161,16 @@ export namespace SessionProcessor {
                           JSON.stringify(p.state.input) === JSON.stringify(value.input),
                       )
                     ) {
+                      // Inject a recovery meta-prompt before asking permission so it lands
+                      // in the next turn's context and guides the model out of the loop.
+                      await Session.updatePart({
+                        id: Identifier.ascending("part"),
+                        messageID: input.assistantMessage.id,
+                        sessionID: input.assistantMessage.sessionID,
+                        type: "text",
+                        text: `⚠️ LOOP DETECTED: You have called \`${value.toolName}\` with identical arguments ${DOOM_LOOP_THRESHOLD} times in a row. You MUST change your approach. Options: (1) verify the operation already succeeded and stop, (2) use a different tool, (3) decompose the task into smaller steps, (4) ask the user for clarification. Do NOT call \`${value.toolName}\` with the same arguments again.`,
+                        time: { start: Date.now(), end: Date.now() },
+                      })
                       const agent = await Agent.get(input.assistantMessage.agent)
                       await PermissionNext.ask({
                         permission: "doom_loop",
