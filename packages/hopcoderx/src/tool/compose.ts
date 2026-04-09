@@ -9,17 +9,24 @@
 import z from "zod"
 import { Tool } from "./tool"
 
+const SubStepSchema = z.object({
+  tool: z.string().describe("Tool ID to call"),
+  args: z.record(z.string(), z.unknown()).optional().describe("Arguments for the tool"),
+})
+
 const StepSchema = z.object({
-  tool: z.string().describe("Tool ID to call (e.g. 'bash', 'websearch', 'git', 'http')"),
-  args: z.record(z.string(), z.unknown()).describe("Arguments for the tool"),
+  tool: z.string().optional().describe("Tool ID to call (e.g. 'bash', 'websearch', 'git', 'http'). Omit for parallel steps."),
+  args: z.record(z.string(), z.unknown()).optional().describe("Arguments for the tool"),
   output_as: z.string().optional().describe("Store this step's output under this variable name for use in later steps via {{variable_name}}"),
   skip_if_empty: z.boolean().optional().describe("Skip this step if the previous step produced empty output"),
   condition: z.string().optional().describe("Only run this step if this string appears in the previous step output"),
+  retry: z.number().int().min(0).max(5).optional().describe("Retry the step up to this many times on failure (default 0)"),
+  parallel: z.array(SubStepSchema).optional().describe("Run these sub-steps concurrently; all outputs joined become the step output"),
 })
 
 export const ComposeTool = Tool.define("compose", {
   description:
-    "Run a sequential pipeline of tool calls. Each step's output is passed to the next. Use `output_as` to name a step's output and reference it in later steps with {{variable_name}}. Use `condition` to skip a step unless previous output contains a string. Ideal for automating multi-step workflows like: search → summarize → create file.",
+    "Run a sequential pipeline of tool calls. Each step's output is passed to the next. Use `output_as` to name a step's output and reference it in later steps with {{variable_name}}. Use `condition` to skip a step unless previous output contains a string. Use `retry` to automatically retry a failing step. Use `parallel` to run multiple sub-steps concurrently. Ideal for automating multi-step workflows like: search → summarize → create file.",
   parameters: z.object({
     name: z.string().optional().describe("Pipeline name for display (optional)"),
     steps: z.array(StepSchema).min(1).max(20).describe("Ordered list of tool steps to execute"),
@@ -60,44 +67,80 @@ export const ComposeTool = Tool.define("compose", {
 
       // Check skip conditions
       if (step.skip_if_empty && !lastOutput.trim()) {
-        results.push({ step: stepNum, tool: step.tool, output: "(skipped — empty input)", skipped: true })
+        results.push({ step: stepNum, tool: step.tool ?? "parallel", output: "(skipped — empty input)", skipped: true })
         continue
       }
       if (step.condition && !lastOutput.includes(step.condition)) {
-        results.push({ step: stepNum, tool: step.tool, output: `(skipped — condition '${step.condition}' not met)`, skipped: true })
+        results.push({ step: stepNum, tool: step.tool ?? "parallel", output: `(skipped — condition '${step.condition}' not met)`, skipped: true })
         continue
       }
 
       // Interpolate variables into args
-      const interpolatedArgs = interpolate(step.args) as Record<string, unknown>
+      const interpolatedArgs = interpolate(step.args ?? {}) as Record<string, unknown>
 
       // Inject previous output as _prev variable
       variables["_prev"] = lastOutput
 
-      // Dynamically call the tool
+      // Parallel step: run sub-steps concurrently
+      if (step.parallel?.length) {
+        try {
+          const subResults = await Promise.all(
+            step.parallel.map(async (sub) => {
+              const subArgs = interpolate(sub.args ?? {}) as Record<string, unknown>
+              const subTool = availableTools.find((t) => t.id === sub.tool)
+              if (!subTool) throw new Error(`Tool '${sub.tool}' not found`)
+              const r = await subTool.execute(subArgs, ctx)
+              return r.output ?? ""
+            }),
+          )
+          lastOutput = subResults.join("\n")
+          if (step.output_as) variables[step.output_as] = lastOutput
+          results.push({ step: stepNum, tool: `parallel(${step.parallel.length})`, output: lastOutput })
+        } catch (e: any) {
+          const errMsg = e instanceof Error ? e.message : String(e)
+          results.push({ step: stepNum, tool: `parallel(${step.parallel.length})`, output: errMsg, error: errMsg })
+          lastOutput = ""
+          if (params.stop_on_error) break
+        }
+        continue
+      }
+
+      // Dynamically call the tool (with optional retry)
       try {
         const toolDef = availableTools.find((t) => t.id === step.tool)
         if (!toolDef) {
           const err = `Tool '${step.tool}' not found. Available: ${availableTools.map((t) => t.id).slice(0, 20).join(", ")}`
           if (params.stop_on_error) {
-            results.push({ step: stepNum, tool: step.tool, output: err, error: err })
+            results.push({ step: stepNum, tool: step.tool!, output: err, error: err })
             break
           }
-          results.push({ step: stepNum, tool: step.tool, output: err, error: err })
+          results.push({ step: stepNum, tool: step.tool!, output: err, error: err })
           continue
         }
 
-        const result = await toolDef.execute(interpolatedArgs, ctx)
-        lastOutput = result.output ?? ""
+        const maxAttempts = 1 + (step.retry ?? 0)
+        let result: Awaited<ReturnType<typeof toolDef.execute>> | undefined
+        let lastErr: string | undefined
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          try {
+            result = await toolDef.execute(interpolatedArgs, ctx)
+            lastErr = undefined
+            break
+          } catch (e: any) {
+            lastErr = e instanceof Error ? e.message : String(e)
+          }
+        }
+        if (lastErr !== undefined) throw new Error(lastErr)
+        lastOutput = result!.output ?? ""
 
         if (step.output_as) {
           variables[step.output_as] = lastOutput
         }
 
-        results.push({ step: stepNum, tool: step.tool, output: lastOutput })
+        results.push({ step: stepNum, tool: step.tool!, output: lastOutput })
       } catch (e: any) {
         const errMsg = e instanceof Error ? e.message : String(e)
-        results.push({ step: stepNum, tool: step.tool, output: errMsg, error: errMsg })
+        results.push({ step: stepNum, tool: step.tool!, output: errMsg, error: errMsg })
         lastOutput = ""
         if (params.stop_on_error) break
       }

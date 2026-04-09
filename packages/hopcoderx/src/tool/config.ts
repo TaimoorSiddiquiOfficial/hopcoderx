@@ -12,6 +12,7 @@ import { readFile, writeFile } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
 import { Instance } from "../project/instance"
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml"
 
 const KNOWN_CONFIGS: Record<string, { desc: string; candidates: string[] }> = {
   tsconfig: { desc: "TypeScript compiler config", candidates: ["tsconfig.json", "tsconfig.base.json", "tsconfig.app.json"] },
@@ -42,14 +43,21 @@ function resolveConfigPath(nameOrPath: string, base: string): string | null {
   return existsSync(full) ? full : null
 }
 
-function tryParse(content: string): { parsed: unknown; isJson: boolean; isYaml: boolean } {
+function tryParse(content: string, filePath: string): { parsed: unknown; isJson: boolean; isYaml: boolean } {
   // Try JSON (with trailing commas stripped for JSONC)
   try {
     const clean = content.replace(/^\s*\/\/[^\n]*/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
     const parsed = JSON.parse(clean)
     return { parsed, isJson: true, isYaml: false }
   } catch {}
-  // Not YAML parser available — treat as raw
+  // Try YAML for .yaml/.yml files
+  const ext = path.extname(filePath).toLowerCase()
+  if (ext === ".yaml" || ext === ".yml") {
+    try {
+      const parsed = parseYaml(content)
+      return { parsed, isJson: false, isYaml: true }
+    } catch {}
+  }
   const isYaml = /^(\w+):\s/m.test(content)
   return { parsed: null, isJson: false, isYaml }
 }
@@ -127,7 +135,7 @@ export const ConfigTool= Tool.define("config", {
     }
 
     const content = await readFile(filePath, "utf8")
-    const { parsed, isJson } = tryParse(content)
+    const { parsed, isJson, isYaml } = tryParse(content, filePath)
     const rel = path.relative(base, filePath)
 
     if (params.operation === "read") {
@@ -139,12 +147,15 @@ export const ConfigTool= Tool.define("config", {
       if (isJson) {
         return { title: `config validate — ${rel}`, output: `✅ Valid JSON: ${rel}`, metadata: { valid: true } as Meta }
       }
-      return { title: `config validate — ${rel}`, output: `⚠️ ${rel} is not JSON — cannot validate syntax automatically.`, metadata: { valid: false } as Meta }
+      if (isYaml && parsed !== null) {
+        return { title: `config validate — ${rel}`, output: `✅ Valid YAML: ${rel}`, metadata: { valid: true } as Meta }
+      }
+      return { title: `config validate — ${rel}`, output: `⚠️ ${rel} is not valid JSON or YAML.`, metadata: { valid: false } as Meta }
     }
 
     if (params.operation === "get") {
       if (!params.key) return { title: "config get", output: "Error: `key` is required", metadata: {} as Meta }
-      if (!isJson || !parsed) return { title: "config get", output: "Cannot read key from non-JSON config.", metadata: {} as Meta }
+      if ((!isJson && !isYaml) || !parsed) return { title: "config get", output: "Cannot read key from non-JSON/YAML config.", metadata: {} as Meta }
       const val = getDotPath(parsed, params.key)
       return {
         title: `config get — ${rel} → ${params.key}`,
@@ -155,10 +166,10 @@ export const ConfigTool= Tool.define("config", {
 
     if (params.operation === "set") {
       if (!params.key) return { title: "config set", output: "Error: `key` is required", metadata: {} as Meta }
-      if (!isJson || !parsed) return { title: "config set", output: "Can only set keys in JSON configs.", metadata: {} as Meta }
+      if ((!isJson && !isYaml) || !parsed) return { title: "config set", output: "Can only set keys in JSON or YAML configs.", metadata: {} as Meta }
       const obj = parsed as Record<string, unknown>
       applyDotPath(obj, params.key, params.value)
-      const newContent = JSON.stringify(obj, null, 2) + "\n"
+      const newContent = isYaml ? stringifyYaml(obj) : JSON.stringify(obj, null, 2) + "\n"
       await writeFile(filePath, newContent, "utf8")
       return {
         title: `config set — ${rel}`,

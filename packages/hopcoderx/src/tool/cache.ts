@@ -8,7 +8,7 @@
 
 import z from "zod"
 import { Tool } from "./tool"
-import { statSync } from "fs"
+import { stat } from "fs/promises"
 
 interface CacheEntry {
   value: string
@@ -20,16 +20,17 @@ interface CacheEntry {
 
 // In-process cache — lives for the session duration
 const SESSION_CACHE = new Map<string, CacheEntry>()
+const MAX_ENTRIES = 500
 
 type Meta = Record<string, unknown>
 
-function isExpired(entry: CacheEntry): boolean {
+async function isExpired(entry: CacheEntry): Promise<boolean> {
   if (Date.now() - entry.storedAt > entry.ttlMs) return true
   if (entry.watchFiles?.length) {
     for (const f of entry.watchFiles) {
       try {
-        const mtime = statSync(f).mtimeMs
-        if (mtime > entry.storedAt) return true
+        const s = await stat(f)
+        if (s.mtimeMs > entry.storedAt) return true
       } catch {
         // File deleted — invalidate
         return true
@@ -61,7 +62,7 @@ export const CacheTool = Tool.define("cache", {
     if (op === "get") {
       if (!params.key) return { title: "cache get", output: "Error: `key` is required", metadata: { hit: false } as Meta }
       const entry = SESSION_CACHE.get(params.key)
-      if (!entry || isExpired(entry)) {
+      if (!entry || await isExpired(entry)) {
         if (entry) SESSION_CACHE.delete(params.key)
         return { title: "cache get — miss", output: `Cache miss: ${params.key}`, metadata: { hit: false, key: params.key } as Meta }
       }
@@ -84,6 +85,10 @@ export const CacheTool = Tool.define("cache", {
         tags: params.tags,
       }
       SESSION_CACHE.set(params.key, entry)
+      // Evict oldest entry if over the limit
+      if (SESSION_CACHE.size > MAX_ENTRIES) {
+        SESSION_CACHE.delete(SESSION_CACHE.keys().next().value!)
+      }
       return {
         title: `cache set — ${params.key}`,
         output: `✅ Cached '${params.key}' for ${params.ttl_seconds ?? 300}s${params.watch_files?.length ? ` (watches ${params.watch_files.length} file(s))` : ""}`,
@@ -110,7 +115,7 @@ export const CacheTool = Tool.define("cache", {
       if (SESSION_CACHE.size === 0) return { title: "cache list", output: "Cache is empty.", metadata: { count: 0 } as Meta }
       const lines: string[] = [`Cache entries (${SESSION_CACHE.size} total):\n`]
       for (const [k, v] of SESSION_CACHE) {
-        const expired = isExpired(v) ? " [expired]" : ""
+        const expired = await isExpired(v) ? " [expired]" : ""
         const age = Math.floor((Date.now() - v.storedAt) / 1000)
         const ttlLeft = Math.max(0, Math.floor((v.storedAt + v.ttlMs - Date.now()) / 1000))
         const preview = v.value.slice(0, 60).replace(/\n/g, "↵")

@@ -31,6 +31,8 @@ const OPERATIONS = [
   "blame",
   "stash",
   "merge",
+  "rebase",
+  "cherry-pick",
   "reset",
   "show",
   "pull",
@@ -42,7 +44,7 @@ const OPERATIONS = [
 
 export const GitTool = Tool.define("git", {
   description:
-    "Run structured git operations: status, diff, commit, add, branch, checkout, log, blame, stash, merge, reset, show, pull, push, fetch, tag, remote. Use this instead of bash for git operations to get structured, safe output with conflict detection.",
+    "Run structured git operations: status, diff, commit, add, branch, checkout, log, blame, stash, merge, rebase, cherry-pick, reset, show, pull, push, fetch, tag, remote. Use this instead of bash for git operations to get structured, safe output with conflict detection.",
   parameters: z.object({
     operation: z.enum(OPERATIONS).describe("Git operation to perform"),
     args: z
@@ -111,6 +113,12 @@ export const GitTool = Tool.define("git", {
       case "merge":
         cmdArgs = ["merge", ...extraArgs]
         break
+      case "rebase":
+        cmdArgs = ["rebase", ...extraArgs]
+        break
+      case "cherry-pick":
+        cmdArgs = ["cherry-pick", ...extraArgs]
+        break
       case "reset":
         cmdArgs = ["reset", ...extraArgs, ...(params.files ?? [])]
         break
@@ -139,9 +147,13 @@ export const GitTool = Tool.define("git", {
     const { stdout, stderr } = await git(cmdArgs, cwd)
     const output = [stdout, stderr].filter(Boolean).join("\n").trim()
 
-    // Detect conflicts
+    // Detect conflicts — extract just the conflicted filenames
     if (output.includes("CONFLICT") || output.includes("Merge conflict")) {
-      const conflicted: string[] = output.match(/CONFLICT.*?in (.+)/g) ?? []
+      const conflicted: string[] = []
+      for (const m of output.matchAll(/CONFLICT[^:]*:.*in (.+)/g)) {
+        const file = m[1]?.trim()
+        if (file) conflicted.push(file)
+      }
       return {
         title: `git ${op} — CONFLICTS`,
         output: `⚠️ Merge conflicts detected:\n${conflicted.join("\n")}\n\n${output}`,

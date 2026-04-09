@@ -46,6 +46,11 @@ export const HttpTool = Tool.define("http", {
     include_response_headers: z.boolean().optional().default(false).describe("Include response headers in output"),
   }),
   async execute(params, ctx) {
+    // Prevent SSRF via non-HTTP schemes (file://, ftp://, etc.)
+    if (!/^https?:\/\//i.test(params.url)) {
+      throw new Error(`Blocked: only http:// and https:// URLs are allowed. Got: ${params.url}`)
+    }
+
     await ctx.ask({
       permission: "http",
       patterns: [params.url],
@@ -62,8 +67,9 @@ export const HttpTool = Tool.define("http", {
       headers["Authorization"] = `Basic ${encoded}`
     }
 
+    const NO_BODY_METHODS = new Set(["GET", "HEAD", "OPTIONS", "DELETE"])
     let body: BodyInit | undefined
-    if (params.body !== undefined && params.method !== "GET" && params.method !== "HEAD") {
+    if (params.body !== undefined && !NO_BODY_METHODS.has(params.method)) {
       const bodyType = params.body_type ?? "json"
       if (bodyType === "json") {
         headers["Content-Type"] = headers["Content-Type"] ?? "application/json"
