@@ -153,6 +153,20 @@ export interface Hooks {
   }
   auth?: AuthHook
   /**
+   * Called when an agent loop starts processing a new session.
+   * Fires once at the beginning of the loop (step 1).
+   */
+  "session.start"?: (input: { sessionID: string }, output: Record<string, never>) => Promise<void>
+  /**
+   * Called once per loop iteration (every agent step).
+   */
+  "session.step"?: (input: { sessionID: string; step: number }, output: Record<string, never>) => Promise<void>
+  /**
+   * Called when the agent loop finishes (regardless of whether it completed
+   * successfully, hit the step limit, or was aborted).
+   */
+  "session.end"?: (input: { sessionID: string; steps: number }, output: Record<string, never>) => Promise<void>
+  /**
    * Called when a new message is received
    */
   "chat.message"?: (

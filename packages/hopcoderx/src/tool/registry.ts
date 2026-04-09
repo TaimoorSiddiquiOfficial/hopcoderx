@@ -63,6 +63,42 @@ import { CacheTool } from "./cache"
 import { ComposeTool } from "./compose"
 import { VoiceInputTool } from "./voice"
 
+// ─── Capability map ────────────────────────────────────────────────────────
+// Centralised capability declarations for built-in tools so individual tool
+// files don't need to be changed.  byCapability() merges this at query time.
+const TOOL_CAPABILITIES: Partial<Record<string, Tool.Info["capabilities"]>> = {
+  bash: ["execution", "filesystem"],
+  edit: ["filesystem"],
+  write: ["filesystem"],
+  multiedit: ["filesystem"],
+  apply_patch: ["filesystem"],
+  read: ["read-only", "filesystem"],
+  glob: ["read-only", "filesystem"],
+  grep: ["read-only", "filesystem"],
+  webfetch: ["network"],
+  websearch: ["network"],
+  http: ["network"],
+  tavily_search: ["network"],
+  exa_search: ["network"],
+  firecrawl: ["network"],
+  duckduckgo_search: ["network"],
+  imagegen: ["network", "ai"],
+  tts: ["network", "ai"],
+  transcribe: ["network", "ai"],
+  videogen: ["network", "ai"],
+  image_understanding: ["network", "ai"],
+  doc_understanding: ["network", "ai"],
+  semanticsearch: ["read-only"],
+  task: ["execution"],
+  swarm: ["execution"],
+  deploy: ["execution", "network"],
+  database: ["execution", "filesystem"],
+  browser: ["network"],
+  git: ["filesystem", "execution"],
+  package: ["execution", "network"],
+  lsp: ["read-only"],
+}
+
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
 
@@ -193,6 +229,28 @@ export namespace ToolRegistry {
 
   export async function ids() {
     return all().then((x) => x.map((t) => t.id))
+  }
+
+  /**
+   * Return all tools that declare any of the given capability tags.
+   * Merges the centralized TOOL_CAPABILITIES map with any capabilities set
+   * directly on the Tool.Info object (e.g. by plugin tools).
+   */
+  export async function byCapability(caps: NonNullable<Tool.Info["capabilities"]>): Promise<Tool.Info[]> {
+    if (caps.length === 0) return []
+    const tools = await all()
+    return tools.filter((t) => {
+      const effective = t.capabilities ?? TOOL_CAPABILITIES[t.id] ?? []
+      return effective.some((c) => caps.includes(c))
+    })
+  }
+
+  /**
+   * Return per-tool usage metrics collected since process start.
+   * Delegates to the Telemetry module.
+   */
+  export function usageStats() {
+    return import("../telemetry/telemetry").then(({ Telemetry }) => Telemetry.metrics().tools)
   }
 
   export async function tools(

@@ -3,6 +3,7 @@ import type { MessageV2 } from "../session/message-v2"
 import type { Agent } from "../agent/agent"
 import type { PermissionNext } from "../permission/next"
 import { Truncate } from "./truncation"
+import { Telemetry } from "../telemetry/telemetry"
 
 export namespace Tool {
   interface Metadata {
@@ -26,6 +27,15 @@ export namespace Tool {
   }
   export interface Info<Parameters extends z.ZodType = z.ZodType, M extends Metadata = Metadata> {
     id: string
+    /**
+     * Capability tags used by the registry to filter tools for sandboxed agents.
+     * - "read-only"  : only reads state, no side effects
+     * - "filesystem" : writes to the local filesystem
+     * - "network"    : makes outbound network requests
+     * - "execution"  : runs arbitrary code or shell commands
+     * - "ai"         : calls an external AI/LLM API
+     */
+    capabilities?: Array<"read-only" | "filesystem" | "network" | "execution" | "ai">
     init: (ctx?: InitContext) => Promise<{
       description: string
       parameters: Parameters
@@ -48,9 +58,11 @@ export namespace Tool {
   export function define<Parameters extends z.ZodType, Result extends Metadata>(
     id: string,
     init: Info<Parameters, Result>["init"] | Awaited<ReturnType<Info<Parameters, Result>["init"]>>,
+    options?: { capabilities?: Info["capabilities"] },
   ): Info<Parameters, Result> {
     return {
       id,
+      capabilities: options?.capabilities,
       init: async (initCtx) => {
         const toolInfo = init instanceof Function ? await init(initCtx) : init
         const execute = toolInfo.execute
@@ -66,20 +78,29 @@ export namespace Tool {
               { cause: error },
             )
           }
-          const result = await execute(args, ctx)
-          // skip truncation for tools that handle it themselves
-          if (result.metadata.truncated !== undefined) {
-            return result
-          }
-          const truncated = await Truncate.output(result.output, {}, initCtx?.agent)
-          return {
-            ...result,
-            output: truncated.content,
-            metadata: {
-              ...result.metadata,
-              truncated: truncated.truncated,
-              ...(truncated.truncated && { outputPath: truncated.outputPath }),
-            },
+          const startMs = Date.now()
+          let execError: string | undefined
+          try {
+            const result = await execute(args, ctx)
+            // skip truncation for tools that handle it themselves
+            if (result.metadata.truncated !== undefined) {
+              return result
+            }
+            const truncated = await Truncate.output(result.output, {}, initCtx?.agent)
+            return {
+              ...result,
+              output: truncated.content,
+              metadata: {
+                ...result.metadata,
+                truncated: truncated.truncated,
+                ...(truncated.truncated && { outputPath: truncated.outputPath }),
+              },
+            }
+          } catch (err) {
+            execError = err instanceof Error ? err.message : String(err)
+            throw err
+          } finally {
+            Telemetry.recordToolCall(id, Date.now() - startMs, execError)
           }
         }
         return toolInfo
@@ -87,3 +108,4 @@ export namespace Tool {
     }
   }
 }
+

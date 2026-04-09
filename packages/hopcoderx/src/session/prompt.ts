@@ -47,6 +47,7 @@ import { iife } from "@/util/iife"
 import { Shell } from "@/shell/shell"
 import { Truncate } from "@/tool/truncation"
 import { ContextTiering } from "./tiering"
+import { Telemetry } from "../telemetry/telemetry"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -299,6 +300,8 @@ export namespace SessionPrompt {
 
     let step = 0
     const session = await Session.get(sessionID)
+    await Plugin.trigger("session.start", { sessionID }, {})
+    Telemetry.sessionStart(sessionID)
     while (true) {
       SessionStatus.set(sessionID, { type: "busy" })
       log.info("loop", { step, sessionID })
@@ -349,6 +352,8 @@ export namespace SessionPrompt {
       }
 
       step++
+      Telemetry.sessionStep(sessionID)
+      await Plugin.trigger("session.step", { sessionID, step }, {})
       if (step === 1)
         ensureTitle({
           session,
@@ -761,6 +766,8 @@ export namespace SessionPrompt {
       }
       continue
     }
+    await Plugin.trigger("session.end", { sessionID, steps: step }, {})
+    Telemetry.sessionEnd(sessionID)
     SafeRefactor.reset(sessionID)
     SessionCompaction.prune({ sessionID })
     for await (const item of MessageV2.stream(sessionID)) {

@@ -263,5 +263,27 @@ export const MetaRoutes = lazy(() =>
       async (c) => {
         return c.json(await Format.status())
       },
+    )
+    .get(
+      "/telemetry",
+      describeRoute({
+        summary: "Get telemetry metrics",
+        description: "Return per-tool usage stats and recent spans collected since process start.",
+        operationId: "telemetry.metrics",
+        responses: {
+          200: {
+            description: "Telemetry metrics snapshot",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({}).passthrough()),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        const { Telemetry } = await import("../../telemetry/telemetry")
+        return c.json(Telemetry.metrics())
+      },
     ),
 )
