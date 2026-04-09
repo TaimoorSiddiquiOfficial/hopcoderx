@@ -47,6 +47,7 @@ import { FirecrawlTool } from "./firecrawl"
 import { VideoGenTool } from "./videogen"
 import { AiDebugTool } from "./aidebug"
 import { ArchDiagramTool } from "./archdiagram"
+import { DuckDuckGoSearchTool } from "./duckduckgo"
 import { VoiceInputTool } from "./voice"
 
 export namespace ToolRegistry {
@@ -156,6 +157,7 @@ export namespace ToolRegistry {
       VideoGenTool,
       AiDebugTool,
       ArchDiagramTool,
+      DuckDuckGoSearchTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
