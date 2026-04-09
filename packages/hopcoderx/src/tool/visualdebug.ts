@@ -179,24 +179,21 @@ export const VisualDebugTool = Tool.define<typeof parameters, Meta>("visualdebug
         page.on("pageerror", (err: any) => consoleErrors.push(String(err)))
 
         // Register network listeners BEFORE navigation
-        const { networkLog, domSummary, a11yIssues, perfMetrics } = await (async () => {
-          const timings = new Map<string, number>()
-          const netLog: NetworkEntry[] = []
-          if (params.network) {
-            page.on("request", (req: any) => timings.set(req.url(), Date.now()))
-            page.on("response", (res: any) => {
-              const start = timings.get(res.url()) ?? Date.now()
-              netLog.push({
-                url: res.url().length > 120 ? res.url().slice(0, 120) + "…" : res.url(),
-                method: res.request().method(),
-                status: res.status(),
-                type: res.request().resourceType(),
-                duration: Date.now() - start,
-              })
+        const timings = new Map<string, number>()
+        const networkLog: NetworkEntry[] = []
+        if (params.network) {
+          page.on("request", (req: any) => timings.set(req.url(), Date.now()))
+          page.on("response", (res: any) => {
+            const start = timings.get(res.url()) ?? Date.now()
+            networkLog.push({
+              url: res.url().length > 120 ? res.url().slice(0, 120) + "…" : res.url(),
+              method: res.request().method(),
+              status: res.status(),
+              type: res.request().resourceType(),
+              duration: Date.now() - start,
             })
-          }
-          return { networkLog: netLog, domSummary: [] as DomNode[], a11yIssues: [] as string[], perfMetrics: {} as Record<string, number> }
-        })()
+          })
+        }
 
         log.info("visualdebug: navigating", { url: params.url })
         await page.goto(params.url, { waitUntil: "networkidle", timeout: 30_000 })

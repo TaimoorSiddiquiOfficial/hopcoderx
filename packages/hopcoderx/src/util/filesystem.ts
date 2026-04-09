@@ -2,7 +2,7 @@ import { chmod, mkdir, readFile, writeFile } from "fs/promises"
 import { createWriteStream, existsSync, statSync } from "fs"
 import { lookup } from "mime-types"
 import { realpathSync } from "fs"
-import { dirname, join, relative } from "path"
+import { dirname, isAbsolute, join, relative } from "path"
 import { Readable } from "stream"
 import { pipeline } from "stream/promises"
 import { Glob } from "./glob"
@@ -132,7 +132,11 @@ export namespace Filesystem {
   }
 
   export function contains(parent: string, child: string) {
-    return !relative(parent, child).startsWith("..")
+    const rel = relative(parent, child)
+    // On Windows, cross-drive paths produce an absolute path (e.g. "C:\\other") since
+    // path.relative cannot express cross-drive traversal. isAbsolute catches this case.
+    if (isAbsolute(rel)) return false
+    return !rel.startsWith("..")
   }
 
   export async function findUp(target: string, start: string, stop?: string) {

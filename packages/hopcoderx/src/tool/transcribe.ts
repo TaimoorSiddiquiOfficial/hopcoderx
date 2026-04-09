@@ -28,7 +28,7 @@ async function transcribeWithWhisperCLI(filePath: string): Promise<string> {
   return stdout.trim()
 }
 
-async function transcribeWithOpenAIWhisper(filePath: string, apiKey: string): Promise<string> {
+async function transcribeWithOpenAIWhisper(filePath: string, apiKey: string, language?: string): Promise<string> {
   const buffer = await readFile(filePath)
   const ext = extname(filePath).replace(".", "")
   const mime = ext === "mp3" ? "audio/mpeg" : ext === "wav" ? "audio/wav" : "audio/mpeg"
@@ -36,6 +36,7 @@ async function transcribeWithOpenAIWhisper(filePath: string, apiKey: string): Pr
   const formData = new FormData()
   formData.append("file", new Blob([buffer.buffer as ArrayBuffer], { type: mime }), `audio.${ext}`)
   formData.append("model", "whisper-1")
+  if (language) formData.append("language", language)
 
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
@@ -47,13 +48,14 @@ async function transcribeWithOpenAIWhisper(filePath: string, apiKey: string): Pr
   return data.text
 }
 
-async function transcribeWithDeeapgram(filePath: string, apiKey: string): Promise<string> {
+async function transcribeWithDeepgram(filePath: string, apiKey: string, language?: string): Promise<string> {
   const buffer = await readFile(filePath)
   const ext = extname(filePath).replace(".", "").toLowerCase()
   const mimeMap: Record<string, string> = { mp3: "audio/mpeg", wav: "audio/wav", flac: "audio/flac", m4a: "audio/mp4", ogg: "audio/ogg" }
   const mime = mimeMap[ext] ?? "audio/mpeg"
 
-  const res = await fetch("https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true", {
+  const langParam = language ? `&language=${encodeURIComponent(language)}` : ""
+  const res = await fetch(`https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true${langParam}`, {
     method: "POST",
     headers: { Authorization: `Token ${apiKey}`, "Content-Type": mime },
     body: buffer.buffer as ArrayBuffer,
@@ -76,7 +78,7 @@ export const AudioTranscriptionTool = Tool.define<typeof parameters, Meta>("tran
   description:
     "Transcribe audio files (MP3, WAV, FLAC, M4A) to text using Deepgram or OpenAI Whisper. Useful for meeting notes, voice commands, spoken requirements.",
   parameters,
-  async execute({ file, provider }) {
+  async execute({ file, provider, language }) {
     if (!existsSync(file)) {
       return { title: "transcribe", output: `File not found: ${file}`, metadata: {} as Meta }
     }
@@ -90,7 +92,7 @@ export const AudioTranscriptionTool = Tool.define<typeof parameters, Meta>("tran
 
       if (provider === "auto" || provider === "deepgram") {
         if (deepgramKey) {
-          transcript = await transcribeWithDeeapgram(file, deepgramKey)
+          transcript = await transcribeWithDeepgram(file, deepgramKey, language)
           providerUsed = "deepgram"
         } else if (provider === "deepgram") {
           return { title: "transcribe", output: "DEEPGRAM_API_KEY not set.", metadata: {} as Meta }
@@ -99,7 +101,7 @@ export const AudioTranscriptionTool = Tool.define<typeof parameters, Meta>("tran
 
       if (!transcript && (provider === "auto" || provider === "openai-whisper")) {
         if (openaiKey) {
-          transcript = await transcribeWithOpenAIWhisper(file, openaiKey)
+          transcript = await transcribeWithOpenAIWhisper(file, openaiKey, language)
           providerUsed = "openai-whisper"
         } else if (provider === "openai-whisper") {
           return { title: "transcribe", output: "OPENAI_API_KEY not set.", metadata: {} as Meta }

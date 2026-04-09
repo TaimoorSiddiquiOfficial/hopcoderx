@@ -496,9 +496,19 @@ export namespace File {
     const project = Instance.project
     const full = path.join(Instance.directory, file)
 
-    // TODO: Filesystem.contains is lexical only - symlinks inside the project can escape.
-    // TODO: On Windows, cross-drive paths bypass this check. Consider realpath canonicalization.
-    if (!Instance.containsPath(full)) {
+    // Resolve symlinks to prevent escape via symlinks pointing outside the project.
+    // Fall back to lexical path if the file does not yet exist.
+    let fullResolved: string
+    try {
+      fullResolved = fs.realpathSync(full)
+    } catch {
+      try {
+        fullResolved = path.join(fs.realpathSync(path.dirname(full)), path.basename(full))
+      } catch {
+        fullResolved = full
+      }
+    }
+    if (!Instance.containsPath(fullResolved)) {
       throw new Error(`Access denied: path escapes project directory`)
     }
 
@@ -572,9 +582,14 @@ export namespace File {
     }
     const resolved = dir ? path.join(Instance.directory, dir) : Instance.directory
 
-    // TODO: Filesystem.contains is lexical only - symlinks inside the project can escape.
-    // TODO: On Windows, cross-drive paths bypass this check. Consider realpath canonicalization.
-    if (!Instance.containsPath(resolved)) {
+    // Resolve symlinks to prevent escape via symlinks pointing outside the project.
+    let resolvedDir: string
+    try {
+      resolvedDir = fs.realpathSync(resolved)
+    } catch {
+      resolvedDir = resolved
+    }
+    if (!Instance.containsPath(resolvedDir)) {
       throw new Error(`Access denied: path escapes project directory`)
     }
 
