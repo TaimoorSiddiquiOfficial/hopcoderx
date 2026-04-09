@@ -124,11 +124,13 @@ export const BrowserTool= Tool.define("browser", {
       if (action === "extract") {
         const attr = params.extract_attribute
         if (params.all_matches) {
-          const results = await page.$$eval(
-            params.selector ?? "body",
-            (els: Element[], a: string | undefined) => els.map((el) => (a ? (el as HTMLElement).getAttribute(a) : (el as HTMLElement).innerText?.trim())).filter(Boolean),
-            attr,
-          )
+          const locator = page.locator(params.selector ?? "body")
+          const elements = await locator.all()
+          const results: string[] = []
+          for (const el of elements) {
+            const val = attr ? await el.getAttribute(attr) : await el.innerText().catch(() => el.textContent())
+            if (val) results.push(val.trim())
+          }
           return {
             title: `browser extract (${results.length} matches)`,
             output: results.join("\n"),

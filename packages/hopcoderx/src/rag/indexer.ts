@@ -64,6 +64,12 @@ export namespace Indexer {
     return { indexed, skipped, elapsed }
   }
 
+  export async function reindex(signal?: AbortSignal) {
+    Store.clear()
+    running = false
+    return index(signal)
+  }
+
   export function indexed() {
     return Store.stats()
   }

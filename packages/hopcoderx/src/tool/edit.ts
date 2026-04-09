@@ -20,6 +20,9 @@ import { assertExternalDirectory } from "./external-directory"
 
 const MAX_DIAGNOSTICS_PER_FILE = 20
 
+// Stores the pre-edit content of each file so the agent can recover from a bad edit.
+const undoHistory = new Map<string, string>()
+
 function normalizeLineEndings(text: string): string {
   return text.replaceAll("\r\n", "\n")
 }
@@ -50,8 +53,10 @@ export const EditTool = Tool.define("edit", {
     await FileTime.withLock(filePath, async () => {
       if (params.oldString === "") {
         const existed = await Filesystem.exists(filePath)
+        // Capture existing content so the diff and undo history are accurate
+        if (existed) contentOld = await Filesystem.readText(filePath)
         contentNew = params.newString
-        diff = trimDiff(createTwoFilesPatch(filePath, filePath, contentOld, contentNew))
+        diff = trimDiff(createTwoFilesPatch(filePath, filePath, normalizeLineEndings(contentOld), normalizeLineEndings(contentNew)))
         await ctx.ask({
           permission: "edit",
           patterns: [path.relative(Instance.worktree, filePath)],
@@ -108,6 +113,9 @@ export const EditTool = Tool.define("edit", {
       FileTime.read(ctx.sessionID, filePath)
     })
 
+    // Persist pre-edit content so the agent (or a future undo operation) can restore it
+    undoHistory.set(filePath, contentOld)
+
     const filediff: Snapshot.FileDiff = {
       file: filePath,
       before: contentOld,
@@ -152,6 +160,8 @@ export const EditTool = Tool.define("edit", {
     }
   },
 })
+
+export { undoHistory as EditUndoHistory }
 
 export type Replacer = (content: string, find: string) => Generator<string, void, unknown>
 

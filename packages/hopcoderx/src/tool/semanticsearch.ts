@@ -14,10 +14,10 @@ export const SemanticSearchTool = Tool.define("semanticsearch", {
       .string()
       .describe("Natural language query describing the code you're looking for, or a symbol name to search for"),
     mode: z
-      .enum(["code", "symbol", "references"])
+      .enum(["code", "symbol", "references", "reindex", "status"])
       .default("code")
       .describe(
-        "Search mode: 'code' for full-text code search, 'symbol' for function/class/type definitions, 'references' for symbol usage graph",
+        "Search mode: 'code' for full-text code search, 'symbol' for function/class/type definitions, 'references' for symbol usage graph, 'reindex' to force a full re-index, 'status' to report index stats",
       ),
     kind: z
       .string()
@@ -28,6 +28,29 @@ export const SemanticSearchTool = Tool.define("semanticsearch", {
     limit: z.number().min(1).max(50).default(15).describe("Maximum number of results to return"),
   }),
   async execute(params, ctx) {
+    if (params.mode === "status") {
+      const stats = Indexer.indexed()
+      return {
+        title: "index status",
+        metadata: { matches: stats.files },
+        output: `Index stats:\n  Files: ${stats.files}\n  Chunks: ${stats.chunks}\n  Symbols: ${stats.symbols}`,
+      }
+    }
+
+    if (params.mode === "reindex") {
+      ctx.metadata({ title: "Re-indexing codebase..." })
+      const result = await Indexer.reindex(ctx.abort)
+      const stats = Indexer.indexed()
+      const indexed = result?.indexed ?? 0
+      const skipped = result?.skipped ?? 0
+      const elapsed = result?.elapsed ?? 0
+      return {
+        title: "reindex complete",
+        metadata: { matches: indexed },
+        output: `Re-indexed ${indexed} files (${skipped} unchanged) in ${elapsed}ms.\n  Files: ${stats.files} | Chunks: ${stats.chunks} | Symbols: ${stats.symbols}`,
+      }
+    }
+
     // ensure index is up to date
     const stats = Indexer.indexed()
     if (stats.files === 0) {

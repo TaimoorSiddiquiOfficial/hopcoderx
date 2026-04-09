@@ -8,13 +8,12 @@
 import z from "zod"
 import { Tool } from "./tool"
 import { execFile } from "child_process"
-import { promisify } from "util"
 import { existsSync } from "fs"
 import { readFile } from "fs/promises"
 import path from "path"
 import { Instance } from "../project/instance"
 
-const execFileAsync = promisify(execFile)
+const DEPLOY_TIMEOUT_MS = 300_000
 
 type Platform = "vercel" | "railway" | "fly" | "docker" | "auto"
 type Meta = { platform?: string; framework?: string; success?: boolean; operation?: string }
@@ -46,13 +45,19 @@ async function detectPlatform(cwd: string): Promise<Platform> {
 }
 
 async function runCmd(cmd: string, args: string[], cwd: string): Promise<{ success: boolean; output: string }> {
-  try {
-    const { stdout, stderr } = await execFileAsync(cmd, args, { cwd, maxBuffer: 5 * 1024 * 1024, timeout: 300_000 })
-    return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() }
-  } catch (e: any) {
-    const output = [e.stdout, e.stderr, e.message].filter(Boolean).join("\n").trim()
-    return { success: false, output }
-  }
+  return new Promise((resolve) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), DEPLOY_TIMEOUT_MS)
+    execFile(cmd, args, { cwd, maxBuffer: 5 * 1024 * 1024, signal: controller.signal }, (err, stdout, stderr) => {
+      clearTimeout(timer)
+      if (err) {
+        const output = [stdout, stderr, err.message].filter(Boolean).join("\n").trim()
+        resolve({ success: false, output })
+      } else {
+        resolve({ success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() })
+      }
+    })
+  })
 }
 
 async function healthCheck(url: string): Promise<{ ok: boolean; status?: number; latencyMs: number }> {
