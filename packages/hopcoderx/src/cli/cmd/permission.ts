@@ -7,6 +7,7 @@
  */
 
 import type { Argv } from "yargs"
+import readline from "readline"
 import { cmd } from "./cmd"
 import { bootstrap } from "../bootstrap"
 import { Database, eq } from "../../storage/db"
@@ -87,8 +88,7 @@ const PermissionResetCommand = cmd({
       }
 
       if (!args.yes) {
-        const { createInterface } = await import("readline")
-        const rl = createInterface({ input: process.stdin, output: process.stdout })
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
         const answer = await new Promise<string>((resolve) => {
           rl.question(`Remove ${ruleCount} permission rule(s)? (y/N): `, resolve)
         })
