@@ -230,49 +230,49 @@ export function DialogMcpRegistry() {
       <box flexDirection="column" padding={2} gap={1}>
         <box flexDirection="row" gap={1}>
           <text style={{ fg: theme.accent, attributes: TextAttributes.BOLD }}>{entry.name}</text>
-          {entry.featured && <span style={{ fg: theme.warning }>⭐ Featured</span>}
+          {entry.featured && <span style={{ fg: theme.warning }}>⭐ Featured</span>}
         </box>
-        <text style={{ fg: theme.text }>{entry.description}</text>
+        <text style={{ fg: theme.text }}>{entry.description}</text>
         
         <box flexDirection="row" gap={2}>
           <CategoryBadge category={entry.category} />
           <PlatformIndicator platforms={entry.platform} />
           {entry.stars && (
-            <span style={{ fg: theme.warning }>★ {entry.stars} stars</span>
+            <span style={{ fg: theme.warning }}>★ {entry.stars} stars</span>
           )}
         </box>
 
         <box marginTop={1}>
-          <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }>
+          <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }}>
             Requirements:
           </text>
           <RequirementsList requirements={entry.requirements} />
         </box>
 
         <box marginTop={1}>
-          <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }>
+          <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }}>
             Setup Instructions:
           </text>
-          <text style={{ fg: theme.text }>{entry.setupInstructions || "No setup instructions available."}</text>
+          <text style={{ fg: theme.text }}>{entry.setupInstructions || "No setup instructions available."}</text>
         </box>
 
         <box marginTop={1}>
-          <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }>Tags:</text>
+          <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }}>Tags:</text>
           <box flexDirection="row" gap={1} flexWrap="wrap">
             <For each={entry.tags}>
               {(tag) => (
-                <span style={{ fg: theme.info }>#{tag}</span>
+                <span style={{ fg: theme.info }}>#{tag}</span>
               )}
             </For>
           </box>
         </box>
 
         <box marginTop={2} flexDirection="row" gap={2}>
-          <text style={{ fg: theme.textMuted }>Repository: {entry.repository}</text>
+          <text style={{ fg: theme.textMuted }}>Repository: {entry.repository}</text>
         </box>
 
         <box marginTop={1}>
-          <text style={{ fg: theme.textMuted }>
+          <text style={{ fg: theme.textMuted }}>
             Press Enter to {isInstalled ? "reinstall" : "install"} | Escape to go back
           </text>
         </box>
@@ -284,17 +284,17 @@ export function DialogMcpRegistry() {
     <>
       <box flexDirection="column" gap={1}>
         <box flexDirection="row" gap={2}>
-          <text style={{ fg: theme.textMuted }>
+          <text style={{ fg: theme.textMuted }}>
             Enter: Install | D: Details | C: Category | /: Search | Escape: Back
           </text>
         </box>
         <Show when={categoryFilter() !== "all"}>
-          <text style={{ fg: theme.info }>
+          <text style={{ fg: theme.info }}>
             📂 Category: {McpRegistry.categories[categoryFilter() as McpRegistry.Category]?.label}
           </text>
         </Show>
         <Show when={searchQuery()}>
-          <text style={{ fg: theme.info }>
+          <text style={{ fg: theme.info }}>
             🔍 Search: "{searchQuery()}"
           </text>
         </Show>
