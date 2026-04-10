@@ -99,26 +99,27 @@ function symlinkBinary(sourcePath, binaryName) {
 
 async function main() {
   try {
-    if (os.platform() === "win32") {
-      // On Windows, the .exe is already included in the package and bin field points to it
-      // No postinstall setup needed
-      console.log("Windows detected: binary setup not needed (using packaged .exe)")
-      return
-    }
-
-    // On non-Windows platforms, just verify the binary package exists
-    // Don't replace the wrapper script - it handles binary execution
+    const { platform, arch } = detectPlatformAndArch()
     const { binaryPath } = findBinary()
     const target = path.join(__dirname, "bin", ".hopcoderx")
     if (fs.existsSync(target)) fs.unlinkSync(target)
-    try {
-      fs.linkSync(binaryPath, target)
-    } catch {
+    if (platform === "windows") {
+      // Windows: can't symlink without admin — copy instead
       fs.copyFileSync(binaryPath, target)
+      console.log(`hopcoderx binary cached at ${target}`)
+    } else {
+      try {
+        fs.linkSync(binaryPath, target)
+      } catch {
+        fs.copyFileSync(binaryPath, target)
+      }
+      fs.chmodSync(target, 0o755)
     }
-    fs.chmodSync(target, 0o755)
   } catch (error) {
     console.error("Failed to setup hopcoderx binary:", error.message)
+    const { platform, arch } = detectPlatformAndArch()
+    const base = `hopcoderx-${platform}-${arch}`
+    console.error(`Fix: run  npm install -g ${base}  or  npm install -g ${base}-baseline`)
     process.exit(1)
   }
 }

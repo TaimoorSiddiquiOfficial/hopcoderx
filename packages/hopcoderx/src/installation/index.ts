@@ -198,7 +198,20 @@ export namespace Installation {
       const oldPath = process.execPath + ".old"
       await $`powershell -NoProfile -NonInteractive -Command "Remove-Item -Path '${oldPath}' -Force -ErrorAction SilentlyContinue"`.throws(false).quiet()
     }
-    await $`${process.execPath} --version`.nothrow().quiet().text()
+    // Verify the newly installed binary actually works. Use `npm exec` so we
+    // invoke the fresh wrapper (not the still-running old binary).
+    const verify = await $`npm exec --yes -- hopcoderx --version`.quiet().nothrow()
+    if (verify.exitCode !== 0) {
+      const platformMap: Record<string, string> = { darwin: "darwin", linux: "linux", win32: "windows" }
+      const platform = platformMap[process.platform] ?? process.platform
+      const arch = process.arch
+      const base = `hopcoderx-${platform}-${arch}`
+      throw new UpgradeFailedError({
+        stderr:
+          `The main package installed but the platform binary is missing.\n` +
+          `Fix: run  npm install -g ${base}  or  npm install -g ${base}-baseline`,
+      })
+    }
   }
 
   /**

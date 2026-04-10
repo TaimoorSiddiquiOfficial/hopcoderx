@@ -168,10 +168,11 @@ function findBinary(startDir) {
 
 const resolved = findBinary(scriptDir)
 if (!resolved) {
+  const cmds = names.map((n) => `  npm install -g ${n}`).join("\n")
   console.error(
-    "It seems that your package manager failed to install the right version of the hopcoderx CLI for your platform. You can try manually installing " +
-      names.map((n) => `\"${n}\"`).join(" or ") +
-      " package",
+    "It seems that your package manager failed to install the right version of the hopcoderx CLI for your platform.\n" +
+      "Run one of the following to fix it:\n" +
+      cmds,
   )
   process.exit(1)
 }
