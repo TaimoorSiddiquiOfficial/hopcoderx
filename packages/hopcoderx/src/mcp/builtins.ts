@@ -589,6 +589,33 @@ No manual credential setup needed — auth token stored locally.`,
 2. Generate a Personal API Token
 3. Set CLICKUP_API_TOKEN in your environment`,
     },
+    {
+      id: "builtin:railway",
+      name: "Railway",
+      description: "Deploy and manage Railway.app projects, services, variables, and logs via AI",
+      icon: "🚂",
+      category: "cloud",
+      launchMode: "on-demand",
+      autoDetect: [
+        { type: "file-glob", pattern: "railway.toml" },
+        { type: "file-glob", pattern: "railway.json" },
+        { type: "env-key", pattern: "RAILWAY_API_TOKEN" },
+      ],
+      requiresCredentials: true,
+      requiredEnvVars: ["RAILWAY_API_TOKEN"],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "@railway/mcp-server"],
+        environment: {
+          RAILWAY_API_TOKEN: "${env:RAILWAY_API_TOKEN}",
+        },
+        enabled: false,
+      },
+      setupGuide: `1. Go to railway.app → Account Settings → Tokens
+2. Create a new API token
+3. Set RAILWAY_API_TOKEN in your environment
+Auto-detected when railway.toml or RAILWAY_API_TOKEN is present.`,
+    },
   ]
 
   const _catalogById = new Map<string, BuiltinEntry>(catalog.map((e) => [e.id, e]))

@@ -1148,6 +1148,28 @@ Slash commands (in Claude Code):
       tags: ["unreal", "ue5", "gamedev", "blueprint", "project-management", "advanced"],
       featured: false,
     },
+    // ── Cloud (Railway) ────────────────────────────────────────────────────────
+    {
+      name: "railway",
+      description: "Railway MCP — deploy, manage, and inspect Railway.app projects, services, variables, and logs via AI",
+      category: "cloud",
+      platform: ["cross-platform"],
+      repository: "https://github.com/railwayapp/mcp-server",
+      author: "railwayapp",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+        { type: "api-key", description: "Railway API token (RAILWAY_API_TOKEN)" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "@railway/mcp-server"],
+        environment: { RAILWAY_API_TOKEN: "" },
+        enabled: false,
+      },
+      setupInstructions: `Go to railway.app → Account Settings → Tokens.\nCreate a new token and set RAILWAY_API_TOKEN in your environment.\nThen start the server — it connects to your Railway account and projects.`,
+      tags: ["railway", "deploy", "cloud", "hosting", "services", "logs", "devops"],
+      featured: true,
+    },
   ]
 
   export function getByName(name: string): RegistryEntry | undefined {

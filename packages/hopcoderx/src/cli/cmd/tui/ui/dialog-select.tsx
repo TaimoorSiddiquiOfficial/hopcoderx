@@ -86,7 +86,7 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
     const result = fuzzysort
       .go(needle, options, {
         keys: ["title", "category"],
-        scoreFn: (r) => r[0].score * 2 + r[1].score,
+    scoreFn: (r) => (r[0]?.score ?? -Infinity) * 2 + (r[1]?.score ?? -Infinity),
       })
       .map((x) => x.obj)
 
@@ -112,7 +112,7 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
       entries(),
     )
     return result
-  })
+  }, [])
 
   const flat = createMemo(() => {
     return pipe(
@@ -264,7 +264,7 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
         </box>
       </box>
       <Show
-        when={grouped().length > 0}
+        when={(grouped()?.length ?? 0) > 0}
         fallback={
           <box paddingLeft={4} paddingRight={4} paddingTop={1}>
             <text fg={theme.textMuted}>No results found</text>
