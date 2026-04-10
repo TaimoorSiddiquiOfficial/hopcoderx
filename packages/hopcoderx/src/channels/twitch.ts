@@ -10,7 +10,7 @@
  *   TWITCH_CHANNEL=channelname       (channel to join, without #)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -135,5 +135,13 @@ export class TwitchChannel implements Channel {
     // Twitch max message length: 500 chars
     const text = reply.text.slice(0, 500)
     this.ws.send(`PRIVMSG ${target} :${text}`)
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }

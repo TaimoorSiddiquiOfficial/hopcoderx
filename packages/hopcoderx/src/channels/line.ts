@@ -12,7 +12,7 @@
  *   The webhook handler should call lineChannel.handleWebhook(body, signature).
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 import { createHmac } from "crypto"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
@@ -113,5 +113,13 @@ export class LINEChannel implements Channel {
     })
     if (!res.ok) throw new Error(`LINE API error ${res.status}: ${await res.text()}`)
     return res.json()
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }

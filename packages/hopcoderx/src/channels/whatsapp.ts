@@ -122,7 +122,7 @@ export class WhatsAppChannel implements Channel {
    */
   async startQrLogin(
     opts: { force?: boolean; timeoutMs?: number } = {},
-  ): Promise<{ qrDataUrl?: string; message: string }> {
+  ): Promise<{ qrDataUrl?: string; qrTerminal?: string; message: string }> {
     if (this.activeLogin && this._isLoginFresh() && this.activeLogin.qrDataUrl && !opts.force) {
       return {
         qrDataUrl: this.activeLogin.qrDataUrl,
@@ -184,8 +184,10 @@ export class WhatsAppChannel implements Channel {
     }
 
     login.qrDataUrl = await QRCode.toDataURL(qr, { errorCorrectionLevel: "M", width: 300 })
+    const qrTerminal = await QRCode.toString(qr, { type: "utf8", errorCorrectionLevel: "M" } as Parameters<typeof QRCode.toString>[1])
     return {
       qrDataUrl: login.qrDataUrl,
+      qrTerminal,
       message: "Scan this QR in WhatsApp → Linked Devices → Link a Device.",
     }
   }

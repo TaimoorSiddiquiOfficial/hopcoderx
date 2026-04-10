@@ -13,7 +13,7 @@
  *   LINEAR_POLL=60                   (seconds between polls)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -145,5 +145,13 @@ export class LinearChannel implements Channel {
     }
 
     throw new Error(`Invalid Linear target: ${to}. Use comment:<id>, issue:<id>, or complete:<id>`)
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }

@@ -6,8 +6,12 @@
  *   hopcoderx channels status            Show which channels are available
  *   hopcoderx channels issues            List open GitHub issues
  *   hopcoderx channels send <ch> <to>    Send a test message
+ *   hopcoderx channels listen            Start auto-reply on all configured channels
+ *   hopcoderx channels setup             Interactive setup wizard for a channel
  */
 
+import path from "node:path"
+import fs from "node:fs"
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
 import { ChannelRegistry } from "../../channels/channel"
@@ -31,6 +35,11 @@ import { SynologyChatChannel } from "../../channels/synology-chat"
 import { NextcloudTalkChannel } from "../../channels/nextcloud-talk"
 import { NostrChannel } from "../../channels/nostr"
 import { WebChatChannel } from "../../channels/webchat"
+import { AutoReplyEngine } from "../../channels/auto-reply"
+import { bootstrap } from "../bootstrap"
+import { Server } from "../../server/server"
+import { createHopCoderXClient } from "@hopcoderx/sdk/v2"
+import * as p from "@clack/prompts"
 
 // Register built-in channels on first import
 ChannelRegistry.register(new GitHubIssuesChannel())
@@ -60,10 +69,10 @@ export const ChannelsCommand = cmd({
   builder: (yargs: Argv) =>
     yargs
       .positional("action", {
-        choices: ["list", "status", "issues", "send", "diagnose"] as const,
+        choices: ["list", "status", "issues", "send", "diagnose", "listen", "setup"] as const,
         describe: "Action to perform",
       })
-      .option("channel", { alias: "c", type: "string", describe: "Channel ID (for send)" })
+      .option("channel", { alias: "c", type: "string", describe: "Channel ID (for send/diagnose/listen/setup)" })
       .option("to", { type: "string", describe: "Target (for send, e.g. owner/repo/issues/5)" })
       .option("message", { alias: "m", type: "string", describe: "Message body (for send)" }),
   async handler(args) {
@@ -191,7 +200,175 @@ export const ChannelsCommand = cmd({
       return
     }
 
-    console.error(`Unknown action: ${action}. Use list|status|issues|send|diagnose`)
+    if (action === "listen") {
+      const channelFilter = args.channel as string | undefined
+      await bootstrap(process.cwd(), async () => {
+        const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
+          const request = new Request(input, init)
+          return Server.App().fetch(request)
+        }) as typeof globalThis.fetch
+        const sdk = createHopCoderXClient({ baseUrl: "http://hopcoderx.internal", fetch: fetchFn })
+        const sessionMap = new Map<string, string>()
+
+        const engine = new AutoReplyEngine(channelFilter ? { enabledChannels: [channelFilter] } : {})
+        engine.setHandler(async (messages, threadId, channelId) => {
+          const key = `${channelId}:${threadId}`
+          let sessionId = sessionMap.get(key)
+          if (!sessionId) {
+            const result = await sdk.session.create({ title: `${channelId}:${threadId}` })
+            sessionId = result.data?.id
+            if (!sessionId) return ""
+            sessionMap.set(key, sessionId)
+          }
+
+          const text = messages.map((m) => m.text).filter(Boolean).join("\n")
+          const events = await sdk.event.subscribe()
+          let reply = ""
+          const done = (async () => {
+            for await (const event of events.stream) {
+              if (event.type === "message.part.updated") {
+                const part = event.properties.part
+                if (part.sessionID !== sessionId) continue
+                if (part.type === "text" && part.time?.end) reply += part.text
+              }
+              if (
+                event.type === "session.status" &&
+                event.properties.sessionID === sessionId &&
+                event.properties.status.type === "idle"
+              ) break
+            }
+          })()
+
+          await sdk.session.prompt({ sessionID: sessionId, parts: [{ type: "text", text }] })
+          await done
+          return reply.trim()
+        })
+
+        const available = channelFilter
+          ? ChannelRegistry.available().filter((c) => c.config.id === channelFilter)
+          : ChannelRegistry.available()
+
+        if (available.length === 0) {
+          console.log(
+            channelFilter
+              ? `Channel "${channelFilter}" not available — check env vars.`
+              : "No channels configured. Run 'hopcoderx channels setup' to configure a channel.",
+          )
+          process.exit(1)
+        }
+
+        console.log(`Starting auto-reply on ${available.length} channel(s)…`)
+        await engine.startAll()
+        console.log("✅ Listening. Press Ctrl+C to stop.")
+
+        await new Promise<void>((resolve) => {
+          const shutdown = async () => {
+            console.log("\n[channels] Stopping…")
+            await engine.stopAll()
+            resolve()
+          }
+          process.once("SIGINT", shutdown)
+          process.once("SIGTERM", shutdown)
+        })
+      })
+      return
+    }
+
+    if (action === "setup") {
+      const channelIdArg = args.channel as string | undefined
+      let target: string
+
+      if (channelIdArg) {
+        target = channelIdArg
+        p.intro(`HopCoderX Channel Setup — ${target}`)
+      } else {
+        p.intro("HopCoderX Channel Setup")
+        const all = ChannelRegistry.all()
+        const choice = await p.select({
+          message: "Which channel would you like to set up?",
+          options: all.map((ch) => ({
+            value: ch.config.id,
+            label: `${ch.config.name}`,
+            hint: ch.isAvailable() ? "✅ configured" : ch.config.envVars.join(", ") || "no env vars",
+          })),
+        })
+        if (p.isCancel(choice)) {
+          p.cancel("Cancelled.")
+          return
+        }
+        target = choice as string
+      }
+
+      const ch = ChannelRegistry.get(target)
+      if (!ch) {
+        console.error(`Channel "${target}" not found. Use 'channels list' to see registered channels.`)
+        process.exit(1)
+      }
+
+      // WhatsApp special case — QR code auth
+      if (target === "whatsapp") {
+        const wa = ch as WhatsAppChannel
+        const spinner = p.spinner()
+        spinner.start("Generating WhatsApp QR code…")
+        const result = await wa.startQrLogin()
+        spinner.stop(result.message)
+
+        if (result.qrTerminal) {
+          console.log("\n" + result.qrTerminal)
+        } else if (!result.qrDataUrl) {
+          p.outro("⚠️  Could not generate QR — " + result.message)
+          return
+        }
+
+        const waitSpinner = p.spinner()
+        waitSpinner.start("Waiting for QR scan (2 min)…")
+        const loginResult = await wa.waitForLogin({ timeoutMs: 120_000 })
+        waitSpinner.stop(loginResult.connected ? "✅ WhatsApp linked!" : "⚠️  " + loginResult.message)
+        p.outro("WhatsApp setup complete.")
+        return
+      }
+
+      // Generic env var setup
+      if (ch.config.envVars.length === 0) {
+        p.outro(`${ch.config.name} requires no env vars — it's always available.`)
+        return
+      }
+
+      const envValues: Record<string, string> = {}
+      for (const key of ch.config.envVars) {
+        const current = process.env[key]
+        const value = await p.text({
+          message: key,
+          placeholder: current ? "(press Enter to keep current value)" : "(required)",
+          initialValue: current ?? "",
+        })
+        if (p.isCancel(value)) {
+          p.cancel("Cancelled.")
+          return
+        }
+        if (value) envValues[key] = value as string
+      }
+
+      // Write to .env in current directory
+      const envFile = path.join(process.cwd(), ".env")
+      let envContent = fs.existsSync(envFile) ? fs.readFileSync(envFile, "utf-8") : ""
+      for (const [key, value] of Object.entries(envValues)) {
+        const regex = new RegExp(`^${key}=.*$`, "m")
+        if (regex.test(envContent)) {
+          envContent = envContent.replace(regex, `${key}=${value}`)
+        } else {
+          envContent += (envContent.endsWith("\n") || envContent === "" ? "" : "\n") + `${key}=${value}\n`
+        }
+        process.env[key] = value
+      }
+      fs.writeFileSync(envFile, envContent, "utf-8")
+
+      const ok = ch.isAvailable()
+      p.outro(ok ? `✅ ${ch.config.name} configured! Run 'hopcoderx channels listen' to start.` : `⚠️  ${ch.config.name} not fully configured yet.`)
+      return
+    }
+
+    console.error(`Unknown action: ${action}. Use list|status|issues|send|diagnose|listen|setup`)
     process.exit(1)
   },
 })

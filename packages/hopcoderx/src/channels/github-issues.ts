@@ -13,7 +13,7 @@
  *   GITHUB_CHANNEL_POLL=30         (seconds between polls, default 30)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -144,5 +144,13 @@ export class GitHubIssuesChannel implements Channel {
       if (batch.length < 30) break
     }
     return issues
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }

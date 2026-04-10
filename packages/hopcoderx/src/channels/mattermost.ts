@@ -11,7 +11,7 @@
  *   MATTERMOST_PREFIX=!hop                       (command prefix)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -148,5 +148,13 @@ export class MattermostChannel implements Channel {
     })
     if (!res.ok) throw new Error(`Mattermost API error ${res.status}: ${await res.text()}`)
     return res.json() as Promise<T>
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }

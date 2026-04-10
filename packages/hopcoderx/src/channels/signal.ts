@@ -14,7 +14,7 @@
  *   CALLMEBOT_API_KEY=your-key
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -116,6 +116,21 @@ export class SignalChannel implements Channel {
       }
     } catch {
       // Ignore network errors during polling
+    }
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const hasSignalCli = !!process.env.SIGNAL_CLI_URL && !!process.env.SIGNAL_SENDER
+    const hasCallmebot = !!process.env.CALLMEBOT_PHONE && !!process.env.CALLMEBOT_KEY
+    checks.push({ name: "signal-cli (SIGNAL_CLI_URL + SIGNAL_SENDER)", ok: hasSignalCli, detail: hasSignalCli ? "set" : "missing" })
+    checks.push({ name: "callmebot (CALLMEBOT_PHONE + CALLMEBOT_KEY)", ok: hasCallmebot, detail: hasCallmebot ? "set" : "missing" })
+    const ok = hasSignalCli || hasCallmebot
+    return {
+      channelId: this.config.id,
+      ok,
+      summary: ok ? "configured" : "set SIGNAL_CLI_URL+SIGNAL_SENDER or CALLMEBOT_PHONE+CALLMEBOT_KEY",
+      checks,
     }
   }
 }

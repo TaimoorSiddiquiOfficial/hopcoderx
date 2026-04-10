@@ -11,7 +11,7 @@
  *   NEXTCLOUD_TALK_ROOM=abc1defg                    (room token from Talk URL)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -124,5 +124,13 @@ export class NextcloudTalkChannel implements Channel {
   private authHeader() {
     const cred = Buffer.from(`${this.user}:${this.pass}`).toString("base64")
     return { Authorization: `Basic ${cred}` }
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }

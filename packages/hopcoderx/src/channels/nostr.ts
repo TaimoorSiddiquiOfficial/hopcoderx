@@ -10,7 +10,7 @@
  *   NOSTR_PUBLIC_KEY=hex64...           (optional, derived from private key if not set)
  */
 
-import type { Channel, ChannelConfig, ChannelMessage, ChannelReply } from "./channel"
+import type { Channel, ChannelConfig, ChannelDiagnostic, ChannelMessage, ChannelReply } from "./channel"
 
 type Handler = (msg: ChannelMessage) => Promise<void>
 
@@ -112,5 +112,17 @@ export class NostrChannel implements Channel {
     for (const ws of this.sockets) {
       if (ws.readyState === 1 /* OPEN */) ws.send(JSON.stringify(json))
     }
+  }
+
+  async diagnose(): Promise<ChannelDiagnostic> {
+    const checks: ChannelDiagnostic["checks"] = []
+    const ok = this.isAvailable()
+    const missing = this.config.envVars.filter((v) => !process.env[v])
+    checks.push({ name: "env vars", ok, detail: ok ? "all set" : "missing: " + missing.join(", ") })
+    if (ok) {
+      const relays = (process.env.NOSTR_RELAYS ?? "").split(",").filter(Boolean)
+      checks.push({ name: "relays configured", ok: relays.length > 0, detail: relays.length > 0 ? `${relays.length} relay(s)` : "set NOSTR_RELAYS" })
+    }
+    return { channelId: this.config.id, ok, summary: ok ? "configured" : `missing env: ${missing.join(", ")}`, checks }
   }
 }
