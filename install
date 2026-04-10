@@ -220,7 +220,7 @@ print_message() {
 
 check_version() {
     if command -v hopcoderx >/dev/null 2>&1; then
-        opencode_path=$(which hopcoderx)
+        hopcoderx_path=$(which hopcoderx)
 
         ## Check the installed version
         installed_version=$(hopcoderx --version 2>/dev/null || echo "")
