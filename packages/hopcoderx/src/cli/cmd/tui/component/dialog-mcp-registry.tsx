@@ -128,7 +128,7 @@ export function DialogMcpRegistry() {
 
   const keybinds = createMemo(() => [
     {
-      keybind: Keybind.parse("enter")[0],
+      keybind: Keybind.parse("return")[0],
       title: "install",
       onTrigger: async (option: DialogSelectOption<string>) => {
         const entry = McpRegistry.getByName(option.value)

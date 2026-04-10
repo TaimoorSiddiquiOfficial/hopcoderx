@@ -926,8 +926,8 @@ export namespace Config {
       tips_toggle: z.string().optional().default("<leader>h").describe("Toggle tips on home screen"),
       display_thinking: z.string().optional().default("none").describe("Toggle thinking blocks visibility"),
       panel_toggle: z.string().optional().default("<leader>p").describe("Toggle file preview panel"),
-      mcp_list: z.string().optional().default("ctrl+x,m").describe("Open MCP server list"),
-      mcp_registry: z.string().optional().default("ctrl+x,r").describe("Open MCP registry"),
+      mcp_list: z.string().optional().default("<leader>o").describe("Open MCP server list"),
+      mcp_registry: z.string().optional().default("<leader>i").describe("Open MCP registry"),
       mcp_toggle: z.string().optional().default("space").describe("Toggle MCP server in list"),
     })
     .strict()
