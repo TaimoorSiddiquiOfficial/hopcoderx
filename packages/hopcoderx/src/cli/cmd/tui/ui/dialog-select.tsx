@@ -83,14 +83,17 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
 
     // prioritize title matches (weight: 2) over category matches (weight: 1).
     // users typically search by the item name, and not its category.
-    const result = fuzzysort
-      .go(needle, options, {
-        keys: ["title", "category"],
-    scoreFn: (r) => (r[0]?.score ?? -Infinity) * 2 + (r[1]?.score ?? -Infinity),
-      })
-      .map((x) => x.obj)
-
-    return result
+    // wrap in try-catch to degrade gracefully on unexpected fuzzysort errors.
+    try {
+      return fuzzysort
+        .go(needle, options, {
+          keys: ["title", "category"],
+          scoreFn: (r) => r[0]!.score * 2 + r[1]!.score,
+        })
+        .map((x) => x.obj)
+    } catch {
+      return options.filter((x) => x.title?.toLowerCase().includes(needle))
+    }
   })
 
   // When the filter changes due to how TUI works, the mousemove might still be triggered
