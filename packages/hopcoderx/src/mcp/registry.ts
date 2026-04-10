@@ -1170,6 +1170,112 @@ Slash commands (in Claude Code):
       tags: ["railway", "deploy", "cloud", "hosting", "services", "logs", "devops"],
       featured: true,
     },
+    // ── Development (Reference / Testing) ────────────────────────────────────
+    {
+      name: "mcp-everything",
+      description: "Official MCP reference server — exercises every MCP protocol feature: tools, resources, prompts, sampling, logging",
+      category: "development",
+      platform: ["cross-platform"],
+      repository: "https://github.com/modelcontextprotocol/servers",
+      author: "modelcontextprotocol",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "@modelcontextprotocol/server-everything"],
+        enabled: false,
+      },
+      setupInstructions: `No setup required — runs immediately via npx.\nUseful for testing MCP client implementations against the full protocol surface.`,
+      tags: ["mcp", "reference", "testing", "protocol", "tools", "resources", "prompts", "sampling"],
+      featured: false,
+    },
+    // ── Search (SearXNG) ──────────────────────────────────────────────────────
+    {
+      name: "searxng",
+      description: "SearXNG MCP — privacy-respecting metasearch engine integration; search the web without tracking",
+      category: "search",
+      platform: ["cross-platform"],
+      repository: "https://github.com/ihor-sokoliuk/mcp-searxng",
+      author: "ihor-sokoliuk",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+        { type: "binary", description: "A running SearXNG instance (self-hosted or public)" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "mcp-searxng"],
+        environment: { SEARXNG_URL: "https://searx.be" },
+        enabled: false,
+      },
+      setupInstructions: `Set SEARXNG_URL to your SearXNG instance (e.g. https://searx.be or self-hosted).\nNo API key needed — SearXNG is open-source and free to use.`,
+      tags: ["search", "web", "privacy", "searxng", "metasearch", "no-tracking"],
+      featured: false,
+    },
+    // ── Productivity (Notion) ─────────────────────────────────────────────────
+    {
+      name: "notion",
+      description: "Notion MCP — read and write Notion pages, databases, blocks, and search across your workspace",
+      category: "productivity",
+      platform: ["cross-platform"],
+      repository: "https://github.com/awkoy/notion-mcp-server",
+      author: "awkoy",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+        { type: "api-key", description: "Notion Integration Token (NOTION_TOKEN)" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "notion-mcp-server"],
+        environment: { NOTION_TOKEN: "" },
+        enabled: false,
+      },
+      setupInstructions: `1. Go to https://www.notion.so/profile/integrations\n2. Create a new integration and copy the token\n3. Share your Notion pages/databases with the integration\n4. Set NOTION_TOKEN in your environment`,
+      tags: ["notion", "notes", "wiki", "database", "pages", "productivity", "knowledge"],
+      featured: true,
+    },
+    // ── Productivity (HubSpot) ────────────────────────────────────────────────
+    {
+      name: "hubspot",
+      description: "HubSpot MCP — manage CRM contacts, companies, deals, tickets, and marketing data via AI",
+      category: "productivity",
+      platform: ["cross-platform"],
+      repository: "https://github.com/HubSpot/mcp-server",
+      author: "HubSpot",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+        { type: "api-key", description: "HubSpot Private App Access Token (HUBSPOT_ACCESS_TOKEN)" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "@hubspot/mcp-server"],
+        environment: { HUBSPOT_ACCESS_TOKEN: "" },
+        enabled: false,
+      },
+      setupInstructions: `1. In HubSpot, go to Settings → Integrations → Private Apps\n2. Create a Private App with the scopes you need (CRM, Marketing, etc.)\n3. Copy the access token and set HUBSPOT_ACCESS_TOKEN in your environment`,
+      tags: ["hubspot", "crm", "contacts", "deals", "marketing", "sales", "business"],
+      featured: false,
+    },
+    // ── Design (Canva) ────────────────────────────────────────────────────────
+    {
+      name: "canva",
+      description: "Official Canva CLI — scaffold, develop, and publish Canva apps and extensions from the terminal",
+      category: "design",
+      platform: ["cross-platform"],
+      repository: "https://github.com/canva-sdks/canva-cli",
+      author: "canva-sdks",
+      requirements: [
+        { type: "nodejs", description: "Node.js 18+ with npx" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "@canva/cli@latest"],
+        enabled: false,
+      },
+      setupInstructions: `Run 'npx @canva/cli@latest create' to scaffold a new Canva app.\nRequires a Canva Developer account at canva.com/developers.\nLogin with 'npx @canva/cli@latest login' to authenticate.`,
+      tags: ["canva", "design", "graphics", "apps", "extensions", "cli", "developer"],
+      featured: false,
+    },
   ]
 
   export function getByName(name: string): RegistryEntry | undefined {
