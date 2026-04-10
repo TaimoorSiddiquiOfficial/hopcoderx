@@ -7,6 +7,7 @@ import { Installation } from "../../installation"
 import { ModelsDev } from "../../provider/models"
 import { Filesystem } from "../../util/filesystem"
 import { Log } from "../../util/log"
+import { ChannelRegistry } from "../../channels/channel"
 import path from "path"
 import { execSync } from "child_process"
 
@@ -328,6 +329,73 @@ async function runFixes(checks: Check[]) {
   }
 }
 
+async function checkChannels(): Promise<Check[]> {
+  const checks: Check[] = []
+  // Dynamically load channel registrations (same as channels CLI)
+  try {
+    await import("../cmd/channels")
+  } catch {}
+
+  const all = ChannelRegistry.all()
+  if (all.length === 0) {
+    checks.push({ label: "Channel registry", status: "warn", detail: "No channels registered" })
+    return checks
+  }
+
+  checks.push({
+    label: `Channel registry`,
+    status: "ok",
+    detail: `${all.length} channel(s) registered`,
+  })
+
+  const results = await ChannelRegistry.diagnoseAll()
+  for (const r of results) {
+    const failing = r.checks?.filter((c) => !c.ok) ?? []
+    checks.push({
+      label: r.channelId,
+      status: r.ok ? "ok" : failing.length > 0 ? "warn" : "skip",
+      detail: r.summary,
+    })
+  }
+
+  return checks
+}
+
+async function checkCanvas(): Promise<Check[]> {
+  const port = Number(process.env.HOPCODERX_CANVAS_PORT ?? 3741)
+  const url = `http://localhost:${port}/health`
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(2000) })
+    if (res.ok) {
+      const body = (await res.json()) as { ok?: boolean; clients?: number }
+      return [
+        {
+          label: `Canvas host (port ${port})`,
+          status: "ok",
+          detail: `Running — ${body.clients ?? 0} WebSocket client(s) connected`,
+        },
+      ]
+    }
+    return [
+      {
+        label: `Canvas host (port ${port})`,
+        status: "warn",
+        detail: `Responded with status ${res.status}`,
+        fix: "Run `hopcoderx daemon start` to launch the canvas host",
+      },
+    ]
+  } catch {
+    return [
+      {
+        label: `Canvas host (port ${port})`,
+        status: "warn",
+        detail: "Not reachable — canvas is non-functional",
+        fix: "Run `hopcoderx daemon start` to launch the canvas host",
+      },
+    ]
+  }
+}
+
 export const DoctorCommand = cmd({
   command: "doctor",
   describe: "diagnose HopCoderX installation and configuration",
@@ -350,6 +418,8 @@ export const DoctorCommand = cmd({
       ["LSP", checkLSP],
       ["Dependencies", checkDependencies],
       ["Git", checkGit],
+      ["Channels", checkChannels],
+      ["Canvas Host", checkCanvas],
     ]
 
     for (const [title, fn] of groups) {

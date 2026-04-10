@@ -285,6 +285,16 @@ export const DaemonCommand = cmd({
     if (action === "serve") {
       process.title = "hopcoderx-daemon"
       console.log(`[HopCoderX Daemon] started pid=${process.pid}`)
+
+      // Start canvas host server
+      try {
+        const { startCanvasHost } = await import("../../canvas/host")
+        const host = await startCanvasHost()
+        console.log(`[HopCoderX Daemon] canvas host started on port ${host.port} (root: ${host.rootDir})`)
+      } catch (e) {
+        console.warn("[HopCoderX Daemon] canvas host failed to start:", e instanceof Error ? e.message : e)
+      }
+
       // Heartbeat — daemon stays alive and processes background jobs
       setInterval(() => {
         try {

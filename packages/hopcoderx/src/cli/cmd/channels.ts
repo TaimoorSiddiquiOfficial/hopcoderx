@@ -30,6 +30,7 @@ import { TwitchChannel } from "../../channels/twitch"
 import { SynologyChatChannel } from "../../channels/synology-chat"
 import { NextcloudTalkChannel } from "../../channels/nextcloud-talk"
 import { NostrChannel } from "../../channels/nostr"
+import { WebChatChannel } from "../../channels/webchat"
 
 // Register built-in channels on first import
 ChannelRegistry.register(new GitHubIssuesChannel())
@@ -51,6 +52,7 @@ ChannelRegistry.register(new TwitchChannel())
 ChannelRegistry.register(new SynologyChatChannel())
 ChannelRegistry.register(new NextcloudTalkChannel())
 ChannelRegistry.register(new NostrChannel())
+ChannelRegistry.register(new WebChatChannel())
 
 export const ChannelsCommand = cmd({
   command: "channels <action>",
@@ -58,7 +60,7 @@ export const ChannelsCommand = cmd({
   builder: (yargs: Argv) =>
     yargs
       .positional("action", {
-        choices: ["list", "status", "issues", "send"] as const,
+        choices: ["list", "status", "issues", "send", "diagnose"] as const,
         describe: "Action to perform",
       })
       .option("channel", { alias: "c", type: "string", describe: "Channel ID (for send)" })
@@ -145,7 +147,51 @@ export const ChannelsCommand = cmd({
       return
     }
 
-    console.error(`Unknown action: ${action}. Use list|status|issues|send`)
+    if (action === "diagnose") {
+      const channelId = args.channel as string | undefined
+      let results
+      if (channelId) {
+        const ch = ChannelRegistry.get(channelId)
+        if (!ch) {
+          console.error(`Channel "${channelId}" not found. Use 'channels list' to see registered channels.`)
+          process.exit(1)
+        }
+        if (!ch.diagnose) {
+          console.log(`Channel "${channelId}" does not implement diagnose().`)
+          return
+        }
+        results = [await ch.diagnose()]
+      } else {
+        results = await ChannelRegistry.diagnoseAll()
+      }
+
+      console.log("")
+      const W = { id: 22, status: 15, summary: 42 }
+      const header = `  ${"CHANNEL".padEnd(W.id)} ${"STATUS".padEnd(W.status)} SUMMARY`
+      console.log(`\x1b[1m${header}\x1b[0m`)
+      console.log("  " + "─".repeat(header.length - 2))
+
+      for (const r of results) {
+        const statusText = r.ok ? "\x1b[32m✓ ok\x1b[0m          " : "\x1b[31m✗ error\x1b[0m       "
+        console.log(`  ${r.channelId.padEnd(W.id)} ${statusText}${r.summary}`)
+        for (const c of r.checks ?? []) {
+          const mark = c.ok ? "\x1b[32m✓\x1b[0m" : "\x1b[31m✗\x1b[0m"
+          const detail = c.detail ? `  \x1b[2m${c.detail}\x1b[0m` : ""
+          console.log(`      ${mark} ${c.name}${detail}`)
+        }
+      }
+
+      const failed = results.filter((r) => !r.ok)
+      console.log("")
+      if (failed.length === 0) {
+        console.log("\x1b[32m✓ All diagnosed channels healthy\x1b[0m")
+      } else {
+        console.log(`\x1b[31m✗ ${failed.length} channel(s) have issues\x1b[0m`)
+      }
+      return
+    }
+
+    console.error(`Unknown action: ${action}. Use list|status|issues|send|diagnose`)
     process.exit(1)
   },
 })
