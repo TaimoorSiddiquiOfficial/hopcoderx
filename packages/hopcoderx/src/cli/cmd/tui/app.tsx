@@ -14,6 +14,7 @@ import { SyncProvider, useSync } from "@tui/context/sync"
 import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel, useConnected } from "@tui/component/dialog-model"
 import { DialogMcp } from "@tui/component/dialog-mcp"
+import { DialogMcpRegistry } from "@tui/component/dialog-mcp-registry"
 import { DialogStatus } from "@tui/component/dialog-status"
 import { DialogThemeList } from "@tui/component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
@@ -455,14 +456,28 @@ function App() {
       },
     },
     {
-      title: "Toggle MCPs",
-      value: "mcp.list",
+      title: "MCP servers",
+      value: "HopCoderX.mcps",
       category: "Agent",
+      keybind: "mcp_list",
       slash: {
         name: "mcps",
       },
       onSelect: () => {
         dialog.replace(() => <DialogMcp />)
+      },
+    },
+    {
+      title: "MCP registry",
+      value: "HopCoderX.mcp-registry",
+      category: "Agent",
+      keybind: "mcp_registry",
+      slash: {
+        name: "mcp-registry",
+        aliases: ["mcp-registry"],
+      },
+      onSelect: () => {
+        dialog.replace(() => <DialogMcpRegistry />)
       },
     },
     {

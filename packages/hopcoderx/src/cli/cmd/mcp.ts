@@ -15,6 +15,7 @@ import { Global } from "../../global"
 import { modify, applyEdits } from "jsonc-parser"
 import { Filesystem } from "../../util/filesystem"
 import { Bus } from "../../bus"
+import { McpRegistry } from "../../mcp/registry"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -60,6 +61,10 @@ export const McpCommand = cmd({
       .command(McpAuthCommand)
       .command(McpLogoutCommand)
       .command(McpDebugCommand)
+      .command(McpRegistryCommand)
+      .command(McpInstallCommand)
+      .command(McpRemoveCommand)
+      .command(McpSetupCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -748,6 +753,319 @@ export const McpDebugCommand = cmd({
         }
 
         prompts.outro("Debug complete")
+      },
+    })
+  },
+})
+
+// MCP Registry Commands
+
+export const McpRegistryCommand = cmd({
+  command: "registry",
+  aliases: ["reg"],
+  describe: "browse the MCP registry of pre-configured servers",
+  async handler() {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("MCP Registry")
+
+        const categories = McpRegistry.categories
+        const categoryOptions = Object.entries(categories).map(([key, cat]) => ({
+          label: `${cat.icon} ${cat.label}`,
+          value: key as McpRegistry.Category,
+          hint: cat.description,
+        }))
+
+        const category = await prompts.select({
+          message: "Select category",
+          options: [
+            { label: "⭐ All", value: "all" as const, hint: "Show all available MCP servers" },
+            ...categoryOptions,
+          ],
+        })
+        if (prompts.isCancel(category)) throw new UI.CancelledError()
+
+        let entries: McpRegistry.RegistryEntry[]
+        if (category === "all") {
+          entries = McpRegistry.registry
+        } else {
+          entries = McpRegistry.getByCategory(category)
+        }
+
+        // Filter by platform compatibility
+        entries = entries.filter((entry) => McpRegistry.isCompatible(entry))
+
+        if (entries.length === 0) {
+          prompts.log.warn("No compatible MCP servers found for your platform")
+          prompts.outro("Done")
+          return
+        }
+
+        prompts.log.info(`\nFound ${entries.length} compatible MCP server(s):\n`)
+
+        for (const entry of entries) {
+          const featured = entry.featured ? "⭐ " : ""
+          const stars = entry.stars ? ` ★ ${entry.stars}` : ""
+          const compatible = McpRegistry.isCompatible(entry) ? "✓" : "✗"
+
+          prompts.log.info(`${featured}${entry.name}${stars}`)
+          prompts.log.info(`  ${entry.description}`)
+          prompts.log.info(`  Category: ${categories[entry.category].label}`)
+          prompts.log.info(`  Platform: ${compatible} ${entry.platform.join(", ")}`)
+          prompts.log.info(`  Repository: ${entry.repository}`)
+          prompts.log.info("")
+        }
+
+        prompts.outro("Use 'HopCoderX mcp install <name>' to add a server")
+      },
+    })
+  },
+})
+
+export const McpInstallCommand = cmd({
+  command: "install <name>",
+  aliases: ["i"],
+  describe: "install an MCP server from the registry",
+  builder: (yargs) =>
+    yargs.positional("name", {
+      describe: "name of the MCP server from registry",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Install MCP Server")
+
+        const entry = McpRegistry.getByName(args.name)
+        if (!entry) {
+          prompts.log.error(`MCP server "${args.name}" not found in registry`)
+          prompts.log.info("Available servers:")
+          for (const e of McpRegistry.registry) {
+            prompts.log.info(`  • ${e.name} - ${e.description}`)
+          }
+          prompts.outro("Done")
+          return
+        }
+
+        // Check platform compatibility
+        if (!McpRegistry.isCompatible(entry)) {
+          prompts.log.error(`MCP server "${args.name}" is not compatible with your platform`)
+          prompts.log.info(`Required platforms: ${entry.platform.join(", ")}`)
+          prompts.outro("Done")
+          return
+        }
+
+        const spinner = prompts.spinner()
+        spinner.start(`Installing ${entry.name}...`)
+
+        try {
+          // Resolve config paths
+          const [projectConfigPath, globalConfigPath] = await Promise.all([
+            resolveConfigPath(Instance.worktree),
+            resolveConfigPath(Global.Path.config, true),
+          ])
+
+          // Default to project config
+          let configPath = projectConfigPath
+          if (projectConfigPath !== globalConfigPath) {
+            const scopeResult = await prompts.select({
+              message: "Where to install?",
+              options: [
+                {
+                  label: "Current project",
+                  value: projectConfigPath,
+                  hint: projectConfigPath,
+                },
+                {
+                  label: "Global",
+                  value: globalConfigPath,
+                  hint: globalConfigPath,
+                },
+              ],
+            })
+            if (prompts.isCancel(scopeResult)) throw new UI.CancelledError()
+            configPath = scopeResult
+          }
+
+          // Format the config
+          const mcpConfig = McpRegistry.formatConfig(entry)
+
+          // Add to config
+          await addMcpToConfig(entry.name, mcpConfig, configPath)
+
+          spinner.stop(`✓ ${entry.name} installed successfully`)
+
+          // Show setup instructions
+          if (entry.setupInstructions) {
+            prompts.log.info("\nSetup Instructions:")
+            prompts.log.info(entry.setupInstructions)
+          }
+
+          prompts.log.success(`\nAdded to: ${configPath}`)
+          prompts.outro("Installation complete")
+        } catch (error) {
+          spinner.stop(`Failed to install ${entry.name}`, 1)
+          prompts.log.error(error instanceof Error ? error.message : String(error))
+          prompts.outro("Failed")
+        }
+      },
+    })
+  },
+})
+
+export const McpRemoveCommand = cmd({
+  command: "remove <name>",
+  aliases: ["rm"],
+  describe: "remove an MCP server from configuration",
+  builder: (yargs) =>
+    yargs.positional("name", {
+      describe: "name of the MCP server to remove",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Remove MCP Server")
+
+        const config = await Config.get()
+        if (!config.mcp || !config.mcp[args.name]) {
+          prompts.log.error(`MCP server "${args.name}" not found in configuration`)
+          prompts.outro("Done")
+          return
+        }
+
+        const confirm = await prompts.confirm({
+          message: `Remove "${args.name}" from configuration?`,
+          initialValue: false,
+        })
+        if (prompts.isCancel(confirm) || !confirm) {
+          prompts.outro("Cancelled")
+          return
+        }
+
+        // Find and update config file
+        const candidates = [
+          path.join(Instance.worktree, "hopcoderx.json"),
+          path.join(Instance.worktree, "hopcoderx.jsonc"),
+          path.join(Instance.worktree, ".hopcoderx", "hopcoderx.json"),
+          path.join(Instance.worktree, ".hopcoderx", "hopcoderx.jsonc"),
+          path.join(Global.Path.config, "hopcoderx.json"),
+          path.join(Global.Path.config, "hopcoderx.jsonc"),
+        ]
+
+        let removed = false
+        for (const configPath of candidates) {
+          if (await Filesystem.exists(configPath)) {
+            const text = await Filesystem.readText(configPath)
+            const edits = modify(text, ["mcp", args.name], undefined, {
+              formattingOptions: { tabSize: 2, insertSpaces: true },
+            })
+            if (edits.length > 0) {
+              const result = applyEdits(text, edits)
+              await Filesystem.write(configPath, result)
+              removed = true
+              prompts.log.success(`Removed from ${configPath}`)
+              break
+            }
+          }
+        }
+
+        if (!removed) {
+          prompts.log.warn("Could not find config file to update")
+        }
+
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
+export const McpSetupCommand = cmd({
+  command: "setup",
+  describe: "setup pre-configured MCP bundles (e.g., adobe-suite)",
+  builder: (yargs) =>
+    yargs
+      .positional("bundle", {
+        describe: "bundle name to setup",
+        type: "string",
+        choices: ["adobe-suite"],
+      })
+      .option("platform", {
+        describe: "Platform filter",
+        type: "string",
+        choices: ["windows", "macos"],
+      }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("MCP Setup")
+
+        const bundle = args.bundle || "adobe-suite"
+
+        if (bundle === "adobe-suite") {
+          prompts.log.info("Setting up Adobe Creative Suite MCP servers...")
+
+          const currentPlatform = process.platform
+          const platform = (args.platform as string) || (currentPlatform === "darwin" ? "macos" : "windows")
+
+          const adobeMCPs: Record<string, string[]> = {
+            windows: ["photoshop", "after-effects", "adobe-xd"],
+            macos: ["after-effects", "illustrator", "indesign", "adobe-xd"],
+          }
+
+          const toInstall = adobeMCPs[platform] || []
+
+          if (toInstall.length === 0) {
+            prompts.log.warn(`No Adobe MCP servers available for platform: ${platform}`)
+            prompts.outro("Done")
+            return
+          }
+
+          prompts.log.info(`Platform: ${platform}`)
+          prompts.log.info(`Will install: ${toInstall.join(", ")}\n`)
+
+          for (const mcpName of toInstall) {
+            const entry = McpRegistry.getByName(mcpName)
+            if (!entry) {
+              prompts.log.warn(`Skipping ${mcpName} - not found in registry`)
+              continue
+            }
+
+            if (!McpRegistry.isCompatible(entry)) {
+              prompts.log.warn(`Skipping ${mcpName} - not compatible with your platform`)
+              continue
+            }
+
+            const spinner = prompts.spinner()
+            spinner.start(`Installing ${mcpName}...`)
+
+            try {
+              const configPath = await resolveConfigPath(Instance.worktree)
+              const mcpConfig = McpRegistry.formatConfig(entry)
+              await addMcpToConfig(mcpName, mcpConfig, configPath)
+              spinner.stop(`✓ ${mcpName} installed`)
+            } catch (error) {
+              spinner.stop(`✗ ${mcpName} failed`, 1)
+              prompts.log.error(error instanceof Error ? error.message : String(error))
+            }
+          }
+
+          prompts.log.info("\nAdobe Suite MCP servers installed!")
+          prompts.log.info("Review the setup instructions for each server above.")
+          prompts.log.info("Enable servers with: HopCoderX mcp list")
+        }
+
+        prompts.outro("Setup complete")
       },
     })
   },
