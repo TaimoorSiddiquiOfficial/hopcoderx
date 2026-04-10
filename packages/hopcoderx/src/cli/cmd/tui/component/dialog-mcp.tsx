@@ -8,7 +8,7 @@ import { Keybind } from "@/util/keybind"
 import { TextAttributes } from "@opentui/core"
 import { useSDK } from "@tui/context/sdk"
 import { useDialog } from "@tui/ui/dialog"
-import { McpRegistry } from "../../mcp/registry"
+import { McpRegistry } from "@/mcp/registry"
 import { DialogMcpRegistry } from "./dialog-mcp-registry"
 
 function Status(props: { enabled: boolean; loading: boolean; status?: string }) {

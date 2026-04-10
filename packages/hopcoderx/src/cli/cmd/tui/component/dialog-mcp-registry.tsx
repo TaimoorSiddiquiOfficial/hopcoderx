@@ -6,7 +6,7 @@ import { useTheme } from "../context/theme"
 import { Keybind } from "@/util/keybind"
 import { TextAttributes, RGBA } from "@opentui/core"
 import { useDialog } from "@tui/ui/dialog"
-import { McpRegistry } from "../../mcp/registry"
+import { McpRegistry } from "@/mcp/registry"
 import type { Config } from "../../config/config"
 
 // Helper component for category badges
