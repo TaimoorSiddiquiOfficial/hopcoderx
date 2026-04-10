@@ -1256,6 +1256,47 @@ Slash commands (in Claude Code):
       tags: ["hubspot", "crm", "contacts", "deals", "marketing", "sales", "business"],
       featured: false,
     },
+    // ── Browser (Puppeteer) ───────────────────────────────────────────────────
+    {
+      name: "puppeteer",
+      description: "Official MCP Puppeteer server — headless Chrome browser automation: navigate, screenshot, click, fill forms, extract content",
+      category: "browser",
+      platform: ["cross-platform"],
+      repository: "https://github.com/modelcontextprotocol/servers",
+      author: "modelcontextprotocol",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "@modelcontextprotocol/server-puppeteer"],
+        enabled: false,
+      },
+      setupInstructions: `No setup required — browser binaries are bundled with puppeteer-core.\nRuns headless Chrome automatically. Set PUPPETEER_EXECUTABLE_PATH env var to use a custom Chrome path.`,
+      tags: ["puppeteer", "browser", "chrome", "headless", "automation", "screenshot", "scraping"],
+      featured: true,
+    },
+    // ── Database (Prisma) ────────────────────────────────────────────────────
+    {
+      name: "prisma",
+      description: "Prisma MCP — AI-powered database management: run migrations, push schema changes, seed data, execute queries, and introspect databases",
+      category: "database",
+      platform: ["cross-platform"],
+      repository: "https://github.com/prisma/mcp",
+      author: "prisma",
+      requirements: [
+        { type: "nodejs", description: "Node.js with npx" },
+        { type: "binary", description: "A database supported by Prisma (PostgreSQL, MySQL, SQLite, MongoDB, etc.)" },
+      ],
+      config: {
+        type: "local",
+        command: ["npx", "-y", "prisma", "mcp"],
+        enabled: false,
+      },
+      setupInstructions: `Run inside a project that has a prisma/schema.prisma file.\nFor cloud Prisma Postgres, use: npx -y mcp-remote https://mcp.prisma.io/mcp\nThe server exposes migration, schema push/pull, seeding, and query tools.`,
+      tags: ["prisma", "database", "orm", "migrations", "schema", "sql", "postgres", "mysql", "sqlite", "mongodb"],
+      featured: true,
+    },
     // ── Design (Canva) ────────────────────────────────────────────────────────
     {
       name: "canva",
