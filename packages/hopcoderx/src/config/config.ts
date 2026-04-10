@@ -1128,6 +1128,37 @@ export namespace Config {
         )
         .optional()
         .describe("MCP (Model Context Protocol) server configurations"),
+      mcp_builtins: z
+        .object({
+          enabled: z
+            .boolean()
+            .optional()
+            .describe("Enable the built-in MCP server system (default: true)"),
+          auto_detect: z
+            .boolean()
+            .optional()
+            .describe(
+              "Automatically enable on-demand MCP servers based on project context — git remotes, env vars, file patterns (default: true)",
+            ),
+          overrides: z
+            .record(
+              z.string(),
+              z.object({
+                enabled: z
+                  .boolean()
+                  .optional()
+                  .describe("Override enabled state for this built-in server"),
+              }),
+            )
+            .optional()
+            .describe(
+              "Per-server overrides. Keys are built-in IDs like 'builtin:github'. Set enabled: false to disable a specific server.",
+            ),
+        })
+        .optional()
+        .describe(
+          "Configuration for HopCoderX built-in MCP servers (filesystem, memory, github, git, postgres, etc.)",
+        ),
       formatter: z
         .union([
           z.literal(false),

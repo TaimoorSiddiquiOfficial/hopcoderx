@@ -7,7 +7,7 @@ import { Keybind } from "@/util/keybind"
 import { TextAttributes, RGBA } from "@opentui/core"
 import { useDialog } from "@tui/ui/dialog"
 import { McpRegistry } from "@/mcp/registry"
-import type { Config } from "../../config/config"
+import type { Config } from "@/config/config"
 
 // Helper component for category badges
 function CategoryBadge(props: { category: McpRegistry.Category }) {
@@ -87,7 +87,7 @@ export function DialogMcpRegistry() {
 
     // Filter by category
     if (categoryFilter() !== "all") {
-      entries = McpRegistry.getByCategory(categoryFilter())
+      entries = McpRegistry.getByCategory(categoryFilter() as McpRegistry.Category)
     }
 
     // Filter by search query

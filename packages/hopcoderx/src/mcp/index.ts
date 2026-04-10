@@ -934,4 +934,79 @@ export namespace MCP {
     const expired = await McpAuth.isTokenExpired(mcpName)
     return expired ? "expired" : "authenticated"
   }
+
+  /**
+   * Initialize built-in MCP servers for a project root.
+   *
+   * Called at session start.  Reads the user's `mcp_builtins` config and:
+   *   1. Starts `always`-mode builtins that are not explicitly disabled.
+   *   2. Runs auto-detect and starts `on-demand` builtins whose signals match.
+   *
+   * Servers that are already in the user's `mcp` config are skipped so the
+   * user can override any builtin by configuring it manually.
+   */
+  export async function initBuiltins(projectRoot: string): Promise<void> {
+    const { McpBuiltins } = await import("./builtins")
+    const { autoDetectBuiltins } = await import("./autodetect")
+
+    const cfg = await Config.get()
+    const builtinsCfg = (cfg as Record<string, unknown>).mcp_builtins as
+      | { enabled?: boolean; auto_detect?: boolean; overrides?: Record<string, { enabled?: boolean }> }
+      | undefined
+
+    // Respect the global kill-switch
+    if (builtinsCfg?.enabled === false) return
+
+    const autoDetect = builtinsCfg?.auto_detect !== false
+    const userMcp = cfg.mcp ?? {}
+    const overrides = builtinsCfg?.overrides ?? {}
+
+    // Collect IDs to start
+    const toStart = new Set<string>()
+
+    // Always-on
+    for (const entry of McpBuiltins.getAlwaysOn()) {
+      toStart.add(entry.id)
+    }
+
+    // On-demand via auto-detect
+    if (autoDetect) {
+      const detected = await autoDetectBuiltins(projectRoot)
+      for (const id of detected) toStart.add(id)
+    }
+
+    // Start servers not already user-configured
+    await Promise.all(
+      [...toStart].map(async (id) => {
+        if (userMcp[id]) return // user config takes precedence
+
+        const override = overrides[id]
+        if (override?.enabled === false) return // user explicitly disabled
+
+        const entry = McpBuiltins.getById(id)
+        if (!entry) return
+
+        // Skip if credentials are required but not present
+        if (entry.requiresCredentials) {
+          const missing = (entry.requiredEnvVars ?? []).filter((k) => !process.env[k])
+          if (missing.length > 0) {
+            log.info("skipping builtin (missing env vars)", { id, missing })
+            return
+          }
+        }
+
+        const mcpConfig = McpBuiltins.toMcpConfig(entry, true)
+        log.info("starting builtin MCP server", { id })
+        const result = await create(id, mcpConfig).catch((err) => {
+          log.error("failed to start builtin MCP server", { id, error: err })
+          return undefined
+        })
+        if (!result) return
+
+        const s = await state()
+        s.status[id] = result.status
+        if (result.mcpClient) s.clients[id] = result.mcpClient
+      }),
+    )
+  }
 }

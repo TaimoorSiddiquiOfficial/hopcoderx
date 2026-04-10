@@ -142,6 +142,7 @@ import type {
   SessionUpdateErrors,
   SessionUpdateResponses,
   SubtaskPartInput,
+  TelemetryMetricsResponses,
   TextPartInput,
   ToolIdsErrors,
   ToolIdsResponses,
@@ -3210,6 +3211,27 @@ export class Formatter extends HeyApiClient {
   }
 }
 
+export class Telemetry extends HeyApiClient {
+  /**
+   * Get telemetry metrics
+   *
+   * Return per-tool usage stats and recent spans collected since process start.
+   */
+  public metrics<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "directory" }] }])
+    return (options?.client ?? this.client).get<TelemetryMetricsResponses, unknown, ThrowOnError>({
+      url: "/telemetry",
+      ...options,
+      ...params,
+    })
+  }
+}
+
 export class Event extends HeyApiClient {
   /**
    * Subscribe to events
@@ -3357,6 +3379,11 @@ export class HopCoderXClient extends HeyApiClient {
   private _formatter?: Formatter
   get formatter(): Formatter {
     return (this._formatter ??= new Formatter({ client: this.client }))
+  }
+
+  private _telemetry?: Telemetry
+  get telemetry(): Telemetry {
+    return (this._telemetry ??= new Telemetry({ client: this.client }))
   }
 
   private _event?: Event

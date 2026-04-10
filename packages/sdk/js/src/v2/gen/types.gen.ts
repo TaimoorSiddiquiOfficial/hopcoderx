@@ -83,13 +83,6 @@ export type EventLspUpdated = {
   }
 }
 
-export type EventFileEdited = {
-  type: "file.edited"
-  properties: {
-    file: string
-  }
-}
-
 export type OutputFormatText = {
   type: "text"
 }
@@ -684,6 +677,13 @@ export type EventSessionCompacted = {
   }
 }
 
+export type EventFileEdited = {
+  type: "file.edited"
+  properties: {
+    file: string
+  }
+}
+
 export type EventFileWatcherUpdated = {
   type: "file.watcher.updated"
   properties: {
@@ -880,13 +880,6 @@ export type EventSessionError = {
   }
 }
 
-export type EventVcsBranchUpdated = {
-  type: "vcs.branch.updated"
-  properties: {
-    branch?: string
-  }
-}
-
 export type Pty = {
   id: string
   title: string
@@ -941,6 +934,13 @@ export type EventWorktreeFailed = {
   }
 }
 
+export type EventVcsBranchUpdated = {
+  type: "vcs.branch.updated"
+  properties: {
+    branch?: string
+  }
+}
+
 export type Event =
   | EventInstallationUpdated
   | EventInstallationUpdateAvailable
@@ -950,7 +950,6 @@ export type Event =
   | EventGlobalDisposed
   | EventLspClientDiagnostics
   | EventLspUpdated
-  | EventFileEdited
   | EventMessageUpdated
   | EventMessageRemoved
   | EventMessagePartUpdated
@@ -964,6 +963,7 @@ export type Event =
   | EventQuestionReplied
   | EventQuestionRejected
   | EventSessionCompacted
+  | EventFileEdited
   | EventFileWatcherUpdated
   | EventTodoUpdated
   | EventTuiPromptAppend
@@ -978,13 +978,13 @@ export type Event =
   | EventSessionDeleted
   | EventSessionDiff
   | EventSessionError
-  | EventVcsBranchUpdated
   | EventPtyCreated
   | EventPtyUpdated
   | EventPtyExited
   | EventPtyDeleted
   | EventWorktreeReady
   | EventWorktreeFailed
+  | EventVcsBranchUpdated
 
 export type GlobalEvent = {
   directory: string
@@ -1371,6 +1371,22 @@ export type KeybindsConfig = {
    * Toggle thinking blocks visibility
    */
   display_thinking?: string
+  /**
+   * Toggle file preview panel
+   */
+  panel_toggle?: string
+  /**
+   * Open MCP server list
+   */
+  mcp_list?: string
+  /**
+   * Open MCP registry
+   */
+  mcp_registry?: string
+  /**
+   * Toggle MCP server in list
+   */
+  mcp_toggle?: string
 }
 
 /**
@@ -1699,6 +1715,14 @@ export type Config = {
      * Control diff rendering style: 'auto' adapts to terminal width, 'stacked' always shows single column
      */
     diff_style?: "auto" | "stacked"
+    /**
+     * Pane layout: 'single' is the default chat view, 'split' opens a file preview panel alongside chat
+     */
+    pane_layout?: "single" | "split"
+    /**
+     * Width in columns of the file preview panel when pane_layout is 'split' (default: 60)
+     */
+    panel_width?: number
   }
   server?: ServerConfig
   /**
@@ -5176,6 +5200,26 @@ export type FormatterStatusResponses = {
 }
 
 export type FormatterStatusResponse = FormatterStatusResponses[keyof FormatterStatusResponses]
+
+export type TelemetryMetricsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/telemetry"
+}
+
+export type TelemetryMetricsResponses = {
+  /**
+   * Telemetry metrics snapshot
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type TelemetryMetricsResponse = TelemetryMetricsResponses[keyof TelemetryMetricsResponses]
 
 export type EventSubscribeData = {
   body?: never

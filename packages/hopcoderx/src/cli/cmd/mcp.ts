@@ -16,6 +16,7 @@ import { modify, applyEdits } from "jsonc-parser"
 import { Filesystem } from "../../util/filesystem"
 import { Bus } from "../../bus"
 import { McpRegistry } from "../../mcp/registry"
+import { McpBuiltins } from "../../mcp/builtins"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -1066,6 +1067,98 @@ export const McpSetupCommand = cmd({
         }
 
         prompts.outro("Setup complete")
+      },
+    })
+  },
+})
+
+export const McpBuiltinsCommand = cmd({
+  command: "builtins",
+  aliases: ["b"],
+  describe: "list or toggle built-in MCP servers",
+  builder: (yargs) =>
+    yargs
+      .option("enable", {
+        type: "string",
+        describe: "enable a built-in server by ID (e.g. builtin:github)",
+      })
+      .option("disable", {
+        type: "string",
+        describe: "disable a built-in server by ID",
+      })
+      .option("category", {
+        type: "string",
+        describe: "filter by category (core, vcs, database, search, communication, browser, ai)",
+      }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Built-in MCP Servers")
+
+        const currentStatus = await MCP.status()
+
+        if (args.enable) {
+          const id = args.enable.startsWith("builtin:") ? args.enable : `builtin:${args.enable}`
+          const entry = McpBuiltins.getById(id)
+          if (!entry) {
+            prompts.log.error(`Unknown built-in: ${id}`)
+            prompts.outro("Done")
+            return
+          }
+          if (entry.requiresCredentials) {
+            const missing = (entry.requiredEnvVars ?? []).filter((k) => !process.env[k])
+            if (missing.length) {
+              prompts.log.error(`Missing env vars: ${missing.join(", ")}`)
+              if (entry.setupGuide) prompts.log.info(entry.setupGuide)
+              prompts.outro("Done")
+              return
+            }
+          }
+          const mcpConfig = McpBuiltins.toMcpConfig(entry, true)
+          await MCP.add(id, mcpConfig)
+          prompts.log.success(`Enabled ${entry.icon} ${entry.name}`)
+          prompts.outro("Done")
+          return
+        }
+
+        if (args.disable) {
+          const id = args.disable.startsWith("builtin:") ? args.disable : `builtin:${args.disable}`
+          await MCP.disconnect(id)
+          prompts.log.success(`Disabled ${id}`)
+          prompts.outro("Done")
+          return
+        }
+
+        // List mode
+        let entries = McpBuiltins.catalog
+        if (args.category) {
+          entries = entries.filter((e) => e.category === args.category)
+        }
+
+        const launchModeLabel = { always: "🟢 always", "on-demand": "🔵 on-demand", manual: "⚪ manual" }
+
+        for (const entry of entries) {
+          const s = currentStatus[entry.id]
+          const statusLabel = s ? `[${s.status}]` : "[not running]"
+          prompts.log.info(`${entry.icon} ${entry.name.padEnd(20)} ${launchModeLabel[entry.launchMode]}  ${statusLabel}`)
+          prompts.log.info(`   ${entry.id}`)
+          prompts.log.info(`   ${entry.description}`)
+          if (entry.requiresCredentials && entry.requiredEnvVars) {
+            const missing = entry.requiredEnvVars.filter((k) => !process.env[k])
+            if (missing.length) {
+              prompts.log.warn(`   Missing env: ${missing.join(", ")}`)
+            } else {
+              prompts.log.info(`   Credentials: ✓ configured`)
+            }
+          }
+          prompts.log.info("")
+        }
+
+        prompts.log.info("Legend: 🟢 always-on  🔵 auto-detected  ⚪ manual")
+        prompts.log.info("Use --enable <id> to enable / --disable <id> to disable")
+        prompts.outro("Done")
       },
     })
   },

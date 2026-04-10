@@ -63,6 +63,7 @@ import { CacheTool } from "./cache"
 import { ComposeTool } from "./compose"
 import { VoiceInputTool } from "./voice"
 import { CanvasTool } from "./canvas"
+import { McpControlTool } from "./mcp-control"
 
 // ─── Capability map ────────────────────────────────────────────────────────
 // Centralised capability declarations for built-in tools so individual tool
@@ -223,6 +224,7 @@ export namespace ToolRegistry {
       ComposeTool,
       MultiEditTool,
       CanvasTool,
+      McpControlTool,
       ...(Flag.HOPCODERX_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.HOPCODERX_EXPERIMENTAL_PLAN_MODE && Flag.HOPCODERX_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
