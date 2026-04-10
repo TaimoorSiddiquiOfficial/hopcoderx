@@ -8,55 +8,47 @@ import { TextAttributes } from "@opentui/core"
 import { useDialog } from "@tui/ui/dialog"
 import { McpRegistry } from "@/mcp/registry"
 
-// Helper component for category badges
+// Helper component for category badges — must render <text> so it can be a child of <box>
 function CategoryBadge(props: { category: McpRegistry.Category }) {
   const { theme } = useTheme()
-  const categories = McpRegistry.categories
-  const cat = categories[props.category]
-
+  const cat = McpRegistry.categories[props.category]
   return (
-    <span style={{ fg: theme.info, attributes: TextAttributes.DIM }}>
-      {cat.icon} {cat.label}
-    </span>
+    <text fg={theme.info} attributes={TextAttributes.DIM}>
+      {cat?.icon ?? ""} {cat?.label ?? props.category}
+    </text>
   )
 }
 
-// Helper component for platform compatibility
+// Helper component for platform compatibility — must render <text> so it can be a child of <box>
 function PlatformIndicator(props: { platforms: McpRegistry.Platform[] }) {
   const { theme } = useTheme()
-  const currentPlatform = process.platform
   const platformMap: Record<string, McpRegistry.Platform> = {
     win32: "windows",
     darwin: "macos",
     linux: "linux",
   }
-  const current = platformMap[currentPlatform] || "linux"
+  const current = platformMap[process.platform] || "linux"
   const isCompatible = props.platforms.includes(current) || props.platforms.includes("cross-platform")
-
   return (
-    <span style={{ fg: isCompatible ? theme.success : theme.error }}>
+    <text fg={isCompatible ? theme.success : theme.error}>
       {isCompatible ? "●" : "✗"} {props.platforms.includes("cross-platform") ? "All Platforms" : props.platforms.join(", ")}
-    </span>
+    </text>
   )
 }
 
 // Helper component for requirements
 function RequirementsList(props: { requirements: McpRegistry.Requirement[] }) {
   const { theme } = useTheme()
-
   return (
     <box flexDirection="column" gap={1}>
       <For each={props.requirements}>
         {(req) => (
           <box flexDirection="row" gap={1}>
-            <span style={{ fg: theme.textMuted }}>•</span>
-            <span style={{ fg: theme.text }}>
-              {req.type === "nodejs" && "🟢 "}
-              {req.type === "python" && "🐍 "}
-              {req.type === "app" && "📱 "}
-              {req.type === "api-key" && "🔑 "}
+            <text fg={theme.textMuted}>•</text>
+            <text fg={theme.text}>
+              {req.type === "nodejs" ? "🟢 " : req.type === "python" ? "🐍 " : req.type === "app" ? "📱 " : req.type === "api-key" ? "🔑 " : ""}
               {req.description}
-            </span>
+            </text>
           </box>
         )}
       </For>
@@ -116,13 +108,17 @@ export function DialogMcpRegistry() {
         value: entry.name,
         title: `${entry.featured ? "⭐ " : ""}${entry.name}`,
         description: entry.description,
+        // footer renders inside <text> in Option — use <span> elements (NOT <box>)
         footer: (
-          <box flexDirection="row" gap={2}>
-            <CategoryBadge category={entry.category} />
-            <span style={{ fg: isInstalled ? theme.success : theme.textMuted }}>
-              {isLoading ? "⋯ Installing" : isInstalled ? "✓ Installed" : isCompatible ? "○ Available" : "✗ Incompatible"}
+          <>
+            <span style={{ fg: theme.info, attributes: TextAttributes.DIM }}>
+              {McpRegistry.categories[entry.category]?.icon ?? ""}{" "}
+              {McpRegistry.categories[entry.category]?.label ?? entry.category}
             </span>
-          </box>
+            <span style={{ fg: isInstalled ? theme.success : theme.textMuted }}>
+              {" "}{isLoading ? "⋯" : isInstalled ? "✓" : isCompatible ? "○" : "✗"}
+            </span>
+          </>
         ),
         category: entry.category.charAt(0).toUpperCase() + entry.category.slice(1),
         metadata: { entry, isInstalled, isCompatible },
@@ -231,17 +227,17 @@ export function DialogMcpRegistry() {
         <>
           <box flexDirection="column" gap={1}>
             <box flexDirection="row" gap={2}>
-              <text style={{ fg: theme.textMuted }}>
+              <text fg={theme.textMuted}>
                 Enter: Install | D: Details | C: Category | /: Search | Escape: Back
               </text>
             </box>
             <Show when={categoryFilter() !== "all"}>
-              <text style={{ fg: theme.info }}>
+              <text fg={theme.info}>
                 📂 Category: {McpRegistry.categories[categoryFilter() as McpRegistry.Category]?.label}
               </text>
             </Show>
             <Show when={searchQuery()}>
-              <text style={{ fg: theme.info }}>
+              <text fg={theme.info}>
                 🔍 Search: "{searchQuery()}"
               </text>
             </Show>
@@ -263,50 +259,50 @@ export function DialogMcpRegistry() {
         return (
           <box flexDirection="column" padding={2} gap={1}>
             <box flexDirection="row" gap={1}>
-              <text style={{ fg: theme.accent, attributes: TextAttributes.BOLD }}>{entry.name}</text>
-              {entry.featured && <span style={{ fg: theme.warning }}>⭐ Featured</span>}
+              <text fg={theme.accent} attributes={TextAttributes.BOLD}>{entry.name}</text>
+              {entry.featured && <text fg={theme.warning}>⭐ Featured</text>}
             </box>
-            <text style={{ fg: theme.text }}>{entry.description}</text>
+            <text fg={theme.text}>{entry.description}</text>
 
             <box flexDirection="row" gap={2}>
               <CategoryBadge category={entry.category} />
               <PlatformIndicator platforms={entry.platform} />
               {entry.stars && (
-                <span style={{ fg: theme.warning }}>★ {entry.stars} stars</span>
+                <text fg={theme.warning}>★ {entry.stars} stars</text>
               )}
             </box>
 
             <box marginTop={1}>
-              <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }}>
+              <text fg={theme.textMuted} attributes={TextAttributes.UNDERLINE}>
                 Requirements:
               </text>
               <RequirementsList requirements={entry.requirements} />
             </box>
 
             <box marginTop={1}>
-              <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }}>
+              <text fg={theme.textMuted} attributes={TextAttributes.UNDERLINE}>
                 Setup Instructions:
               </text>
-              <text style={{ fg: theme.text }}>{entry.setupInstructions || "No setup instructions available."}</text>
+              <text fg={theme.text}>{entry.setupInstructions || "No setup instructions available."}</text>
             </box>
 
             <box marginTop={1}>
-              <text style={{ fg: theme.textMuted, attributes: TextAttributes.UNDERLINE }}>Tags:</text>
+              <text fg={theme.textMuted} attributes={TextAttributes.UNDERLINE}>Tags:</text>
               <box flexDirection="row" gap={1} flexWrap="wrap">
                 <For each={entry.tags}>
                   {(tag) => (
-                    <span style={{ fg: theme.info }}>#{tag}</span>
+                    <text fg={theme.info}>#{tag}</text>
                   )}
                 </For>
               </box>
             </box>
 
             <box marginTop={2} flexDirection="row" gap={2}>
-              <text style={{ fg: theme.textMuted }}>Repository: {entry.repository}</text>
+              <text fg={theme.textMuted}>Repository: {entry.repository}</text>
             </box>
 
             <box marginTop={1}>
-              <text style={{ fg: theme.textMuted }}>
+              <text fg={theme.textMuted}>
                 Press Enter to {isInstalled ? "reinstall" : "install"} | Escape to go back
               </text>
             </box>
