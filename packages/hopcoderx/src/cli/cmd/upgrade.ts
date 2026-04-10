@@ -42,7 +42,16 @@ export const UpgradeCommand = {
       }
     }
     prompts.log.info("Using method: " + method)
-    const target = args.target ? args.target.replace(/^v/, "") : await Installation.latest()
+    const target = args.target
+      ? args.target.replace(/^v/, "")
+      : await Installation.latest().catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err)
+          prompts.log.error(
+            `Unable to fetch latest version: ${msg}\nSpecify a version manually: hopcoderx upgrade <version>`,
+          )
+          prompts.outro("Done")
+          process.exit(1)
+        })
 
     if (Installation.VERSION === target) {
       prompts.log.warn(`HopCoderX upgrade skipped: ${target} is already installed`)
