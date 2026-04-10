@@ -73,28 +73,28 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
   let input: InputRenderable
 
   const filtered = createMemo(() => {
-    if (props.skipFilter) return props.options.filter((x) => x.disabled !== true)
-    const needle = store.filter.toLowerCase()
-    const options = pipe(
-      props.options,
-      filter((x) => x.disabled !== true),
-    )
-    if (!needle) return options
-
-    // prioritize title matches (weight: 2) over category matches (weight: 1).
-    // users typically search by the item name, and not its category.
-    // wrap in try-catch to degrade gracefully on unexpected fuzzysort errors.
     try {
+      if (props.skipFilter) return props.options.filter((x) => x.disabled !== true)
+      const needle = store.filter.toLowerCase()
+      const options = pipe(
+        props.options,
+        filter((x) => x.disabled !== true),
+      )
+      if (!needle) return options
+
+      // prioritize title matches (weight: 2) over category matches (weight: 1).
+      // users typically search by the item name, and not its category.
       return fuzzysort
         .go(needle, options, {
           keys: ["title", "category"],
-          scoreFn: (r) => r[0]!.score * 2 + r[1]!.score,
+          // use optional chaining so null/undefined results from non-matching keys don't throw
+          scoreFn: (r) => (r[0]?.score ?? -Infinity) * 2 + (r[1]?.score ?? -Infinity),
         })
         .map((x) => x.obj)
     } catch {
-      return options.filter((x) => x.title?.toLowerCase().includes(needle))
+      return (props.options ?? []).filter((x) => x.disabled !== true)
     }
-  })
+  }, [])
 
   // When the filter changes due to how TUI works, the mousemove might still be triggered
   // via a synthetic event as the layout moves underneath the cursor. This is a workaround to make sure the input mode remains keyboard
