@@ -25,6 +25,7 @@ import { execFile } from "child_process"
 import { promisify } from "util"
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
+import { Cron } from "croner"
 
 const execFileAsync = promisify(execFile)
 
@@ -129,21 +130,12 @@ function parseSchedule(input: string): string {
   return "0 9 * * *" // default: daily at 9am
 }
 
-/** Compute next run time from cron expression (simple implementation) */
+/** Compute next run time from cron expression using croner for accurate parsing */
 function nextRunFromCron(cronExpr: string, from = Date.now()): number {
   try {
-    // Use a simple heuristic: parse the cron and find next match
-    const [min, hour, , , dow] = cronExpr.split(" ")
-    const d = new Date(from + 60_000)
-    for (let i = 0; i < 1440; i++) {
-      const matches = (
-        (min === "*"  || d.getMinutes() === parseInt(min)  || (min.startsWith("*/")  && d.getMinutes()  % parseInt(min.slice(2)) === 0)) &&
-        (hour === "*" || d.getHours()   === parseInt(hour) || (hour.startsWith("*/") && d.getHours()    % parseInt(hour.slice(2)) === 0)) &&
-        (dow === "*"  || d.getDay() === parseInt(dow))
-      )
-      if (matches) return d.getTime()
-      d.setMinutes(d.getMinutes() + 1)
-    }
+    const job = new Cron(cronExpr, { startAt: new Date(from), paused: true })
+    const next = job.nextRun(new Date(from))
+    if (next) return next.getTime()
   } catch {}
   return from + 86_400_000
 }

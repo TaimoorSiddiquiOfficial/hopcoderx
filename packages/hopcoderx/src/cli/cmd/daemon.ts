@@ -306,6 +306,14 @@ export const DaemonCommand = cmd({
           }))
         } catch {}
       }, 30_000)
+
+      // Cron runner — execute due tasks every minute
+      setInterval(async () => {
+        try {
+          const { executeDueTasks } = await import("./cron")
+          await executeDueTasks()
+        } catch {}
+      }, 60_000)
       return
     }
 

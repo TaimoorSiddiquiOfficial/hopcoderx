@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-04-02T14:20:12.229Z",
+  "tier": "lite",
+  "workspace": {
+    "root": "file:///d%3A/HopTrendy/hopcoderx",
+    "folders": [
+      {
+        "name": "hopcoderx",
+        "path": "file:///d%3A/HopTrendy/hopcoderx"
+      },
+      {
+        "name": "hopcoderx-lmstudio",
+        "path": "file:///c%3A/Users/Taimoor/hopcoderx-lmstudio"
+      },
+      {
+        "name": "hopcoderx-lmstudio-simple",
+        "path": "file:///c%3A/Users/Taimoor/hopcoderx-lmstudio-simple"
+      }
+    ]
+  },
+  "packages": [
+    {
+      "name": "hopcoderx",
+      "version": "0.0.0",
+      "path": "file:///d%3A/HopTrendy/hopcoderx/package.json"
+    }
+  ]
+}
