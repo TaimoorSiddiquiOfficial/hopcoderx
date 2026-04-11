@@ -55,7 +55,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
@@ -81,7 +81,7 @@ jobs:
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.9"
@@ -103,7 +103,7 @@ jobs:
           "
       - name: Build SDK
         run: bun run packages/sdk/js/script/build.ts
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: bumped-repo
           path: .
@@ -139,7 +139,7 @@ jobs:
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: bumped-repo
           path: .
@@ -150,7 +150,7 @@ jobs:
       - name: Build CLI binary
         working-directory: packages/hopcoderx
         run: bun run build -- --single --skip-install
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: cli-${{ matrix.name }}
           path: packages/hopcoderx/dist/
@@ -163,7 +163,7 @@ jobs:
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: bumped-repo
           path: .
@@ -173,7 +173,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Download all CLI artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: cli-*
           path: packages/hopcoderx/dist/
@@ -238,7 +238,7 @@ jobs:
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: bumped-repo
           path: .
@@ -260,7 +260,7 @@ jobs:
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: bumped-repo
           path: .
@@ -282,7 +282,7 @@ jobs:
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: bumped-repo
           path: .
