@@ -19,6 +19,7 @@ import { withTimeout } from "@/util/timeout"
 import { McpOAuthProvider } from "./oauth-provider"
 import { McpOAuthCallback } from "./oauth-callback"
 import { McpAuth } from "./auth"
+import { findMissingMcpEnvVars, formatMcpFailureMessage, resolveMcpRuntimeConfig } from "./runtime-config"
 import { BusEvent } from "../bus/bus-event"
 import { Bus } from "@/bus"
 import { TuiEvent } from "@/cli/cmd/tui/event"
@@ -289,7 +290,22 @@ export namespace MCP {
   }
 
   async function create(key: string, mcp: Config.Mcp) {
-    if (mcp.enabled === false) {
+    const missingEnvVars = findMissingMcpEnvVars(mcp)
+    if (missingEnvVars.length > 0) {
+      const error = `Missing env vars: ${missingEnvVars.join(", ")}`
+      log.info("skipping MCP server (missing env vars)", { key, missingEnvVars })
+      return {
+        mcpClient: undefined,
+        status: {
+          status: "failed" as const,
+          error,
+        },
+      }
+    }
+
+    const resolvedMcp = resolveMcpRuntimeConfig(mcp)
+
+    if (resolvedMcp.enabled === false) {
       log.info("mcp server disabled", { key })
       return {
         mcpClient: undefined,
@@ -297,20 +313,20 @@ export namespace MCP {
       }
     }
 
-    log.info("found", { key, type: mcp.type })
+    log.info("found", { key, type: resolvedMcp.type })
     let mcpClient: MCPClient | undefined
     let status: Status | undefined = undefined
 
-    if (mcp.type === "remote") {
+    if (resolvedMcp.type === "remote") {
       // OAuth is enabled by default for remote servers unless explicitly disabled with oauth: false
-      const oauthDisabled = mcp.oauth === false
-      const oauthConfig = typeof mcp.oauth === "object" ? mcp.oauth : undefined
+      const oauthDisabled = resolvedMcp.oauth === false
+      const oauthConfig = typeof resolvedMcp.oauth === "object" ? resolvedMcp.oauth : undefined
       let authProvider: McpOAuthProvider | undefined
 
       if (!oauthDisabled) {
         authProvider = new McpOAuthProvider(
           key,
-          mcp.url,
+          resolvedMcp.url,
           {
             clientId: oauthConfig?.clientId,
             clientSecret: oauthConfig?.clientSecret,
@@ -328,22 +344,22 @@ export namespace MCP {
       const transports: Array<{ name: string; transport: TransportWithAuth }> = [
         {
           name: "StreamableHTTP",
-          transport: new StreamableHTTPClientTransport(new URL(mcp.url), {
+          transport: new StreamableHTTPClientTransport(new URL(resolvedMcp.url), {
             authProvider,
-            requestInit: mcp.headers ? { headers: mcp.headers } : undefined,
+            requestInit: resolvedMcp.headers ? { headers: resolvedMcp.headers } : undefined,
           }),
         },
         {
           name: "SSE",
-          transport: new SSEClientTransport(new URL(mcp.url), {
+          transport: new SSEClientTransport(new URL(resolvedMcp.url), {
             authProvider,
-            requestInit: mcp.headers ? { headers: mcp.headers } : undefined,
+            requestInit: resolvedMcp.headers ? { headers: resolvedMcp.headers } : undefined,
           }),
         },
       ]
 
       let lastError: Error | undefined
-      const connectTimeout = mcp.timeout ?? DEFAULT_TIMEOUT
+      const connectTimeout = resolvedMcp.timeout ?? DEFAULT_TIMEOUT
       for (const { name, transport } of transports) {
         try {
           const client = new Client({
@@ -394,7 +410,7 @@ export namespace MCP {
           log.debug("transport connection failed", {
             key,
             transport: name,
-            url: mcp.url,
+            url: resolvedMcp.url,
             error: lastError.message,
           })
           status = {
@@ -405,9 +421,10 @@ export namespace MCP {
       }
     }
 
-    if (mcp.type === "local") {
-      const [cmd, ...args] = mcp.command
+    if (resolvedMcp.type === "local") {
+      const [cmd, ...args] = resolvedMcp.command
       const cwd = Instance.directory
+      const stderrChunks: string[] = []
       const transport = new StdioClientTransport({
         stderr: "pipe",
         command: cmd,
@@ -416,14 +433,17 @@ export namespace MCP {
         env: {
           ...process.env,
           ...(cmd === "hopcoderx" ? { BUN_BE_BUN: "1" } : {}),
-          ...mcp.environment,
+          ...resolvedMcp.environment,
         },
       })
       transport.stderr?.on("data", (chunk: Buffer) => {
-        log.info(`mcp stderr: ${chunk.toString()}`, { key })
+        const text = chunk.toString()
+        stderrChunks.push(text)
+        if (stderrChunks.length > 16) stderrChunks.shift()
+        log.info(`mcp stderr: ${text}`, { key })
       })
 
-      const connectTimeout = mcp.timeout ?? DEFAULT_TIMEOUT
+      const connectTimeout = resolvedMcp.timeout ?? DEFAULT_TIMEOUT
       try {
         const client = new Client({
           name: "hopcoderx",
@@ -436,15 +456,19 @@ export namespace MCP {
           status: "connected",
         }
       } catch (error) {
+        const failureMessage = formatMcpFailureMessage(
+          error instanceof Error ? error.message : String(error),
+          stderrChunks,
+        )
         log.error("local mcp startup failed", {
           key,
-          command: mcp.command,
+          command: resolvedMcp.command,
           cwd,
-          error: error instanceof Error ? error.message : String(error),
+          error: failureMessage,
         })
         status = {
           status: "failed" as const,
-          error: error instanceof Error ? error.message : String(error),
+          error: failureMessage,
         }
       }
     }
@@ -463,11 +487,12 @@ export namespace MCP {
       }
     }
 
-    const result = await withTimeout(mcpClient.listTools(), mcp.timeout ?? DEFAULT_TIMEOUT).catch((err) => {
+    const result = await withTimeout(mcpClient.listTools(), resolvedMcp.timeout ?? DEFAULT_TIMEOUT).catch((err) => {
       log.error("failed to get tools from client", { key, error: err })
-      return undefined
+      return err instanceof Error ? err : new Error(String(err))
     })
-    if (!result) {
+    if (result instanceof Error) {
+      const errorMessage = `Failed to get tools: ${result.message}`
       await mcpClient.close().catch((error) => {
         log.error("Failed to close MCP client", {
           error,
@@ -475,13 +500,13 @@ export namespace MCP {
       })
       status = {
         status: "failed",
-        error: "Failed to get tools",
+        error: errorMessage,
       }
       return {
         mcpClient: undefined,
         status: {
           status: "failed" as const,
-          error: "Failed to get tools",
+          error: errorMessage,
         },
       }
     }
