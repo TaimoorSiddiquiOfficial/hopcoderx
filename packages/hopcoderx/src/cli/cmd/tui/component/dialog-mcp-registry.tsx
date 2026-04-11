@@ -7,6 +7,7 @@ import { Keybind } from "@/util/keybind"
 import { TextAttributes } from "@opentui/core"
 import { useDialog } from "@tui/ui/dialog"
 import { McpRegistry } from "@/mcp/registry"
+import { useKeyboard } from "@opentui/solid"
 
 // Helper component for category badges — must render <text> so it can be a child of <box>
 function CategoryBadge(props: { category: McpRegistry.Category }) {
@@ -128,42 +129,6 @@ export function DialogMcpRegistry() {
 
   const keybinds = createMemo(() => [
     {
-      keybind: Keybind.parse("return")[0],
-      title: "install",
-      onTrigger: async (option: DialogSelectOption<string>) => {
-        const entry = McpRegistry.getByName(option.value)
-        if (!entry) return
-
-        if (installedMcpNames().has(entry.name)) {
-          // Already installed, show details instead
-          setSelectedEntry(entry)
-          setShowDetails(true)
-          return
-        }
-
-        setLoading(entry.name)
-        try {
-          // Add the MCP to config
-          const config = McpRegistry.formatConfig(entry)
-          await sdk.client.mcp.add({ name: entry.name, config })
-
-          // Refresh status
-          const status = await sdk.client.mcp.status()
-          if (status.data) {
-            sync.set("mcp", status.data)
-          }
-
-          // Show details after install
-          setSelectedEntry(entry)
-          setShowDetails(true)
-        } catch (error) {
-          console.error("Failed to install MCP:", error)
-        } finally {
-          setLoading(null)
-        }
-      },
-    },
-    {
       keybind: Keybind.parse("d")[0],
       title: "details",
       onTrigger: (option: DialogSelectOption<string>) => {
@@ -247,8 +212,33 @@ export function DialogMcpRegistry() {
             title={title()}
             options={options()}
             keybind={keybinds()}
-            onSelect={(option) => {
-              // Handled by keybinds
+            onSelect={async (option) => {
+              const entry = McpRegistry.getByName(option.value)
+              if (!entry) return
+
+              if (installedMcpNames().has(entry.name)) {
+                setSelectedEntry(entry)
+                setShowDetails(true)
+                return
+              }
+
+              setLoading(entry.name)
+              try {
+                const config = McpRegistry.formatConfig(entry)
+                await sdk.client.mcp.add({ name: entry.name, config })
+
+                const status = await sdk.client.mcp.status()
+                if (status.data) {
+                  sync.set("mcp", status.data)
+                }
+
+                setSelectedEntry(entry)
+                setShowDetails(true)
+              } catch (error) {
+                console.error("Failed to install MCP:", error)
+              } finally {
+                setLoading(null)
+              }
             }}
           />
         </>
@@ -256,6 +246,32 @@ export function DialogMcpRegistry() {
     >
       {(entry) => {
         const isInstalled = installedMcpNames().has(entry.name)
+
+        useKeyboard(async (evt) => {
+          if (evt.name === "return") {
+            evt.preventDefault()
+            evt.stopPropagation()
+            setLoading(entry.name)
+            try {
+              const config = McpRegistry.formatConfig(entry)
+              await sdk.client.mcp.add({ name: entry.name, config })
+              const status = await sdk.client.mcp.status()
+              if (status.data) {
+                sync.set("mcp", status.data)
+              }
+            } catch (error) {
+              console.error("Failed to install MCP:", error)
+            } finally {
+              setLoading(null)
+            }
+          }
+          if (evt.name === "escape") {
+            evt.preventDefault()
+            evt.stopPropagation()
+            setShowDetails(false)
+          }
+        })
+
         return (
           <box flexDirection="column" padding={2} gap={1}>
             <box flexDirection="row" gap={1}>
