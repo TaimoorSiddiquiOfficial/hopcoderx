@@ -23,7 +23,7 @@ export namespace McpRegistry {
   export type Platform = z.infer<typeof Platform>
 
   export const Requirement = z.object({
-    type: z.enum(["nodejs", "python", "binary", "app", "api-key"]),
+    type: z.enum(["nodejs", "python", "powershell", "binary", "app", "api-key"]),
     version: z.string().optional(),
     description: z.string(),
     installCommand: z.string().optional(),
@@ -446,6 +446,52 @@ Tools available:
       `,
       tags: ["windows", "automation", "ui", "desktop", "screenshot", "mouse", "keyboard", "powershell"],
       featured: true,
+    },
+    {
+      name: "powershell-mcp",
+      description: "Persistent PowerShell MCP server - execute PowerShell commands and CLI tools through a shared pwsh session",
+      category: "automation",
+      platform: ["cross-platform"],
+      repository: "https://github.com/yotsuda/PowerShell.MCP",
+      author: "Yoshifumi Tsuda",
+      requirements: [
+        {
+          type: "powershell",
+          version: ">=7.4",
+          description: "PowerShell 7.4 or higher (`pwsh` on PATH)",
+          verifyCommand: "pwsh --version",
+        },
+        {
+          type: "powershell",
+          description: "PowerShell.MCP module installed from PowerShell Gallery",
+          installCommand: "pwsh -NoLogo -NoProfile -Command \"Install-PSResource -Name PowerShell.MCP\"",
+          verifyCommand: "pwsh -NoLogo -NoProfile -Command \"Get-Module -ListAvailable PowerShell.MCP | Sort-Object Version -Descending | Select-Object -First 1 -ExpandProperty Version\"",
+        },
+      ],
+      config: {
+        type: "local",
+        command: [
+          "pwsh",
+          "-NoLogo",
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          "$module = Get-Module -ListAvailable PowerShell.MCP | Sort-Object Version -Descending | Select-Object -First 1; if (-not $module) { throw 'PowerShell.MCP is not installed. Install-Module -Name PowerShell.MCP or Install-PSResource -Name PowerShell.MCP' }; Import-Module $module.Path -Force; & (Get-MCPProxyPath)",
+        ],
+        enabled: false,
+      },
+      setupInstructions: `
+1. Install PowerShell 7.4+ and ensure \`pwsh\` is on PATH.
+2. Install the module from PowerShell Gallery:
+   - Install-PSResource -Name PowerShell.MCP
+   - or Install-Module -Name PowerShell.MCP
+3. Verify the proxy resolves:
+   - pwsh -NoLogo -NoProfile -Command "Import-Module PowerShell.MCP; Get-MCPProxyPath"
+4. Use this for PowerShell/CLI automation in a shared console session.
+5. Use \`windows-mcp\` instead when you need Windows desktop/UI automation (mouse, keyboard, screenshots, UI tree).
+      `,
+      tags: ["powershell", "shell", "automation", "cli", "cross-platform", "windows", "linux", "macos"],
+      featured: false,
     },
     // AI/LLM Integration
     {

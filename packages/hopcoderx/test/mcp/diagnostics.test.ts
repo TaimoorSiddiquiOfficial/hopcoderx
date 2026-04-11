@@ -30,4 +30,54 @@ describe("summarizeMcpServers", () => {
       "Start Storybook with @storybook/addon-mcp and ensure http://127.0.0.1:6006/mcp is reachable.",
     )
   })
+
+  test("surfaces PowerShell.MCP runtime hints for missing pwsh and module installs", () => {
+    const summary = summarizeMcpServers({
+      configMcp: {
+        "powershell-mcp": {
+          type: "local",
+          command: [
+            "pwsh",
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "Import-Module PowerShell.MCP; & (Get-MCPProxyPath)",
+          ],
+          enabled: false,
+        },
+      },
+      statuses: {
+        "powershell-mcp": { status: "failed", error: "The term 'pwsh' is not recognized as a name of a cmdlet, function, script file, or executable program." },
+      },
+    })
+
+    expect(summary.servers.find((server) => server.name === "powershell-mcp")?.hint).toBe(
+      "Install PowerShell 7.4+ and ensure `pwsh` is on PATH.",
+    )
+
+    const moduleSummary = summarizeMcpServers({
+      configMcp: {
+        "powershell-mcp": {
+          type: "local",
+          command: [
+            "pwsh",
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "Import-Module PowerShell.MCP; & (Get-MCPProxyPath)",
+          ],
+          enabled: false,
+        },
+      },
+      statuses: {
+        "powershell-mcp": { status: "failed", error: "PowerShell.MCP is not installed. Install-Module -Name PowerShell.MCP or Install-PSResource -Name PowerShell.MCP" },
+      },
+    })
+
+    expect(moduleSummary.servers.find((server) => server.name === "powershell-mcp")?.hint).toBe(
+      "Install the PowerShell.MCP module with Install-PSResource -Name PowerShell.MCP or Install-Module -Name PowerShell.MCP.",
+    )
+  })
 })

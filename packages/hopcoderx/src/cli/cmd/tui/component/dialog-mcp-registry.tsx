@@ -47,7 +47,17 @@ function RequirementsList(props: { requirements: McpRegistry.Requirement[] }) {
           <box flexDirection="row" gap={1}>
             <text fg={theme.textMuted}>•</text>
             <text fg={theme.text}>
-              {req.type === "nodejs" ? "🟢 " : req.type === "python" ? "🐍 " : req.type === "app" ? "📱 " : req.type === "api-key" ? "🔑 " : ""}
+              {req.type === "nodejs"
+                ? "🟢 "
+                : req.type === "python"
+                  ? "🐍 "
+                  : req.type === "powershell"
+                    ? "💠 "
+                    : req.type === "app"
+                      ? "📱 "
+                      : req.type === "api-key"
+                        ? "🔑 "
+                        : ""}
               {req.description}
             </text>
           </box>

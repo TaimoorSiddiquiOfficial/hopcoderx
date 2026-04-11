@@ -176,6 +176,14 @@ function deriveMcpHint(params: {
 
   if (runtimeStatus.status === "failed") {
     const error = runtimeStatus.error.toLowerCase()
+    if (resolved.type === "local" && resolved.command[0] === "pwsh") {
+      if (error.includes("pwsh") && (error.includes("not recognized") || error.includes("not found") || error.includes("enoent"))) {
+        return "Install PowerShell 7.4+ and ensure `pwsh` is on PATH."
+      }
+      if (error.includes("powershell.mcp is not installed") || error.includes("get-mcpproxypath")) {
+        return "Install the PowerShell.MCP module with Install-PSResource -Name PowerShell.MCP or Install-Module -Name PowerShell.MCP."
+      }
+    }
     if (error.includes("npm error 404")) {
       return "Configured npm package was not found. Update this MCP entry to a published package or supported runtime."
     }
