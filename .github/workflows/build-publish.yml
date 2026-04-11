@@ -39,6 +39,7 @@ permissions:
 env:
   HOPCODERX_VERSION: ${{ inputs.version }}
   HOPCODERX_CHANNEL: ${{ inputs.channel || 'latest' }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   # ─── Validate inputs ───────────────────────────────────────────────
