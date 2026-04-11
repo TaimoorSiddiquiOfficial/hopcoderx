@@ -116,6 +116,7 @@ export const McpListCommand = cmd({
             statusIcon = "✗"
             statusText = "failed"
             hint = server.error ? "\n    " + server.error : ""
+            if (server.hint) hint += "\n    Hint: " + server.hint
           }
 
           const labels = [server.type]

@@ -8,6 +8,8 @@ import { Filesystem } from "../util/filesystem"
 import { Log } from "../util/log"
 import { MCP } from "../mcp"
 import { McpBuiltins } from "../mcp/builtins"
+import { McpRegistry } from "../mcp/registry"
+import { findMissingMcpEnvVars } from "../mcp/runtime-config"
 import path from "path"
 
 export type InstallationSummary = {
@@ -105,6 +107,7 @@ export type McpSummary = {
     connected: boolean
     auth?: MCP.AuthStatus
     error?: string
+    hint?: string
   }>
 }
 
@@ -142,6 +145,59 @@ function supportsMcpOAuth(entry: Config.Mcp | undefined) {
   return !!entry && entry.type === "remote" && entry.oauth !== false
 }
 
+function summarizeGuide(text?: string) {
+  const lines = text
+    ?.split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (!lines || lines.length === 0) return undefined
+  return lines.slice(0, 2).join(" ")
+}
+
+function deriveMcpHint(params: {
+  name: string
+  entry: McpEntry | undefined
+  builtin?: McpBuiltins.BuiltinEntry
+  runtimeStatus?: MCP.Status
+}) {
+  const { name, entry, builtin, runtimeStatus } = params
+  const resolved = isMcpConfigured(entry) ? entry : builtin?.config
+  const registryEntry = builtin ? undefined : McpRegistry.getByName(name)
+  const setupHint = summarizeGuide(builtin?.setupGuide ?? registryEntry?.setupInstructions)
+
+  if (!resolved) return setupHint
+
+  const missing = findMissingMcpEnvVars(resolved)
+  if (missing.length > 0) return `Missing env: ${missing.join(", ")}`
+
+  if (!runtimeStatus || runtimeStatus.status === "connected" || runtimeStatus.status === "disabled") {
+    return undefined
+  }
+
+  if (runtimeStatus.status === "failed") {
+    const error = runtimeStatus.error.toLowerCase()
+    if (error.includes("npm error 404")) {
+      return "Configured npm package was not found. Update this MCP entry to a published package or supported runtime."
+    }
+    if (error.includes("could not determine executable to run")) {
+      return "Configured npm package does not expose a CLI executable. Use the correct binary or a remote MCP endpoint."
+    }
+    if (error.includes("does not provide any executables")) {
+      return "Configured uvx package does not expose a runnable command. Verify the package name and launcher."
+    }
+    if ((name === "storybook" || name === "builtin:storybook") && resolved.type === "remote") {
+      return "Start Storybook with @storybook/addon-mcp and ensure http://127.0.0.1:6006/mcp is reachable."
+    }
+    if (error.includes("econnrefused") || error.includes("connection closed")) {
+      return setupHint ?? (resolved.type === "remote"
+        ? "Verify the MCP endpoint is running and reachable."
+        : "Verify the local MCP process prerequisites are installed and the target service is reachable.")
+    }
+  }
+
+  return setupHint
+}
+
 export function summarizeMcpServers(input: {
   configMcp?: NonNullable<Config.Info["mcp"]>
   statuses?: Record<string, MCP.Status>
@@ -172,6 +228,7 @@ export function summarizeMcpServers(input: {
         connected: status === "connected",
         auth: authByServer[name],
         error: runtimeStatus && "error" in runtimeStatus ? runtimeStatus.error : undefined,
+        hint: deriveMcpHint({ name, entry, builtin, runtimeStatus }),
       }
     })
     .sort((a, b) => a.name.localeCompare(b.name))

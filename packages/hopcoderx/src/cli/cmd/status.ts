@@ -141,6 +141,7 @@ export const StatusCommand = cmd({
               console.log(`  ${mcpBadge(server.status)}  ${bold(server.name)} ${dim(`(${tags.join(", ")})`)}`)
               if (server.detail) console.log(`     ${dim(server.detail)}`)
               if (server.error) console.log(`     ${dim(server.error)}`)
+              if (server.hint) console.log(`     ${yellow("Hint:")} ${dim(server.hint)}`)
             }
             console.log(
               `\n  Connected     ${runtime.mcp.connectedCount}/${runtime.mcp.count}${runtime.mcp.needsAuthCount > 0 ? `  ${yellow(`auth:${runtime.mcp.needsAuthCount}`)}` : ""}${runtime.mcp.failedCount > 0 ? `  ${red(`failed:${runtime.mcp.failedCount}`)}` : ""}`,

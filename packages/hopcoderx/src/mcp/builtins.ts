@@ -2,7 +2,7 @@
  * Built-in MCP server catalog.
  *
  * These servers are pre-configured and require no manual setup for zero-config
- * variants. They are installed on-demand via npx/uvx.
+ * variants. They are launched on-demand via local commands or preconfigured MCP endpoints.
  *
  * Launch modes:
  *   always     — started automatically when HopCoderX launches
@@ -197,9 +197,11 @@ The AI will only have read-only access to your database.`,
       requiresCredentials: false,
       config: {
         type: "local",
-        command: ["npx", "-y", "@modelcontextprotocol/server-sqlite", "--db-path", "./db.sqlite"],
+        command: ["uvx", "mcp-server-sqlite", "--db-path", "./db.sqlite"],
         enabled: false,
       },
+      setupGuide: `Requires Python + uv: pip install uv
+Update --db-path to point to your SQLite database file.`,
     },
     {
       id: "builtin:brave-search",
@@ -446,12 +448,12 @@ Auto-enabled when puppeteer/playwright deps are detected.`,
       ],
       requiresCredentials: false,
       config: {
-        type: "local",
-        command: ["npx", "-y", "@storybook/mcp"],
+        type: "remote",
+        url: "http://127.0.0.1:6006/mcp",
         enabled: false,
       },
-      setupGuide: `Start Storybook first (npm run storybook).
-Auto-enabled when Storybook is detected as a project dependency.`,
+      setupGuide: `Install @storybook/addon-mcp in your Storybook project and start Storybook.
+HopCoderX expects http://127.0.0.1:6006/mcp by default.`,
     },
     {
       id: "builtin:next-devtools",

@@ -207,6 +207,7 @@ async function checkMCP(): Promise<Check[]> {
         label: `MCP: ${server.name} (${server.type})`,
         status: "warn",
         detail: server.error ?? "Connection failed",
+        fix: server.hint,
       })
       continue
     }

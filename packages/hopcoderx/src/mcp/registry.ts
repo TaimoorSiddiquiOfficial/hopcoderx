@@ -369,10 +369,10 @@ export namespace McpRegistry {
       ],
       config: {
         type: "local",
-        command: ["npx", "-y", "@shopify/mcp-server"],
+        command: ["npx", "-y", "shopify-mcp"],
         environment: {
-          SHOPIFY_STORE_DOMAIN: "your-store.myshopify.com",
-          SHOPIFY_ACCESS_TOKEN: "your-access-token",
+          SHOPIFY_STORE_DOMAIN: "${env:SHOPIFY_STORE_DOMAIN}",
+          SHOPIFY_ACCESS_TOKEN: "${env:SHOPIFY_ACCESS_TOKEN}",
         },
         enabled: false,
       },
@@ -572,13 +572,17 @@ Slash commands (in Claude Code):
       platform: ["cross-platform"],
       repository: "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
       author: "Anthropic",
-      requirements: [{ type: "nodejs", description: "Node.js with npx" }],
+      requirements: [
+        { type: "python", description: "Python 3.x", verifyCommand: "python --version" },
+        { type: "binary", description: "uv package manager", installCommand: "pip install uv", verifyCommand: "uv --version" },
+      ],
       config: {
         type: "local",
-        command: ["npx", "-y", "@modelcontextprotocol/server-sqlite", "--db-path", "./db.sqlite"],
+        command: ["uvx", "mcp-server-sqlite", "--db-path", "./db.sqlite"],
         enabled: false,
       },
-      setupInstructions: `Update the --db-path argument to point to your SQLite database file.`,
+      setupInstructions: `Install uv with: pip install uv
+Then update the --db-path argument to point to your SQLite database file.`,
       tags: ["sqlite", "sql", "database", "local"],
       featured: false,
     },
@@ -871,15 +875,16 @@ Slash commands (in Claude Code):
       repository: "https://github.com/storybookjs/mcp",
       author: "Storybook",
       requirements: [
-        { type: "nodejs", description: "Node.js with npx" },
-        { type: "app", description: "Storybook running at localhost:6006 (or configured port)" },
+        { type: "nodejs", description: "A Storybook project" },
+        { type: "app", description: "Storybook running with @storybook/addon-mcp at http://127.0.0.1:6006/mcp" },
       ],
       config: {
-        type: "local",
-        command: ["npx", "-y", "@storybook/mcp"],
+        type: "remote",
+        url: "http://127.0.0.1:6006/mcp",
         enabled: false,
       },
-      setupInstructions: `Start Storybook first (npm run storybook), then enable this server to let AI browse your components.`,
+      setupInstructions: `Add @storybook/addon-mcp to your Storybook config, then start Storybook.
+HopCoderX connects to the addon endpoint at http://127.0.0.1:6006/mcp by default.`,
       tags: ["storybook", "components", "ui", "frontend", "react", "vue", "testing"],
       featured: true,
     },
