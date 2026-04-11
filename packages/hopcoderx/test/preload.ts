@@ -10,7 +10,18 @@ import { afterAll } from "bun:test"
 const dir = path.join(os.tmpdir(), "hopcoderx-test-data-" + process.pid)
 await fs.mkdir(dir, { recursive: true })
 afterAll(() => {
-  fsSync.rmSync(dir, { recursive: true, force: true })
+  try {
+    fsSync.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error.code === "EBUSY" || error.code === "EPERM" || error.code === "ENOTEMPTY")
+    ) {
+      return
+    }
+    throw error
+  }
 })
 
 process.env["XDG_DATA_HOME"] = path.join(dir, "share")

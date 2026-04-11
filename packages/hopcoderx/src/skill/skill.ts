@@ -16,13 +16,39 @@ import { Glob } from "../util/glob"
 
 export namespace Skill {
   const log = Log.create({ service: "skill" })
+  export const Source = z.object({
+    kind: z.enum([
+      "builtin",
+      "external-global",
+      "external-project",
+      "config-directory",
+      "config-path",
+      "remote-index",
+      "remote-github",
+    ]),
+    origin: z.string(),
+    root: z.string(),
+    precedence: z.number().int(),
+  })
+  export type Source = z.infer<typeof Source>
+
   export const Info = z.object({
     name: z.string(),
     description: z.string(),
     location: z.string(),
     content: z.string(),
+    source: Source,
   })
   export type Info = z.infer<typeof Info>
+
+  export const Conflict = z.object({
+    name: z.string(),
+    winnerLocation: z.string(),
+    winnerSource: Source,
+    overriddenLocation: z.string(),
+    overriddenSource: Source,
+  })
+  export type Conflict = z.infer<typeof Conflict>
 
   export const InvalidError = NamedError.create(
     "SkillInvalidError",
@@ -51,12 +77,23 @@ export namespace Skill {
 
   // Built-in skills bundled with HopCoderX (lowest priority — user skills override)
   const BUILTIN_DIR = path.join(import.meta.dir, "builtin")
+  const PRECEDENCE = {
+    builtin: 10,
+    "external-global": 20,
+    "external-project": 30,
+    "config-directory": 40,
+    "config-path": 50,
+    "remote-index": 60,
+    "remote-github": 60,
+  } as const
 
   export const state = Instance.state(async () => {
-    const skills: Record<string, Info> = {}
+    const skills: Record<string, Info & { order: number }> = {}
     const dirs = new Set<string>()
+    const conflicts: Conflict[] = []
+    let order = 0
 
-    const addSkill = async (match: string) => {
+    const addSkill = async (match: string, source: Source) => {
       const md = await ConfigMarkdown.parse(match).catch((err) => {
         const message = ConfigMarkdown.FrontmatterError.isInstance(err)
           ? err.data.message
@@ -71,22 +108,69 @@ export namespace Skill {
       const parsed = Info.pick({ name: true, description: true }).safeParse(md.data)
       if (!parsed.success) return
 
-      // Warn on duplicate skill names
-      if (skills[parsed.data.name]) {
-        log.warn("duplicate skill name", {
-          name: parsed.data.name,
-          existing: skills[parsed.data.name].location,
-          duplicate: match,
-        })
-      }
-
-      dirs.add(path.dirname(match))
-
-      skills[parsed.data.name] = {
+      const next = {
         name: parsed.data.name,
         description: parsed.data.description,
         location: match,
         content: md.content,
+        source,
+        order: order++,
+      }
+
+      const existing = skills[parsed.data.name]
+      if (existing) {
+        const shouldReplace =
+          source.precedence > existing.source.precedence ||
+          (source.precedence === existing.source.precedence && next.order > existing.order)
+
+        const winner = shouldReplace ? next : existing
+        const overridden = shouldReplace ? existing : next
+
+        conflicts.push({
+          name: parsed.data.name,
+          winnerLocation: winner.location,
+          winnerSource: winner.source,
+          overriddenLocation: overridden.location,
+          overriddenSource: overridden.source,
+        })
+
+        log.warn("duplicate skill name", {
+          name: parsed.data.name,
+          winner: winner.location,
+          overridden: overridden.location,
+        })
+
+        if (!shouldReplace) return
+      }
+
+      dirs.add(path.dirname(match))
+      skills[parsed.data.name] = next
+    }
+
+    const sourceFor = (kind: Source["kind"], origin: string, root: string): Source => ({
+      kind,
+      origin,
+      root,
+      precedence: PRECEDENCE[kind],
+    })
+
+    const scanPattern = async (
+      pattern: string,
+      cwd: string,
+      sourceKind: Source["kind"],
+      origin: string,
+      dot = true,
+      symlink = true,
+    ) => {
+      const matches = await Glob.scan(pattern, {
+        cwd,
+        absolute: true,
+        include: "file",
+        dot,
+        symlink,
+      })
+      for (const match of matches) {
+        await addSkill(match, sourceFor(sourceKind, origin, path.dirname(match)))
       }
     }
 
@@ -98,23 +182,24 @@ export namespace Skill {
         dot: true,
         symlink: true,
       })
-        .then((matches) => Promise.all(matches.map(addSkill)))
+        .then((matches) =>
+          Promise.all(
+            matches.map((match) =>
+              addSkill(
+                match,
+                sourceFor(scope === "global" ? "external-global" : "external-project", root, path.dirname(match)),
+              ),
+            ),
+          ),
+        )
         .catch((error) => {
           log.error(`failed to scan ${scope} skills`, { dir: root, error })
         })
     }
 
     // Load built-in skills first (lowest priority — all user/external skills override these)
-    if (await Filesystem.isDir(BUILTIN_DIR)) {
-      const builtinMatches = await Glob.scan(SKILL_PATTERN, {
-        cwd: BUILTIN_DIR,
-        absolute: true,
-        include: "file",
-        symlink: false,
-      }).catch(() => [] as string[])
-      for (const match of builtinMatches) {
-        await addSkill(match)
-      }
+    if (!Flag.HOPCODERX_DISABLE_BUILTIN_SKILLS && (await Filesystem.isDir(BUILTIN_DIR))) {
+      await scanPattern(SKILL_PATTERN, BUILTIN_DIR, "builtin", BUILTIN_DIR, false, false).catch(() => {})
     }
 
     // Scan external skill directories (.claude/skills/, .agents/skills/, etc.)
@@ -137,15 +222,7 @@ export namespace Skill {
 
     // Scan .hopcoderx/skill/ directories
     for (const dir of await Config.directories()) {
-      const matches = await Glob.scan(HOPCODERX_SKILL_PATTERN, {
-        cwd: dir,
-        absolute: true,
-        include: "file",
-        symlink: true,
-      })
-      for (const match of matches) {
-        await addSkill(match)
-      }
+      await scanPattern(HOPCODERX_SKILL_PATTERN, dir, "config-directory", dir)
     }
 
     // Scan additional skill paths from config
@@ -157,20 +234,13 @@ export namespace Skill {
         log.warn("skill path not found", { path: resolved })
         continue
       }
-      const matches = await Glob.scan(SKILL_PATTERN, {
-        cwd: resolved,
-        absolute: true,
-        include: "file",
-        symlink: true,
-      })
-      for (const match of matches) {
-        await addSkill(match)
-      }
+      await scanPattern(SKILL_PATTERN, resolved, "config-path", resolved)
     }
 
     // Download and load skills from URLs
     for (const url of config.skills?.urls ?? []) {
       const list = await Discovery.pull(url)
+      const sourceKind = Discovery.classify(url) === "github" ? "remote-github" : "remote-index"
       for (const dir of list) {
         dirs.add(dir)
         const matches = await Glob.scan(SKILL_PATTERN, {
@@ -180,14 +250,15 @@ export namespace Skill {
           symlink: true,
         })
         for (const match of matches) {
-          await addSkill(match)
+          await addSkill(match, sourceFor(sourceKind, url, dir))
         }
       }
     }
 
     return {
-      skills,
+      skills: Object.fromEntries(Object.entries(skills).map(([name, info]) => [name, Info.parse(info)])),
       dirs: Array.from(dirs),
+      conflicts,
     }
   })
 
@@ -201,5 +272,9 @@ export namespace Skill {
 
   export async function dirs() {
     return state().then((x) => x.dirs)
+  }
+
+  export async function conflicts() {
+    return state().then((x) => x.conflicts)
   }
 }

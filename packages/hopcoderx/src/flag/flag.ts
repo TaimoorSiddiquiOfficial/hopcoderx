@@ -23,6 +23,7 @@ export namespace Flag {
     HOPCODERX_DISABLE_CLAUDE_CODE || truthy("HOPCODERX_DISABLE_CLAUDE_CODE_PROMPT")
   export const HOPCODERX_DISABLE_CLAUDE_CODE_SKILLS =
     HOPCODERX_DISABLE_CLAUDE_CODE || truthy("HOPCODERX_DISABLE_CLAUDE_CODE_SKILLS")
+  export declare const HOPCODERX_DISABLE_BUILTIN_SKILLS: boolean
   export const HOPCODERX_DISABLE_EXTERNAL_SKILLS =
     HOPCODERX_DISABLE_CLAUDE_CODE_SKILLS || truthy("HOPCODERX_DISABLE_EXTERNAL_SKILLS")
   export declare const HOPCODERX_DISABLE_PROJECT_CONFIG: boolean
@@ -80,6 +81,14 @@ Object.defineProperty(Flag, "HOPCODERX_DISABLE_PROJECT_CONFIG", {
 Object.defineProperty(Flag, "HOPCODERX_CONFIG_DIR", {
   get() {
     return process.env["HOPCODERX_CONFIG_DIR"]
+  },
+  enumerable: true,
+  configurable: false,
+})
+
+Object.defineProperty(Flag, "HOPCODERX_DISABLE_BUILTIN_SKILLS", {
+  get() {
+    return truthy("HOPCODERX_DISABLE_BUILTIN_SKILLS")
   },
   enumerable: true,
   configurable: false,

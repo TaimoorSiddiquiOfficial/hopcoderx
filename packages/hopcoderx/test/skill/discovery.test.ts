@@ -77,7 +77,7 @@ describe("Discovery.pull", () => {
   test("downloads reference files alongside SKILL.md", async () => {
     const dirs = await Discovery.pull(CLOUDFLARE_SKILLS_URL)
     // find a skill dir that should have reference files (e.g. agents-sdk)
-    const agentsSdk = dirs.find((d) => d.endsWith("/agents-sdk"))
+    const agentsSdk = dirs.find((d) => d.endsWith(path.join("agents-sdk")))
     expect(agentsSdk).toBeDefined()
     if (agentsSdk) {
       const refs = path.join(agentsSdk, "references")
@@ -106,5 +106,79 @@ describe("Discovery.pull", () => {
 
     // second pull should NOT increment download count
     expect(downloadCount).toBe(firstCount)
+  })
+
+  test("downloads skills from github repo urls", async () => {
+    const originalFetch = globalThis.fetch
+    await rm(Discovery.dir(), { recursive: true, force: true })
+
+    let rawDownloads = 0
+    globalThis.fetch = Object.assign(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+
+        if (url === "https://api.github.com/repos/acme/skills-repo") {
+          return Response.json({ default_branch: "main" })
+        }
+
+        if (url === "https://api.github.com/repos/acme/skills-repo/git/trees/main?recursive=1") {
+          return Response.json({
+            tree: [
+              { path: "skills/use-redis/SKILL.md", type: "blob" },
+              { path: "skills/use-redis/references/setup.md", type: "blob" },
+              { path: "plugins/railway/skills/use-railway/SKILL.md", type: "blob" },
+              { path: "plugins/railway/skills/use-railway/references/deploy.md", type: "blob" },
+            ],
+          })
+        }
+
+        if (url === "https://raw.githubusercontent.com/acme/skills-repo/main/skills/use-redis/SKILL.md") {
+          rawDownloads++
+          return new Response(`---
+name: use-redis
+description: Redis skill.
+---
+
+# Redis
+`)
+        }
+
+        if (url === "https://raw.githubusercontent.com/acme/skills-repo/main/skills/use-redis/references/setup.md") {
+          rawDownloads++
+          return new Response("# Setup")
+        }
+
+        if (url === "https://raw.githubusercontent.com/acme/skills-repo/main/plugins/railway/skills/use-railway/SKILL.md") {
+          rawDownloads++
+          return new Response(`---
+name: use-railway
+description: Railway skill.
+---
+
+# Railway
+`)
+        }
+
+        if (url === "https://raw.githubusercontent.com/acme/skills-repo/main/plugins/railway/skills/use-railway/references/deploy.md") {
+          rawDownloads++
+          return new Response("# Deploy")
+        }
+
+        return originalFetch(input as any, init)
+      },
+      { preconnect: originalFetch.preconnect },
+    ) as typeof fetch
+
+    try {
+      const dirs = await Discovery.pull("https://github.com/acme/skills-repo")
+      expect(dirs.length).toBe(2)
+      expect(rawDownloads).toBe(4)
+
+      for (const dir of dirs) {
+        expect(await Filesystem.exists(path.join(dir, "SKILL.md"))).toBe(true)
+      }
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 })

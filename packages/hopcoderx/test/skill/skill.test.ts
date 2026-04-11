@@ -1,9 +1,20 @@
-import { test, expect } from "bun:test"
+import { test, expect, afterAll } from "bun:test"
 import { Skill } from "../../src/skill"
 import { Instance } from "../../src/project/instance"
 import { tmpdir } from "../fixture/fixture"
 import path from "path"
 import fs from "fs/promises"
+
+const originalDisableBuiltinSkills = process.env.HOPCODERX_DISABLE_BUILTIN_SKILLS
+process.env.HOPCODERX_DISABLE_BUILTIN_SKILLS = "1"
+
+afterAll(() => {
+  if (originalDisableBuiltinSkills === undefined) {
+    delete process.env.HOPCODERX_DISABLE_BUILTIN_SKILLS
+    return
+  }
+  process.env.HOPCODERX_DISABLE_BUILTIN_SKILLS = originalDisableBuiltinSkills
+})
 
 async function createGlobalSkill(homeDir: string) {
   const skillDir = path.join(homeDir, ".claude", "skills", "global-test-skill")
@@ -383,6 +394,52 @@ description: A skill in the .hopcoderx/skills directory.
     fn: async () => {
       const dirs = await Skill.dirs()
       expect(dirs.length).toBe(4)
+    },
+  })
+})
+
+test("tracks source precedence and duplicate conflicts", async () => {
+  await using tmp = await tmpdir({
+    git: true,
+    init: async (dir) => {
+      const externalDir = path.join(dir, ".claude", "skills", "shared-skill")
+      const hopcoderxDir = path.join(dir, ".hopcoderx", "skill", "shared-skill")
+      await Bun.write(
+        path.join(externalDir, "SKILL.md"),
+        `---
+name: shared-skill
+description: External version.
+---
+
+# Shared Skill
+`,
+      )
+      await Bun.write(
+        path.join(hopcoderxDir, "SKILL.md"),
+        `---
+name: shared-skill
+description: Project version.
+---
+
+# Shared Skill
+`,
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const skill = await Skill.get("shared-skill")
+      const conflicts = await Skill.conflicts()
+
+      expect(skill).toBeDefined()
+      expect(skill?.description).toBe("Project version.")
+      expect(skill?.source.kind).toBe("config-directory")
+      expect(conflicts).toHaveLength(1)
+      expect(conflicts[0].name).toBe("shared-skill")
+      expect(conflicts[0].winnerSource.kind).toBe("config-directory")
+      expect(conflicts[0].overriddenSource.kind).toBe("external-project")
     },
   })
 })

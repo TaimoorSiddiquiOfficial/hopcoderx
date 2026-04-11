@@ -9,8 +9,8 @@ export const SkillCommand = cmd({
   builder: (yargs) => yargs,
   async handler() {
     await bootstrap(process.cwd(), async () => {
-      const skills = await Skill.all()
-      process.stdout.write(JSON.stringify(skills, null, 2) + EOL)
+      const [skills, conflicts] = await Promise.all([Skill.all(), Skill.conflicts()])
+      process.stdout.write(JSON.stringify({ skills, conflicts }, null, 2) + EOL)
     })
   },
 })

@@ -680,7 +680,7 @@ export namespace Config {
     urls: z
       .array(z.string())
       .optional()
-      .describe("URLs to fetch skills from (e.g., https://example.com/.well-known/skills/)"),
+      .describe("Skill sources to fetch from, such as indexed feeds or GitHub skill repositories"),
   })
   export type Skills = z.infer<typeof Skills>
 
