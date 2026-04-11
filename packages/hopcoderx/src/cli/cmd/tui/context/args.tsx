@@ -1,13 +1,7 @@
 import { createSimpleContext } from "./helper"
+import type { TuiStartupArgs } from "@/cli/tui-startup"
 
-export interface Args {
-  model?: string
-  agent?: string
-  prompt?: string
-  continue?: boolean
-  sessionID?: string
-  fork?: boolean
-}
+export type Args = TuiStartupArgs
 
 export const { use: useArgs, provider: ArgsProvider } = createSimpleContext({
   name: "Args",

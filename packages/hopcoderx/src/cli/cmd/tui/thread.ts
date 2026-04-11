@@ -18,7 +18,7 @@ import {
   validateDirectorySelection,
   withDirectorySelectionOption,
 } from "@/cli/directory-selection"
-import { resolveStartupPrompt, withTuiStartupOptions } from "@/cli/tui-startup"
+import { buildTuiStartupArgs, resolveStartupPrompt, withTuiStartupOptions } from "@/cli/tui-startup"
 
 declare global {
   const HOPCODERX_WORKER_PATH: string
@@ -157,14 +157,7 @@ export const TuiThreadCommand = cmd({
         url,
         fetch: customFetch,
         events,
-        args: {
-          continue: args.continue,
-          sessionID: args.session,
-          agent: args.agent,
-          model: args.model,
-          prompt,
-          fork: args.fork,
-        },
+        args: buildTuiStartupArgs(args, prompt),
         onExit: async () => {
           await client.call("shutdown", undefined)
         },

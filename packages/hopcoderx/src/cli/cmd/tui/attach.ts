@@ -5,7 +5,7 @@ import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { validateSessionSelection, withSessionSelectionOptions } from "@/cli/session-selection"
 import { resolveDirectorySelection, withDirectorySelectionOption } from "@/cli/directory-selection"
 import { buildServerAuthHeaders } from "@/cli/server-auth"
-import { resolveStartupPrompt, withTuiStartupOptions } from "@/cli/tui-startup"
+import { buildTuiStartupArgs, resolveStartupPrompt, withTuiStartupOptions } from "@/cli/tui-startup"
 
 export const AttachCommand = cmd({
   command: "attach <url>",
@@ -48,14 +48,7 @@ export const AttachCommand = cmd({
       const prompt = await resolveStartupPrompt(args.prompt)
       await tui({
         url: args.url,
-        args: {
-          continue: args.continue,
-          sessionID: args.session,
-          agent: args.agent,
-          model: args.model,
-          prompt,
-          fork: args.fork,
-        },
+        args: buildTuiStartupArgs(args, prompt),
         directory,
         headers,
       })

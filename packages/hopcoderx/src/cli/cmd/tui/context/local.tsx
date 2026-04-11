@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store"
-import { batch, createEffect, createMemo } from "solid-js"
+import { batch, createEffect, createMemo, createSignal } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { useTheme } from "@tui/context/theme"
 import { uniqueBy } from "remeda"
@@ -151,6 +151,8 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         })
 
       const args = useArgs()
+      const [startupVariant, setStartupVariant] = createSignal<{ key: string; value: string } | undefined>()
+      let startupVariantApplied = false
       const fallbackModel = createMemo(() => {
         if (args.model) {
           const { providerID, modelID } = Provider.parseModel(args.model)
@@ -199,6 +201,29 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             fallbackModel,
           ) ?? undefined
         )
+      })
+
+      createEffect(() => {
+        if (startupVariantApplied || !args.variant) return
+        const model = currentModel()
+        if (!model) return
+
+        startupVariantApplied = true
+        const provider = sync.data.provider.find((x) => x.id === model.providerID)
+        const variants = provider?.models[model.modelID]?.variants
+        if (!variants || !(args.variant in variants)) {
+          toast.show({
+            message: `Variant ${args.variant} is not available for ${model.providerID}/${model.modelID}`,
+            variant: "warning",
+            duration: 3000,
+          })
+          return
+        }
+
+        setStartupVariant({
+          key: `${model.providerID}/${model.modelID}`,
+          value: args.variant,
+        })
       })
 
       return {
@@ -325,6 +350,8 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             const m = currentModel()
             if (!m) return undefined
             const key = `${m.providerID}/${m.modelID}`
+            const override = startupVariant()
+            if (override?.key === key) return override.value
             return modelStore.variant[key]
           },
           list() {
@@ -339,6 +366,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             const m = currentModel()
             if (!m) return
             const key = `${m.providerID}/${m.modelID}`
+            if (startupVariant()?.key === key) setStartupVariant(undefined)
             setModelStore("variant", key, value)
             save()
           },
