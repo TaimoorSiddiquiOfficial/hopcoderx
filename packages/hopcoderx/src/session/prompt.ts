@@ -803,7 +803,7 @@ export namespace SessionPrompt {
     )
     const result = await opts.execute()
     const attachments =
-      result?.attachments?.map((a) => ({
+      result?.attachments?.map((a: Omit<MessageV2.FilePart, "id" | "sessionID" | "messageID">) => ({
         ...a,
         id: Identifier.ascending("part"),
         sessionID: opts.sessionID,
@@ -830,40 +830,43 @@ export namespace SessionPrompt {
     using _ = log.time("resolveTools")
     const tools: Record<string, AITool> = {}
 
-    const context = (args: any, options: ToolCallOptions): Tool.Context => ({
-      sessionID: input.session.id,
-      abort: options.abortSignal!,
-      messageID: input.processor.message.id,
-      callID: options.toolCallId,
-      extra: { model: input.model, bypassAgentCheck: input.bypassAgentCheck },
-      agent: input.agent.name,
-      messages: input.messages,
-      metadata: async (val: { title?: string; metadata?: any }) => {
-        const match = input.processor.partFromToolCall(options.toolCallId)
-        if (match && match.state.status === "running") {
-          await Session.updatePart({
-            ...match,
-            state: {
-              title: val.title,
-              metadata: val.metadata,
-              status: "running",
-              input: args,
-              time: {
-                start: Date.now(),
+    const context = (args: any, options: ToolCallOptions): Tool.Context => {
+      const callID = options.toolCallId ?? Identifier.ascending("tool")
+      return {
+        sessionID: input.session.id,
+        abort: options.abortSignal!,
+        messageID: input.processor.message.id,
+        callID,
+        extra: { model: input.model, bypassAgentCheck: input.bypassAgentCheck },
+        agent: input.agent.name,
+        messages: input.messages,
+        metadata: async (val: { title?: string; metadata?: any }) => {
+          const match = input.processor.partFromToolCall(callID)
+          if (match && match.state.status === "running") {
+            await Session.updatePart({
+              ...match,
+              state: {
+                title: val.title,
+                metadata: val.metadata,
+                status: "running",
+                input: args,
+                time: {
+                  start: Date.now(),
+                },
               },
-            },
+            })
+          }
+        },
+        async ask(req) {
+          await PermissionNext.ask({
+            ...req,
+            sessionID: input.session.id,
+            tool: { messageID: input.processor.message.id, callID },
+            ruleset: PermissionNext.merge(input.agent.permission, input.session.permission ?? []),
           })
-        }
-      },
-      async ask(req) {
-        await PermissionNext.ask({
-          ...req,
-          sessionID: input.session.id,
-          tool: { messageID: input.processor.message.id, callID: options.toolCallId },
-          ruleset: PermissionNext.merge(input.agent.permission, input.session.permission ?? []),
-        })
-      },
-    })
+        },
+      }
+    }
 
     for (const item of await ToolRegistry.tools(
       { modelID: input.model.api.id, providerID: input.model.providerID },
@@ -880,7 +883,7 @@ export namespace SessionPrompt {
             toolId: item.id,
             args,
             sessionID: ctx.sessionID,
-            callID: ctx.callID,
+            callID: ctx.callID ?? Identifier.ascending("tool"),
             messageID: input.processor.message.id,
             execute: () => item.execute(args, ctx),
           })

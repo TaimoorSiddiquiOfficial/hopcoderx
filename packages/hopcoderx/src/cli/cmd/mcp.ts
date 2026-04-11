@@ -391,8 +391,8 @@ export const McpAddCommand = cmd({
 
         // Resolve config paths eagerly for hints
         const [projectConfigPath, globalConfigPath] = await Promise.all([
-          resolveConfigPath(Instance.worktree),
-          resolveConfigPath(Global.Path.config, true),
+          resolveMcpConfigPath(Instance.worktree),
+          resolveMcpConfigPath(Global.Path.config, { global: true }),
         ])
 
         // Determine scope
@@ -453,7 +453,7 @@ export const McpAddCommand = cmd({
             command: command.split(" "),
           }
 
-          await addMcpToConfig(name, mcpConfig, configPath)
+          await updateMcpConfigEntry(name, mcpConfig, configPath)
           prompts.log.success(`MCP server "${name}" added to ${configPath}`)
           prompts.outro("MCP server added successfully")
           return
@@ -531,7 +531,7 @@ export const McpAddCommand = cmd({
             }
           }
 
-          await addMcpToConfig(name, mcpConfig, configPath)
+          await updateMcpConfigEntry(name, mcpConfig, configPath)
           prompts.log.success(`MCP server "${name}" added to ${configPath}`)
         }
 
@@ -823,8 +823,8 @@ export const McpInstallCommand = cmd({
         try {
           // Resolve config paths
           const [projectConfigPath, globalConfigPath] = await Promise.all([
-            resolveConfigPath(Instance.worktree),
-            resolveConfigPath(Global.Path.config, true),
+            resolveMcpConfigPath(Instance.worktree),
+            resolveMcpConfigPath(Global.Path.config, { global: true }),
           ])
 
           // Default to project config
@@ -853,7 +853,7 @@ export const McpInstallCommand = cmd({
           const mcpConfig = McpRegistry.formatConfig(entry)
 
           // Add to config
-          await addMcpToConfig(entry.name, mcpConfig, configPath)
+          await updateMcpConfigEntry(entry.name, mcpConfig, configPath)
 
           spinner.stop(`✓ ${entry.name} installed successfully`)
 
@@ -1007,9 +1007,9 @@ export const McpSetupCommand = cmd({
             spinner.start(`Installing ${mcpName}...`)
 
             try {
-              const configPath = await resolveConfigPath(Instance.worktree)
+              const configPath = await resolveMcpConfigPath(Instance.worktree)
               const mcpConfig = McpRegistry.formatConfig(entry)
-              await addMcpToConfig(mcpName, mcpConfig, configPath)
+              await updateMcpConfigEntry(mcpName, mcpConfig, configPath)
               spinner.stop(`✓ ${mcpName} installed`)
             } catch (error) {
               spinner.stop(`✗ ${mcpName} failed`, 1)

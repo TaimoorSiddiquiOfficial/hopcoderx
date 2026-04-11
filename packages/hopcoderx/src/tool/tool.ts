@@ -25,6 +25,14 @@ export namespace Tool {
     metadata(input: { title?: string; metadata?: M }): void
     ask(input: Omit<PermissionNext.Request, "id" | "sessionID" | "tool">): Promise<void>
   }
+
+  export type Result<M extends Metadata = Metadata> = {
+    title: string
+    metadata: M
+    output: string
+    attachments?: Omit<MessageV2.FilePart, "id" | "sessionID" | "messageID">[]
+  }
+
   export interface Info<Parameters extends z.ZodType = z.ZodType, M extends Metadata = Metadata> {
     id: string
     /**
@@ -42,12 +50,7 @@ export namespace Tool {
       execute(
         args: z.infer<Parameters>,
         ctx: Context,
-      ): Promise<{
-        title: string
-        metadata: M
-        output: string
-        attachments?: Omit<MessageV2.FilePart, "id" | "sessionID" | "messageID">[]
-      }>
+      ): Promise<Result<M>>
       formatValidationError?(error: z.ZodError): string
     }>
   }
@@ -55,11 +58,11 @@ export namespace Tool {
   export type InferParameters<T extends Info> = T extends Info<infer P> ? z.infer<P> : never
   export type InferMetadata<T extends Info> = T extends Info<any, infer M> ? M : never
 
-  export function define<Parameters extends z.ZodType, Result extends Metadata>(
+  export function define<Parameters extends z.ZodType, ResultMetadata extends Metadata>(
     id: string,
-    init: Info<Parameters, Result>["init"] | Awaited<ReturnType<Info<Parameters, Result>["init"]>>,
+    init: Info<Parameters, ResultMetadata>["init"] | Awaited<ReturnType<Info<Parameters, ResultMetadata>["init"]>>,
     options?: { capabilities?: Info["capabilities"] },
-  ): Info<Parameters, Result> {
+  ): Info<Parameters, ResultMetadata> {
     return {
       id,
       capabilities: options?.capabilities,

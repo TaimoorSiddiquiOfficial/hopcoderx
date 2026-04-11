@@ -31,6 +31,7 @@
     "solid-js": "catalog:",
     "solid-list": "0.3.0",
     "solid-stripe": "0.8.1",
+    "vinxi": "0.5.11",
     "vite": "catalog:",
     "zod": "catalog:"
   },

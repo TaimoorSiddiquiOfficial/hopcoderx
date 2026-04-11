@@ -1,6 +1,6 @@
 import { action } from "@solidjs/router"
 import { getRequestEvent } from "solid-js/web"
-import { useAuthSession } from "~/context/auth"
+import { type AuthSession, useAuthSession } from "~/context/auth"
 import { Dropdown } from "~/component/dropdown"
 import { useI18n } from "~/context/i18n"
 import { useLanguage } from "~/context/language"
@@ -12,7 +12,7 @@ const logout = action(async () => {
   const event = getRequestEvent()
   const current = auth.data.current
   if (current)
-    await auth.update((val) => {
+    await auth.update((val: AuthSession) => {
       delete val.account?.[current]
       const first = Object.keys(val.account ?? {})[0]
       val.current = first

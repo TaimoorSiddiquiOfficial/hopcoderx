@@ -5,13 +5,12 @@ import { redirect } from "@solidjs/router"
 import { Actor } from "@hopcoderx/console-core/actor.js"
 
 import { createClient } from "@openauthjs/openauth/client"
+import { useSession } from "vinxi/http"
 
 export const AuthClient = createClient({
   clientID: "app",
   issuer: import.meta.env.VITE_AUTH_URL,
 })
-
-import { useSession } from "@solidjs/start/http"
 import { Resource } from "@hopcoderx/console-resource"
 
 export interface AuthSession {
@@ -45,7 +44,7 @@ export const getActor = async (workspace?: string): Promise<Actor.Info> => {
   evt.locals.actor = (async () => {
     const auth = await useAuthSession()
     if (!workspace) {
-      const account = auth.data.account ?? {}
+      const account: NonNullable<AuthSession["account"]> = auth.data.account ?? {}
       const current = account[auth.data.current ?? ""]
       if (current) {
         return {
@@ -58,7 +57,7 @@ export const getActor = async (workspace?: string): Promise<Actor.Info> => {
       }
       if (Object.keys(account).length > 0) {
         const current = Object.values(account)[0]
-        await auth.update((val) => ({
+        await auth.update((val: AuthSession) => ({
           ...val,
           current: current.id,
         }))

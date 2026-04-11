@@ -97,10 +97,9 @@ export const CanvasTool = Tool.define<typeof parameters, Meta>("canvas", {
             attachments: [
               {
                 type: "file" as const,
-                name: `canvas-snapshot.${snap.format}`,
-                mediaType: snap.mimeType,
-                content: snap.base64,
-                encoding: "base64" as const,
+                filename: `canvas-snapshot.${snap.format}`,
+                mime: snap.mimeType,
+                url: `data:${snap.mimeType};base64,${snap.base64}`,
               },
             ],
           }

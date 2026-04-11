@@ -1,7 +1,7 @@
 import { redirect } from "@solidjs/router"
 import type { APIEvent } from "@solidjs/start/server"
 import { AuthClient } from "~/context/auth"
-import { useAuthSession } from "~/context/auth"
+import { type AuthSession, useAuthSession } from "~/context/auth"
 import { localeFromRequest, route } from "~/lib/language"
 
 export async function GET(input: APIEvent) {
@@ -17,7 +17,7 @@ export async function GET(input: APIEvent) {
     if (decoded.err) throw new Error(decoded.err.message)
     const session = await useAuthSession()
     const id = decoded.subject.properties.accountID
-    await session.update((value) => {
+    await session.update((value: AuthSession) => {
       return {
         ...value,
         account: {

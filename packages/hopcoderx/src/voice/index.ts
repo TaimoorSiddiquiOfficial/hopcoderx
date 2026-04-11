@@ -81,7 +81,13 @@ export async function transcribe(
   if (opts.language) params.set("language", opts.language)
   if (opts.timestamps) params.set("timestamps", "true")
 
-  const body = audio instanceof Buffer ? audio : Buffer.from(audio)
+  const bytes =
+    audio instanceof ArrayBuffer
+      ? new Uint8Array(audio)
+      : new Uint8Array(audio.buffer, audio.byteOffset, audio.byteLength)
+  const bodyBuffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(bodyBuffer).set(bytes)
+  const body = new Blob([bodyBuffer], { type: "audio/*" })
 
   const res = await fetch(`${DEEPGRAM_API}/listen?${params}`, {
     method: "POST",

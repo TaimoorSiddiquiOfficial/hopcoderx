@@ -1,12 +1,12 @@
 import { redirect } from "@solidjs/router"
-import { APIEvent } from "@solidjs/start"
-import { useAuthSession } from "~/context/auth"
+import type { APIEvent } from "@solidjs/start/server"
+import { type AuthSession, useAuthSession } from "~/context/auth"
 
 export async function GET(event: APIEvent) {
   const auth = await useAuthSession()
   const current = auth.data.current
   if (current)
-    await auth.update((val) => {
+    await auth.update((val: AuthSession) => {
       delete val.account?.[current]
       const first = Object.keys(val.account ?? {})[0]
       val.current = first
