@@ -1470,10 +1470,22 @@ export namespace Config {
   }
 
   export async function update(config: Info) {
-    const filepath = path.join(Instance.directory, "config.json")
-    const existing = await loadFile(filepath)
-    await Filesystem.writeJson(filepath, mergeDeep(existing, config))
+    const filepath = await projectConfigFile()
+    await writeConfigUpdate(filepath, config)
     await Instance.dispose()
+  }
+
+  export async function projectConfigFile() {
+    for (const candidate of [
+      path.join(Instance.directory, ".hopcoderx", "hopcoderx.jsonc"),
+      path.join(Instance.directory, ".hopcoderx", "hopcoderx.json"),
+      path.join(Instance.directory, "hopcoderx.jsonc"),
+      path.join(Instance.directory, "hopcoderx.json"),
+    ]) {
+      if (await Filesystem.exists(candidate)) return candidate
+    }
+
+    return path.join(Instance.directory, "hopcoderx.json")
   }
 
   function globalConfigFile() {
@@ -1541,26 +1553,29 @@ export namespace Config {
     })
   }
 
-  export async function updateGlobal(config: Info) {
-    const filepath = globalConfigFile()
+  async function writeConfigUpdate(filepath: string, config: Info) {
     const before = await Filesystem.readText(filepath).catch((err: any) => {
       if (err.code === "ENOENT") return "{}"
       throw new JsonError({ path: filepath }, { cause: err })
     })
+    const source = before.trim() || "{}"
 
-    const next = await (async () => {
-      if (!filepath.endsWith(".jsonc")) {
-        const existing = parseConfig(before, filepath)
-        const merged = mergeDeep(existing, config)
-        await Filesystem.writeJson(filepath, merged)
-        return merged
-      }
-
-      const updated = patchJsonc(before, config)
-      const merged = parseConfig(updated, filepath)
-      await Filesystem.write(filepath, updated)
+    if (!filepath.endsWith(".jsonc")) {
+      const existing = parseConfig(source, filepath)
+      const merged = mergeDeep(existing, config)
+      await Filesystem.writeJson(filepath, merged)
       return merged
-    })()
+    }
+
+    const updated = patchJsonc(source, config)
+    const merged = parseConfig(updated, filepath)
+    await Filesystem.write(filepath, updated)
+    return merged
+  }
+
+  export async function updateGlobal(config: Info) {
+    const filepath = globalConfigFile()
+    const next = await writeConfigUpdate(filepath, config)
 
     global.reset()
 

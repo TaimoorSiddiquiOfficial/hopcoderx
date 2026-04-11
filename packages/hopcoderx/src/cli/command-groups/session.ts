@@ -4,10 +4,9 @@ import { TuiThreadCommand } from "../cmd/tui/thread"
 import { AcpCommand } from "../cmd/acp"
 import { SessionCommand } from "../cmd/session"
 import { ReplayCommand } from "../cmd/replay"
+import { sessionTaxonomy } from "../command-taxonomy"
 
 export const sessionCommandGroup = {
-  name: "session",
-  title: "Session & TUI",
-  summary: ["[project]", "attach", "run", "session", "replay", "acp"],
+  ...sessionTaxonomy,
   commands: [AcpCommand, TuiThreadCommand, AttachCommand, RunCommand, SessionCommand, ReplayCommand],
 }

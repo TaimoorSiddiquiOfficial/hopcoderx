@@ -13,8 +13,7 @@ import { MCP } from "../mcp"
 import { Config } from "../config/config"
 import { McpBuiltins } from "../mcp/builtins"
 import { Global } from "../global"
-import { Filesystem } from "../util/filesystem"
-import path from "path"
+import { buildDisabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../mcp/config-file"
 
 export const McpControlTool = Tool.define("mcp_control", {
   description:
@@ -119,7 +118,8 @@ export const McpControlTool = Tool.define("mcp_control", {
 
       const mcpConfig = McpBuiltins.toMcpConfig(builtin, true)
       await MCP.add(id, mcpConfig)
-      await persistMcpConfig(id, mcpConfig)
+      const configPath = await resolveMcpConfigPath(Global.Path.config, { global: true })
+      await updateMcpConfigEntry(id, mcpConfig, configPath)
 
       return {
         title: `mcp_control — enable`,
@@ -130,7 +130,9 @@ export const McpControlTool = Tool.define("mcp_control", {
 
     if (params.action === "disable") {
       await MCP.disconnect(id)
-      await persistMcpConfig(id, undefined)
+      const config = await Config.get()
+      const configPath = await resolveMcpConfigPath(Global.Path.config, { global: true })
+      await updateMcpConfigEntry(id, buildDisabledMcpEntry(id, config.mcp), configPath)
 
       return {
         title: `mcp_control — disable`,
@@ -142,28 +144,4 @@ export const McpControlTool = Tool.define("mcp_control", {
     return { title: "mcp_control", output: "Unknown action.", metadata: {} as Meta }
   },
 })
-
-/** Persist enabled/disabled state back to the global config file. */
-async function persistMcpConfig(id: string, mcpConfig: Config.Mcp | undefined) {
-  try {
-    const configPath = path.join(Global.Path.config, "hopcoderx.json")
-    let existing: Record<string, unknown> = {}
-    try {
-      const raw = await Filesystem.readText(configPath)
-      if (raw) existing = JSON.parse(raw) as Record<string, unknown>
-    } catch {}
-
-    const mcp = (existing.mcp ?? {}) as Record<string, unknown>
-    if (mcpConfig === undefined) {
-      delete mcp[id]
-    } else {
-      mcp[id] = mcpConfig
-    }
-    existing.mcp = mcp
-
-    await Filesystem.writeJson(configPath, existing)
-  } catch {
-    // Non-fatal — in-memory state is already updated
-  }
-}
 

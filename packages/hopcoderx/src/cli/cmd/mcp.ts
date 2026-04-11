@@ -17,6 +17,8 @@ import { Filesystem } from "../../util/filesystem"
 import { Bus } from "../../bus"
 import { McpRegistry } from "../../mcp/registry"
 import { McpBuiltins } from "../../mcp/builtins"
+import { getMcpSummary } from "../diagnostics"
+import { buildDisabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -66,6 +68,7 @@ export const McpCommand = cmd({
       .command(McpInstallCommand)
       .command(McpRemoveCommand)
       .command(McpSetupCommand)
+      .command(McpBuiltinsCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -81,57 +84,45 @@ export const McpListCommand = cmd({
         UI.empty()
         prompts.intro("MCP Servers")
 
-        const config = await Config.get()
-        const mcpServers = config.mcp ?? {}
-        const statuses = await MCP.status()
-
-        const servers = Object.entries(mcpServers).filter((entry): entry is [string, McpConfigured] =>
-          isMcpConfigured(entry[1]),
-        )
+        const summary = await getMcpSummary()
+        const servers = summary.servers
 
         if (servers.length === 0) {
-          prompts.log.warn("No MCP servers configured")
-          prompts.outro("Add servers with: HopCoderX mcp add")
+          prompts.log.warn("No MCP servers configured or active")
+          prompts.outro("Add servers with: HopCoderX mcp add, HopCoderX mcp install, or HopCoderX mcp builtins")
           return
         }
 
-        for (const [name, serverConfig] of servers) {
-          const status = statuses[name]
-          const hasOAuth = isMcpRemote(serverConfig) && !!serverConfig.oauth
-          const hasStoredTokens = await MCP.hasStoredTokens(name)
-
+        for (const server of servers) {
           let statusIcon: string
           let statusText: string
           let hint = ""
 
-          if (!status) {
-            statusIcon = "○"
-            statusText = "not initialized"
-          } else if (status.status === "connected") {
+          if (server.status === "connected") {
             statusIcon = "✓"
             statusText = "connected"
-            if (hasOAuth && hasStoredTokens) {
-              hint = " (OAuth)"
-            }
-          } else if (status.status === "disabled") {
+            if (server.auth === "authenticated") hint = " (OAuth)"
+          } else if (server.status === "disabled") {
             statusIcon = "○"
             statusText = "disabled"
-          } else if (status.status === "needs_auth") {
+          } else if (server.status === "needs_auth") {
             statusIcon = "⚠"
             statusText = "needs authentication"
-          } else if (status.status === "needs_client_registration") {
+          } else if (server.status === "needs_client_registration") {
             statusIcon = "✗"
             statusText = "needs client registration"
-            hint = "\n    " + status.error
+            hint = "\n    " + (server.error ?? "Client registration required")
           } else {
             statusIcon = "✗"
             statusText = "failed"
-            hint = "\n    " + status.error
+            hint = server.error ? "\n    " + server.error : ""
           }
 
-          const typeHint = serverConfig.type === "remote" ? serverConfig.url : serverConfig.command.join(" ")
+          const labels = [server.type]
+          if (server.builtin) labels.push(server.launchMode ? `builtin/${server.launchMode}` : "builtin")
+          const typeHint = server.detail ?? labels.join(", ")
           prompts.log.info(
-            `${statusIcon} ${name} ${UI.Style.TEXT_DIM}${statusText}${hint}\n    ${UI.Style.TEXT_DIM}${typeHint}`,
+            `${statusIcon} ${server.name} ${UI.Style.TEXT_DIM}${statusText}${hint}\n    ${UI.Style.TEXT_DIM}${typeHint}`,
           )
         }
 
@@ -385,41 +376,6 @@ export const McpLogoutCommand = cmd({
     })
   },
 })
-
-async function resolveConfigPath(baseDir: string, global = false) {
-  // Check for existing config files (prefer .jsonc over .json, check .hopcoderx/ subdirectory too)
-  const candidates = [path.join(baseDir, "hopcoderx.json"), path.join(baseDir, "hopcoderx.jsonc")]
-
-  if (!global) {
-    candidates.push(path.join(baseDir, ".hopcoderx", "hopcoderx.json"), path.join(baseDir, ".hopcoderx", "hopcoderx.jsonc"))
-  }
-
-  for (const candidate of candidates) {
-    if (await Filesystem.exists(candidate)) {
-      return candidate
-    }
-  }
-
-  // Default to hopcoderx.json if none exist
-  return candidates[0]
-}
-
-async function addMcpToConfig(name: string, mcpConfig: Config.Mcp, configPath: string) {
-  let text = "{}"
-  if (await Filesystem.exists(configPath)) {
-    text = await Filesystem.readText(configPath)
-  }
-
-  // Use jsonc-parser to modify while preserving comments
-  const edits = modify(text, ["mcp", name], mcpConfig, {
-    formattingOptions: { tabSize: 2, insertSpaces: true },
-  })
-  const result = applyEdits(text, edits)
-
-  await Filesystem.write(configPath, result)
-
-  return configPath
-}
 
 export const McpAddCommand = cmd({
   command: "add",
@@ -1118,6 +1074,8 @@ export const McpBuiltinsCommand = cmd({
           }
           const mcpConfig = McpBuiltins.toMcpConfig(entry, true)
           await MCP.add(id, mcpConfig)
+          const configPath = await resolveMcpConfigPath(Global.Path.config, { global: true })
+          await updateMcpConfigEntry(id, mcpConfig, configPath)
           prompts.log.success(`Enabled ${entry.icon} ${entry.name}`)
           prompts.outro("Done")
           return
@@ -1126,6 +1084,9 @@ export const McpBuiltinsCommand = cmd({
         if (args.disable) {
           const id = args.disable.startsWith("builtin:") ? args.disable : `builtin:${args.disable}`
           await MCP.disconnect(id)
+          const config = await Config.get()
+          const configPath = await resolveMcpConfigPath(Global.Path.config, { global: true })
+          await updateMcpConfigEntry(id, buildDisabledMcpEntry(id, config.mcp), configPath)
           prompts.log.success(`Disabled ${id}`)
           prompts.outro("Done")
           return

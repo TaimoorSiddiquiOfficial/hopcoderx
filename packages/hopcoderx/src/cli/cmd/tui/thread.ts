@@ -12,6 +12,13 @@ import { Filesystem } from "@/util/filesystem"
 import type { Event } from "@hopcoderx/sdk/v2"
 import type { EventSource } from "./context/sdk"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
+import { validateSessionSelection, withSessionSelectionOptions } from "@/cli/session-selection"
+import {
+  resolveDirectorySelection,
+  validateDirectorySelection,
+  withDirectorySelectionOption,
+} from "@/cli/directory-selection"
+import { resolveStartupPrompt, withTuiStartupOptions } from "@/cli/tui-startup"
 
 declare global {
   const HOPCODERX_WORKER_PATH: string
@@ -47,38 +54,16 @@ export const TuiThreadCommand = cmd({
   command: "$0 [project]",
   describe: "start HopCoderX tui",
   builder: (yargs) =>
-    withNetworkOptions(yargs)
-      .positional("project", {
-        type: "string",
-        describe: "path to start HopCoderX in",
-      })
-      .option("model", {
-        type: "string",
-        alias: ["m"],
-        describe: "model to use in the format of provider/model",
-      })
-      .option("continue", {
-        alias: ["c"],
-        describe: "continue the last session",
-        type: "boolean",
-      })
-      .option("session", {
-        alias: ["s"],
-        type: "string",
-        describe: "session id to continue",
-      })
-      .option("fork", {
-        type: "boolean",
-        describe: "fork the session when continuing (use with --continue or --session)",
-      })
-      .option("prompt", {
-        type: "string",
-        describe: "prompt to use",
-      })
-      .option("agent", {
-        type: "string",
-        describe: "agent to use",
-      }),
+    withSessionSelectionOptions(
+      withDirectorySelectionOption(
+        withTuiStartupOptions(withNetworkOptions(yargs))
+          .positional("project", {
+            type: "string",
+            describe: "path to start HopCoderX in",
+          }),
+        "directory to start HopCoderX in",
+      ),
+    ),
   handler: async (args) => {
     // Keep ENABLE_PROCESSED_INPUT cleared even if other code flips it.
     // (Important when running under `bun run` wrappers on Windows.)
@@ -88,15 +73,32 @@ export const TuiThreadCommand = cmd({
       // spawn or async work so the OS cannot kill the process group.
       win32DisableProcessedInput()
 
-      if (args.fork && !args.continue && !args.session) {
-        UI.error("--fork requires --continue or --session")
+      const sessionSelectionError = validateSessionSelection(args)
+      if (sessionSelectionError) {
+        UI.error(sessionSelectionError)
         process.exitCode = 1
         return
       }
 
-      // Resolve relative paths against PWD to preserve behavior when using --cwd flag
-      const baseCwd = process.env.PWD ?? process.cwd()
-      const cwd = args.project ? path.resolve(baseCwd, args.project) : process.cwd()
+      const directorySelectionError = validateDirectorySelection(args)
+      if (directorySelectionError) {
+        UI.error(directorySelectionError)
+        process.exitCode = 1
+        return
+      }
+
+      const cwd = (() => {
+        try {
+          return resolveDirectorySelection(args, { defaultToCwd: true })
+        } catch (error) {
+          UI.error(error instanceof Error ? error.message : String(error))
+          return
+        }
+      })()
+      if (!cwd) {
+        process.exitCode = 1
+        return
+      }
       const localWorker = new URL("./worker.ts", import.meta.url)
       const distWorker = new URL("./cli/cmd/tui/worker.js", import.meta.url)
       const workerPath = await iife(async () => {
@@ -104,12 +106,6 @@ export const TuiThreadCommand = cmd({
         if (await Filesystem.exists(fileURLToPath(distWorker))) return distWorker
         return localWorker
       })
-      try {
-        process.chdir(cwd)
-      } catch (e) {
-        UI.error("Failed to change directory to " + cwd)
-        return
-      }
 
       const worker = new Worker(workerPath, {
         env: Object.fromEntries(
@@ -130,11 +126,7 @@ export const TuiThreadCommand = cmd({
         await client.call("reload", undefined)
       })
 
-      const prompt = await iife(async () => {
-        const piped = !process.stdin.isTTY ? await Bun.stdin.text() : undefined
-        if (!args.prompt) return piped
-        return piped ? piped + "\n" + args.prompt : args.prompt
-      })
+      const prompt = await resolveStartupPrompt(args.prompt)
 
       // Check if server should be started (port or hostname explicitly set in CLI or config)
       const networkOpts = await resolveNetworkOptions(args)

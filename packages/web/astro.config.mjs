@@ -314,7 +314,7 @@ function configSchema() {
     hooks: {
       "astro:build:done": async () => {
         console.log("generating config schema")
-        spawnSync("../hopcoderx/script/schema.ts", ["./dist/config.json"])
+        spawnSync("../hopcoderx/script/schema-assets.ts", ["./dist"])
       },
     },
   }

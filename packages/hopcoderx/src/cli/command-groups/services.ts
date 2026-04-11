@@ -5,10 +5,9 @@ import { CronCommand } from "../cmd/cron"
 import { WebhooksCommand } from "../cmd/webhooks"
 import { HooksCommand } from "../cmd/hooks"
 import { ChannelsCommand } from "../cmd/channels"
+import { servicesTaxonomy } from "../command-taxonomy"
 
 export const servicesCommandGroup = {
-  name: "services",
-  title: "Services & daemons",
-  summary: ["serve", "daemon", "web", "channels", "hooks", "webhooks", "cron"],
+  ...servicesTaxonomy,
   commands: [ServeCommand, DaemonCommand, WebCommand, ChannelsCommand, HooksCommand, WebhooksCommand, CronCommand],
 }

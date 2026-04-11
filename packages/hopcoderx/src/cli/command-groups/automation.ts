@@ -15,28 +15,10 @@ import { CostCommand } from "../cmd/cost"
 import { SbomCommand } from "../cmd/sbom"
 import { DiffCommand } from "../cmd/diff"
 import { PermissionCommand } from "../cmd/permission"
+import { automationTaxonomy } from "../command-taxonomy"
 
 export const automationCommandGroup = {
-  name: "automation",
-  title: "Automation & workflows",
-  summary: [
-    "generate",
-    "agent",
-    "export",
-    "import",
-    "secrets",
-    "security",
-    "analytics",
-    "memory",
-    "sandbox",
-    "taskflow",
-    "worktree",
-    "prompts",
-    "cost",
-    "sbom",
-    "diff",
-    "permission",
-  ],
+  ...automationTaxonomy,
   commands: [
     GenerateCommand,
     AgentCommand,

@@ -46,9 +46,11 @@
         "info": { "$ref": "#/definitions/colorValue" },
         "text": { "$ref": "#/definitions/colorValue" },
         "textMuted": { "$ref": "#/definitions/colorValue" },
+        "selectedListItemText": { "$ref": "#/definitions/colorValue" },
         "background": { "$ref": "#/definitions/colorValue" },
         "backgroundPanel": { "$ref": "#/definitions/colorValue" },
         "backgroundElement": { "$ref": "#/definitions/colorValue" },
+        "backgroundMenu": { "$ref": "#/definitions/colorValue" },
         "border": { "$ref": "#/definitions/colorValue" },
         "borderActive": { "$ref": "#/definitions/colorValue" },
         "borderSubtle": { "$ref": "#/definitions/colorValue" },
@@ -86,7 +88,13 @@
         "syntaxNumber": { "$ref": "#/definitions/colorValue" },
         "syntaxType": { "$ref": "#/definitions/colorValue" },
         "syntaxOperator": { "$ref": "#/definitions/colorValue" },
-        "syntaxPunctuation": { "$ref": "#/definitions/colorValue" }
+        "syntaxPunctuation": { "$ref": "#/definitions/colorValue" },
+        "thinkingOpacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Opacity used for thinking/status UI overlays"
+        }
       },
       "required": ["primary", "secondary", "accent", "text", "textMuted", "background"],
       "additionalProperties": false

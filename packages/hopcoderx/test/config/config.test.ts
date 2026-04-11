@@ -561,7 +561,7 @@ Nested command template`,
   })
 })
 
-test("updates config and writes to file", async () => {
+test("updates config and writes to the project config file", async () => {
   await using tmp = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
@@ -569,8 +569,30 @@ test("updates config and writes to file", async () => {
       const newConfig = { model: "updated/model" }
       await Config.update(newConfig as any)
 
-      const writtenConfig = await Filesystem.readJson(path.join(tmp.path, "config.json"))
+      const writtenConfig = await Filesystem.readJson(path.join(tmp.path, "hopcoderx.json"))
       expect(writtenConfig.model).toBe("updated/model")
+    },
+  })
+})
+
+test("updates existing project jsonc config without dropping comments", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Filesystem.write(
+        path.join(dir, "hopcoderx.jsonc"),
+        '{\n  // keep this comment\n  "$schema": "https://hopcoder.dev/config.json"\n}\n',
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      await Config.update({ model: "updated/model" } as any)
+
+      const writtenConfig = await Filesystem.readText(path.join(tmp.path, "hopcoderx.jsonc"))
+      expect(writtenConfig).toContain("// keep this comment")
+      expect(writtenConfig).toContain('"model": "updated/model"')
     },
   })
 })

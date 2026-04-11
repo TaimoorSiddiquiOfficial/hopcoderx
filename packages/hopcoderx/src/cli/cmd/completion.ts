@@ -13,14 +13,7 @@ import { writeFile, readFile, mkdir } from "fs/promises"
 import { existsSync } from "fs"
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
-
-const ALL_COMMANDS = [
-  "run", "generate", "auth", "agent", "upgrade", "uninstall", "models", "serve",
-  "debug", "stats", "mcp", "github", "export", "import", "session", "pr", "db",
-  "doctor", "onboard", "status", "secrets", "security", "replay", "analytics",
-  "memory", "sandbox", "accessibility", "a11y", "daemon", "cron", "webhooks",
-  "hooks", "completion", "channels",
-]
+import { TopLevelCompletionCommands } from "../command-taxonomy"
 
 const BASH_COMPLETION = `# hopcoderx bash completion
 _hopcoderx_completions() {
@@ -29,7 +22,7 @@ _hopcoderx_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   if [[ \${COMP_CWORD} -eq 1 ]]; then
-    COMPREPLY=( $(compgen -W "${ALL_COMMANDS.join(" ")}" -- "\${cur}") )
+    COMPREPLY=( $(compgen -W "${TopLevelCompletionCommands.join(" ")}" -- "\${cur}") )
     return 0
   fi
 
@@ -62,7 +55,7 @@ _hopcoderx() {
 
   case \$state in
     command)
-      local commands=(${ALL_COMMANDS.map((c) => `'${c}'`).join(" ")})
+      local commands=(${TopLevelCompletionCommands.map((c) => `'${c}'`).join(" ")})
       _describe 'commands' commands ;;
     args)
       case \$words[2] in
@@ -82,7 +75,7 @@ _hopcoderx
 `
 
 const FISH_COMPLETION = `# hopcoderx fish completion
-set -l commands ${ALL_COMMANDS.join(" ")}
+set -l commands ${TopLevelCompletionCommands.join(" ")}
 
 # Top-level commands
 complete -c hopcoderx -f -n '__fish_use_subcommand' -a "$commands"

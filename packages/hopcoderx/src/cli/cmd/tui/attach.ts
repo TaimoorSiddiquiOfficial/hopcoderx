@@ -2,72 +2,58 @@ import { cmd } from "../cmd"
 import { UI } from "@/cli/ui"
 import { tui } from "./app"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
+import { validateSessionSelection, withSessionSelectionOptions } from "@/cli/session-selection"
+import { resolveDirectorySelection, withDirectorySelectionOption } from "@/cli/directory-selection"
+import { buildServerAuthHeaders } from "@/cli/server-auth"
+import { resolveStartupPrompt, withTuiStartupOptions } from "@/cli/tui-startup"
 
 export const AttachCommand = cmd({
   command: "attach <url>",
   describe: "attach to a running HopCoderX server",
   builder: (yargs) =>
-    yargs
-      .positional("url", {
-        type: "string",
-        describe: "http://localhost:4096",
-        demandOption: true,
-      })
-      .option("dir", {
-        type: "string",
-        description: "directory to run in",
-      })
-      .option("continue", {
-        alias: ["c"],
-        describe: "continue the last session",
-        type: "boolean",
-      })
-      .option("session", {
-        alias: ["s"],
-        type: "string",
-        describe: "session id to continue",
-      })
-      .option("fork", {
-        type: "boolean",
-        describe: "fork the session when continuing (use with --continue or --session)",
-      })
-      .option("password", {
-        alias: ["p"],
-        type: "string",
-        describe: "basic auth password (defaults to HOPCODERX_SERVER_PASSWORD)",
-      }),
+    withSessionSelectionOptions(
+      withDirectorySelectionOption(
+        withTuiStartupOptions(
+          yargs
+            .positional("url", {
+              type: "string",
+              describe: "http://localhost:4096",
+              demandOption: true,
+            })
+            .option("password", {
+              alias: ["p"],
+              type: "string",
+              describe: "basic auth password (defaults to HOPCODERX_SERVER_PASSWORD)",
+            }),
+        ),
+        "directory to run in",
+      ),
+    ),
   handler: async (args) => {
     const unguard = win32InstallCtrlCGuard()
     try {
       win32DisableProcessedInput()
 
-      if (args.fork && !args.continue && !args.session) {
-        UI.error("--fork requires --continue or --session")
+      const sessionSelectionError = validateSessionSelection(args)
+      if (sessionSelectionError) {
+        UI.error(sessionSelectionError)
         process.exitCode = 1
         return
       }
 
-      const directory = (() => {
-        if (!args.dir) return undefined
-        try {
-          process.chdir(args.dir)
-          return process.cwd()
-        } catch {
-          // If the directory doesn't exist locally (remote attach), pass it through.
-          return args.dir
-        }
-      })()
-      const headers = (() => {
-        const password = args.password ?? process.env.HOPCODERX_SERVER_PASSWORD
-        if (!password) return undefined
-        const auth = `Basic ${Buffer.from(`HopCoderX:${password}`).toString("base64")}`
-        return { Authorization: auth }
-      })()
+      const directory = resolveDirectorySelection(args, {
+        allowUnresolvedDir: true,
+      })
+      const headers = buildServerAuthHeaders(args.password ?? process.env.HOPCODERX_SERVER_PASSWORD)
+      const prompt = await resolveStartupPrompt(args.prompt)
       await tui({
         url: args.url,
         args: {
           continue: args.continue,
           sessionID: args.session,
+          agent: args.agent,
+          model: args.model,
+          prompt,
           fork: args.fork,
         },
         directory,

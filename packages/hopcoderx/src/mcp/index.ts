@@ -499,9 +499,10 @@ export namespace MCP {
     const config = cfg.mcp ?? {}
     const result: Record<string, Status> = {}
 
-    // Include all configured MCPs from config, not just connected ones
-    for (const [key, mcp] of Object.entries(config)) {
-      if (!isMcpConfigured(mcp)) continue
+    // Include configured MCPs as well as runtime-only built-ins started by initBuiltins().
+    for (const key of new Set([...Object.keys(config), ...Object.keys(s.status)])) {
+      const mcp = config[key]
+      if (mcp !== undefined && !isMcpConfigured(mcp) && !s.status[key]) continue
       result[key] = s.status[key] ?? { status: "disabled" }
     }
 

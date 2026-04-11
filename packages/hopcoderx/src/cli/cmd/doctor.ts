@@ -160,18 +160,62 @@ async function checkMCP(): Promise<Check[]> {
   const count = summary.mcp.count
 
   if (count === 0) {
-    checks.push({ label: "No MCP servers configured", status: "skip" })
+    checks.push({ label: "No MCP servers configured or active", status: "skip" })
     return checks
   }
 
-  checks.push({ label: `${count} MCP server(s) configured`, status: "ok" })
+  checks.push({
+    label: `${count} MCP server(s) discovered`,
+    status: summary.mcp.failedCount > 0 ? "warn" : "ok",
+    detail:
+      summary.mcp.connectedCount === count
+        ? `${summary.mcp.connectedCount} connected`
+        : `${summary.mcp.connectedCount} connected, ${summary.mcp.needsAuthCount} need auth, ${summary.mcp.failedCount} failed`,
+  })
 
   for (const server of summary.mcp.servers) {
     if (!server.valid) {
       checks.push({ label: `MCP: ${server.name}`, status: "warn", detail: "Invalid config format" })
       continue
     }
-    checks.push({ label: `MCP: ${server.name} (${server.type})`, status: "ok" })
+    if (server.status === "connected") {
+      checks.push({ label: `MCP: ${server.name} (${server.type})`, status: "ok" })
+      continue
+    }
+
+    if (server.status === "needs_auth") {
+      checks.push({
+        label: `MCP: ${server.name} (${server.type})`,
+        status: "warn",
+        detail: "Authentication required",
+        fix: `Run: hopcoderx mcp auth ${server.name}`,
+      })
+      continue
+    }
+
+    if (server.status === "needs_client_registration") {
+      checks.push({
+        label: `MCP: ${server.name} (${server.type})`,
+        status: "warn",
+        detail: server.error ?? "Client registration required",
+      })
+      continue
+    }
+
+    if (server.status === "failed") {
+      checks.push({
+        label: `MCP: ${server.name} (${server.type})`,
+        status: "warn",
+        detail: server.error ?? "Connection failed",
+      })
+      continue
+    }
+
+    checks.push({
+      label: `MCP: ${server.name} (${server.type})`,
+      status: "skip",
+      detail: server.builtin ? "Built-in server is not active for this project" : "Configured but disabled",
+    })
   }
 
   return checks

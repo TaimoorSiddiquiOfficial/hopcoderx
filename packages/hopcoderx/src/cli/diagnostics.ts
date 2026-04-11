@@ -6,6 +6,8 @@ import { Provider } from "../provider/provider"
 import { ModelsDev } from "../provider/models"
 import { Filesystem } from "../util/filesystem"
 import { Log } from "../util/log"
+import { MCP } from "../mcp"
+import { McpBuiltins } from "../mcp/builtins"
 import path from "path"
 
 export type InstallationSummary = {
@@ -86,10 +88,23 @@ export type ConfigSummary = {
 
 export type McpSummary = {
   count: number
+  configuredCount: number
+  builtinCount: number
+  connectedCount: number
+  needsAuthCount: number
+  failedCount: number
   servers: Array<{
     name: string
     type: string
     valid: boolean
+    configured: boolean
+    builtin: boolean
+    launchMode?: string
+    detail?: string
+    status: MCP.Status["status"]
+    connected: boolean
+    auth?: MCP.AuthStatus
+    error?: string
   }>
 }
 
@@ -109,6 +124,91 @@ export type RuntimeSummary = {
   mcp: McpSummary
   daemon: DaemonSummary
   lsp: LspSummary
+}
+
+type McpEntry = NonNullable<Config.Info["mcp"]>[string]
+
+function isMcpConfigured(entry: McpEntry | undefined): entry is Config.Mcp {
+  return typeof entry === "object" && entry !== null && "type" in entry
+}
+
+function getMcpDetail(entry: McpEntry | undefined, builtin?: McpBuiltins.BuiltinEntry) {
+  const resolved = isMcpConfigured(entry) ? entry : builtin?.config
+  if (!resolved) return undefined
+  return resolved.type === "remote" ? resolved.url : resolved.command.join(" ")
+}
+
+function supportsMcpOAuth(entry: Config.Mcp | undefined) {
+  return !!entry && entry.type === "remote" && entry.oauth !== false
+}
+
+export function summarizeMcpServers(input: {
+  configMcp?: NonNullable<Config.Info["mcp"]>
+  statuses?: Record<string, MCP.Status>
+  authByServer?: Record<string, MCP.AuthStatus | undefined>
+}): McpSummary {
+  const configMcp = input.configMcp ?? {}
+  const statuses = input.statuses ?? {}
+  const authByServer = input.authByServer ?? {}
+  const serverNames = new Set([...Object.keys(configMcp), ...Object.keys(statuses)])
+
+  const servers = [...serverNames]
+    .map((name) => {
+      const entry = configMcp[name]
+      const builtin = McpBuiltins.getById(name)
+      const runtimeStatus = statuses[name]
+      const valid = isMcpConfigured(entry) || !!builtin
+      const status = runtimeStatus?.status ?? ("disabled" as const)
+
+      return {
+        name,
+        type: isMcpConfigured(entry) ? entry.type : builtin?.config.type ?? "?",
+        valid,
+        configured: entry !== undefined,
+        builtin: !!builtin,
+        launchMode: builtin?.launchMode,
+        detail: getMcpDetail(entry, builtin),
+        status,
+        connected: status === "connected",
+        auth: authByServer[name],
+        error: runtimeStatus && "error" in runtimeStatus ? runtimeStatus.error : undefined,
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  return {
+    count: servers.length,
+    configuredCount: servers.filter((server) => server.configured).length,
+    builtinCount: servers.filter((server) => server.builtin).length,
+    connectedCount: servers.filter((server) => server.connected).length,
+    needsAuthCount: servers.filter(
+      (server) => server.status === "needs_auth" || server.status === "needs_client_registration",
+    ).length,
+    failedCount: servers.filter((server) => server.status === "failed").length,
+    servers,
+  }
+}
+
+export async function getMcpSummary(config?: Config.Info): Promise<McpSummary> {
+  const resolvedConfig = config ?? (await Config.get())
+  const statuses = await MCP.status()
+  const serverNames = new Set([...Object.keys(resolvedConfig.mcp ?? {}), ...Object.keys(statuses)])
+  const authByServer = Object.fromEntries(
+    await Promise.all(
+      [...serverNames].map(async (name) => {
+        const entry = resolvedConfig.mcp?.[name]
+        const builtin = McpBuiltins.getById(name)
+        const resolved = isMcpConfigured(entry) ? entry : builtin?.config
+        return [name, supportsMcpOAuth(resolved) ? await MCP.getAuthStatus(name) : undefined] as const
+      }),
+    ),
+  )
+
+  return summarizeMcpServers({
+    configMcp: resolvedConfig.mcp,
+    statuses,
+    authByServer,
+  })
 }
 
 export async function getRuntimeSummary(): Promise<RuntimeSummary> {
@@ -151,13 +251,8 @@ export async function getRuntimeSummary(): Promise<RuntimeSummary> {
   const globalConfigPath = path.join(Global.Path.config, "hopcoderx.json")
   const projectConfigPath = path.join(process.cwd(), "hopcoderx.json")
 
-  const mcpServers = Object.entries(config.mcp ?? {}).map(([name, server]) => ({
-    name,
-    type: typeof server === "object" && server && "type" in server ? String((server as any).type) : "?",
-    valid: typeof server === "object" && server !== null && "type" in server,
-  }))
-
   const daemonPidFile = path.join(Global.Path.state, "daemon.pid")
+  const mcp = await getMcpSummary(config)
 
   return {
     provider: {
@@ -181,10 +276,7 @@ export async function getRuntimeSummary(): Promise<RuntimeSummary> {
       plugins: config.plugin ?? [],
       instructionsCount: (config.instructions ?? []).length,
     },
-    mcp: {
-      count: mcpServers.length,
-      servers: mcpServers,
-    },
+    mcp,
     daemon: {
       pidFile: daemonPidFile,
       running: await Filesystem.exists(daemonPidFile),

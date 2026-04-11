@@ -27,6 +27,9 @@ import { SkillTool } from "../../tool/skill"
 import { BashTool } from "../../tool/bash"
 import { TodoWriteTool } from "../../tool/todo"
 import { Locale } from "../../util/locale"
+import { validateSessionSelection, withSessionSelectionOptions } from "../session-selection"
+import { resolveDirectorySelection, withDirectorySelectionOption } from "../directory-selection"
+import { buildServerAuthHeaders } from "../server-auth"
 
 type ToolProps<T extends Tool.Info> = {
   input: Tool.InferParameters<T>
@@ -222,81 +225,73 @@ export const RunCommand = cmd({
   command: "run [message..]",
   describe: "run HopCoderX with a message",
   builder: (yargs: Argv) => {
-    return yargs
-      .positional("message", {
-        describe: "message to send",
-        type: "string",
-        array: true,
-        default: [],
-      })
-      .option("command", {
-        describe: "the command to run, use message for args",
-        type: "string",
-      })
-      .option("continue", {
-        alias: ["c"],
-        describe: "continue the last session",
-        type: "boolean",
-      })
-      .option("session", {
-        alias: ["s"],
-        describe: "session id to continue",
-        type: "string",
-      })
-      .option("fork", {
-        describe: "fork the session before continuing (requires --continue or --session)",
-        type: "boolean",
-      })
-      .option("share", {
-        type: "boolean",
-        describe: "share the session",
-      })
-      .option("model", {
-        type: "string",
-        alias: ["m"],
-        describe: "model to use in the format of provider/model",
-      })
-      .option("agent", {
-        type: "string",
-        describe: "agent to use",
-      })
-      .option("format", {
-        type: "string",
-        choices: ["default", "json"],
-        default: "default",
-        describe: "format: default (formatted) or json (raw JSON events)",
-      })
-      .option("file", {
-        alias: ["f"],
-        type: "string",
-        array: true,
-        describe: "file(s) to attach to message",
-      })
-      .option("title", {
-        type: "string",
-        describe: "title for the session (uses truncated prompt if no value provided)",
-      })
-      .option("attach", {
-        type: "string",
-        describe: "attach to a running HopCoderX server (e.g., http://localhost:4096)",
-      })
-      .option("dir", {
-        type: "string",
-        describe: "directory to run in, path on remote server if attaching",
-      })
-      .option("port", {
-        type: "number",
-        describe: "port for the local server (defaults to random port if no value provided)",
-      })
-      .option("variant", {
-        type: "string",
-        describe: "model variant (provider-specific reasoning effort, e.g., high, max, minimal)",
-      })
-      .option("thinking", {
-        type: "boolean",
-        describe: "show thinking blocks",
-        default: false,
-      })
+    return withSessionSelectionOptions(
+      withDirectorySelectionOption(
+        yargs
+          .positional("message", {
+            describe: "message to send",
+            type: "string",
+            array: true,
+            default: [],
+          })
+          .option("command", {
+            describe: "the command to run, use message for args",
+            type: "string",
+          })
+          .option("share", {
+            type: "boolean",
+            describe: "share the session",
+          })
+          .option("model", {
+            type: "string",
+            alias: ["m"],
+            describe: "model to use in the format of provider/model",
+          })
+          .option("agent", {
+            type: "string",
+            describe: "agent to use",
+          })
+          .option("format", {
+            type: "string",
+            choices: ["default", "json"],
+            default: "default",
+            describe: "format: default (formatted) or json (raw JSON events)",
+          })
+          .option("file", {
+            alias: ["f"],
+            type: "string",
+            array: true,
+            describe: "file(s) to attach to message",
+          })
+          .option("title", {
+            type: "string",
+            describe: "title for the session (uses truncated prompt if no value provided)",
+          })
+          .option("attach", {
+            type: "string",
+            describe: "attach to a running HopCoderX server (e.g., http://localhost:4096)",
+          })
+          .option("password", {
+            alias: ["p"],
+            type: "string",
+            describe: "basic auth password for --attach (defaults to HOPCODERX_SERVER_PASSWORD)",
+          })
+          .option("port", {
+            type: "number",
+            describe: "port for the local server (defaults to random port if no value provided)",
+          })
+          .option("variant", {
+            type: "string",
+            describe: "model variant (provider-specific reasoning effort, e.g., high, max, minimal)",
+          })
+          .option("thinking", {
+            type: "boolean",
+            describe: "show thinking blocks",
+            default: false,
+          }),
+        "directory to run in, path on remote server if attaching",
+      ),
+    )
   },
   handler: async (args) => {
     let message = [...args.message, ...(args["--"] || [])]
@@ -304,16 +299,17 @@ export const RunCommand = cmd({
       .join(" ")
 
     const directory = (() => {
-      if (!args.dir) return undefined
-      if (args.attach) return args.dir
       try {
-        process.chdir(args.dir)
-        return process.cwd()
-      } catch {
-        UI.error("Failed to change directory to " + args.dir)
-        process.exit(1)
+        return resolveDirectorySelection(args, {
+          allowUnresolvedDir: !!args.attach,
+        })
+      } catch (error) {
+        UI.error(error instanceof Error ? error.message : String(error))
+        process.exitCode = 1
+        return
       }
     })()
+    if (args.dir && directory === undefined) return
 
     const files: { type: "file"; url: string; filename: string; mime: string }[] = []
     if (args.file) {
@@ -344,9 +340,11 @@ export const RunCommand = cmd({
       process.exit(1)
     }
 
-    if (args.fork && !args.continue && !args.session) {
-      UI.error("--fork requires --continue or --session")
-      process.exit(1)
+    const sessionSelectionError = validateSessionSelection(args)
+    if (sessionSelectionError) {
+      UI.error(sessionSelectionError)
+      process.exitCode = 1
+      return
     }
 
     const rules: PermissionNext.Ruleset = [
@@ -609,7 +607,8 @@ export const RunCommand = cmd({
     }
 
     if (args.attach) {
-      const sdk = createHopCoderXClient({ baseUrl: args.attach, directory })
+      const headers = buildServerAuthHeaders(args.password ?? process.env.HOPCODERX_SERVER_PASSWORD)
+      const sdk = createHopCoderXClient({ baseUrl: args.attach, directory, headers })
       return await execute(sdk)
     }
 

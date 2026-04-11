@@ -4,10 +4,9 @@ import { RepairCommand } from "../cmd/repair"
 import { UninstallCommand } from "../cmd/uninstall"
 import { ModelsCommand } from "../cmd/models"
 import { OnboardCommand } from "../cmd/onboard"
+import { setupTaxonomy } from "../command-taxonomy"
 
 export const setupCommandGroup = {
-  name: "setup",
-  title: "Setup & install",
-  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall"],
+  ...setupTaxonomy,
   commands: [OnboardCommand, AuthCommand, ModelsCommand, UpgradeCommand, RepairCommand, UninstallCommand],
 }

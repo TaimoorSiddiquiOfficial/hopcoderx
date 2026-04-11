@@ -4,10 +4,9 @@ import { DbCommand } from "../cmd/db"
 import { DoctorCommand } from "../cmd/doctor"
 import { StatusCommand } from "../cmd/status"
 import { CompletionCommand } from "../cmd/completion"
+import { diagnosticsTaxonomy } from "../command-taxonomy"
 
 export const diagnosticsCommandGroup = {
-  name: "diagnostics",
-  title: "Diagnostics & maintenance",
-  summary: ["doctor", "status", "debug", "stats", "db", "completion"],
+  ...diagnosticsTaxonomy,
   commands: [DoctorCommand, StatusCommand, DebugCommand, StatsCommand, DbCommand, CompletionCommand],
 }

@@ -21,6 +21,13 @@ function statusBadge(ok: boolean, label?: string) {
   return ok ? green("● " + (label ?? "active")) : dim("○ " + (label ?? "inactive"))
 }
 
+function mcpBadge(status: string) {
+  if (status === "connected") return green("●")
+  if (status === "needs_auth" || status === "needs_client_registration") return yellow("⚠")
+  if (status === "failed") return red("✕")
+  return dim("○")
+}
+
 function header(title: string) {
   const line = "─".repeat(Math.max(0, 44 - title.length))
   console.log(`\n${bold(title)} ${dim(line)}`)
@@ -124,11 +131,20 @@ export const StatusCommand = cmd({
         if (!args.json) {
           header("MCP Servers")
           if (runtime.mcp.count === 0) {
-            console.log(`  ${dim("○")}  No MCP servers configured`)
+            console.log(`  ${dim("○")}  No MCP servers configured or active`)
           } else {
             for (const server of runtime.mcp.servers) {
-              console.log(`  ${green("●")}  ${bold(server.name)} ${dim(`(${server.type})`)}`)
+              const tags = [server.type]
+              if (server.builtin) tags.push(server.launchMode ? `builtin/${server.launchMode}` : "builtin")
+              if (server.auth === "authenticated") tags.push("OAuth")
+              if (server.auth === "expired") tags.push("OAuth expired")
+              console.log(`  ${mcpBadge(server.status)}  ${bold(server.name)} ${dim(`(${tags.join(", ")})`)}`)
+              if (server.detail) console.log(`     ${dim(server.detail)}`)
+              if (server.error) console.log(`     ${dim(server.error)}`)
             }
+            console.log(
+              `\n  Connected     ${runtime.mcp.connectedCount}/${runtime.mcp.count}${runtime.mcp.needsAuthCount > 0 ? `  ${yellow(`auth:${runtime.mcp.needsAuthCount}`)}` : ""}${runtime.mcp.failedCount > 0 ? `  ${red(`failed:${runtime.mcp.failedCount}`)}` : ""}`,
+            )
           }
         }
 
