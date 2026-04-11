@@ -107,9 +107,14 @@ export namespace McpBuiltins {
       requiresCredentials: false,
       config: {
         type: "local",
-        command: ["npx", "-y", "@modelcontextprotocol/server-fetch"],
+        command: ["uvx", "mcp-server-fetch"],
+        environment: {
+          PYTHONIOENCODING: "utf-8",
+        },
         enabled: true,
       },
+      setupGuide: `Requires Python + uv: pip install uv
+Fetch now runs via the upstream Python package (uvx mcp-server-fetch), not npm.`,
     },
     // ── DEVELOPMENT: on-demand ────────────────────────────────────────────────
     {
@@ -309,9 +314,11 @@ The AI will only have read-only access to your database.`,
       requiresCredentials: false,
       config: {
         type: "local",
-        command: ["npx", "-y", "mcp-server-time"],
+        command: ["uvx", "mcp-server-time"],
         enabled: true,
       },
+      setupGuide: `Requires Python + uv: pip install uv
+Time now runs via the upstream Python package (uvx mcp-server-time), not npm.`,
     },
     {
       id: "builtin:linear",
