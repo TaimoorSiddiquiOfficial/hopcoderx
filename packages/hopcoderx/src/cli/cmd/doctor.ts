@@ -1,15 +1,11 @@
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
-import { Config } from "../../config/config"
-import { Auth } from "../../auth"
-import { Global } from "../../global"
 import { Installation } from "../../installation"
-import { ModelsDev } from "../../provider/models"
-import { Filesystem } from "../../util/filesystem"
-import { Log } from "../../util/log"
 import { ChannelRegistry } from "../../channels/channel"
 import path from "path"
 import { execSync } from "child_process"
+import { Instance } from "../../project/instance"
+import { getInstallationSummary, getRuntimeSummary } from "../diagnostics"
 
 type Status = "ok" | "warn" | "fail" | "skip"
 interface Check {
@@ -17,6 +13,23 @@ interface Check {
   status: Status
   detail?: string
   fix?: string
+  repair?: () => Promise<void> | void
+}
+
+type CheckGroup = {
+  title: string
+  checks: Check[]
+}
+
+type SerializedCheck = Omit<Check, "repair">
+
+function serializeCheck(check: Check): SerializedCheck {
+  return {
+    label: check.label,
+    status: check.status,
+    detail: check.detail,
+    fix: check.fix,
+  }
 }
 
 function icon(status: Status) {
@@ -46,36 +59,45 @@ function section(title: string) {
 
 async function checkInstallation(): Promise<Check[]> {
   const checks: Check[] = []
+  const summary = await getInstallationSummary()
 
   checks.push({
-    label: `Version: ${Installation.VERSION}`,
+    label: `Version: ${summary.version}`,
     status: "ok",
-    detail: `Installed at ${Installation.isLocal() ? "dev (local source)" : "binary"}`,
+    detail: `Installed at ${summary.dev ? "dev (local source)" : "binary"}`,
+  })
+  checks.push({
+    label: `Install method: ${summary.method}`,
+    status: "ok",
+    detail: summary.launcherPath,
   })
 
-  const logFile = Log.file()
-  const logExists = logFile ? await Filesystem.exists(logFile) : false
+  for (const conflict of summary.shimConflicts) {
+    checks.push({
+      label: "Broken Bun shim detected",
+      status: "warn",
+      detail: `${conflict.shimPath} -> missing ${conflict.expectedTarget}`,
+      fix: conflict.fix,
+      repair: async () => {
+        const removed = Installation.repairShimConflicts([conflict])
+        if (removed.length === 0) throw new Error("No stale shim files were removed")
+      },
+    })
+  }
+
   checks.push({
     label: "Log file",
-    status: logExists ? "ok" : "warn",
-    detail: logFile ?? "unknown",
-    fix: logExists ? undefined : "Log file will be created on first run",
+    status: summary.logExists ? "ok" : "warn",
+    detail: summary.logFile ?? "unknown",
+    fix: summary.logExists ? undefined : "Log file will be created on first run",
   })
 
-  const dataDir = Global.Path.data
-  const configDir = Global.Path.config
-  const cacheDir = Global.Path.cache
-  for (const [name, dir] of [
-    ["Data dir", dataDir],
-    ["Config dir", configDir],
-    ["Cache dir", cacheDir],
-  ] as const) {
-    const exists = await Filesystem.exists(dir)
+  for (const dir of summary.directories) {
     checks.push({
-      label: name,
-      status: exists ? "ok" : "warn",
-      detail: dir,
-      fix: exists ? undefined : `mkdir -p "${dir}"`,
+      label: dir.label,
+      status: dir.exists ? "ok" : "warn",
+      detail: dir.path,
+      fix: dir.exists ? undefined : `mkdir -p "${dir.path}"`,
     })
   }
 
@@ -84,12 +106,9 @@ async function checkInstallation(): Promise<Check[]> {
 
 async function checkProviders(): Promise<Check[]> {
   const checks: Check[] = []
-  const config = await Config.get()
+  const summary = await getRuntimeSummary()
 
-  let providerData: Record<string, ModelsDev.Provider> = {}
-  try {
-    providerData = await ModelsDev.get()
-  } catch {
+  if (!summary.provider.registryLoaded) {
     checks.push({
       label: "models.dev registry",
       status: "warn",
@@ -99,34 +118,18 @@ async function checkProviders(): Promise<Check[]> {
   }
 
   checks.push({
-    label: `models.dev registry loaded (${Object.keys(providerData).length} providers)`,
+    label: `models.dev registry loaded (${summary.provider.registryCount} providers)`,
     status: "ok",
   })
 
-  const env = process.env as Record<string, string | undefined>
-  const authAll = await Auth.all()
-  const configured: string[] = []
-  const missing: string[] = []
-
-  for (const [id, provider] of Object.entries(providerData)) {
-    const hasEnv = provider.env.some((e) => env[e])
-    const hasAuth = !!authAll[id]
-    const hasConfig = !!config.provider?.[id]?.options?.apiKey
-    if (hasEnv || hasAuth || hasConfig) {
-      configured.push(provider.name)
-    } else if (provider.env.length > 0) {
-      missing.push(provider.name)
-    }
-  }
-
-  if (configured.length > 0) {
+  if (summary.provider.configuredProviderNames.length > 0) {
     checks.push({
-      label: `Configured providers: ${configured.slice(0, 6).join(", ")}${configured.length > 6 ? ` +${configured.length - 6} more` : ""}`,
+      label: `Configured providers: ${summary.provider.configuredProviderNames.slice(0, 6).join(", ")}${summary.provider.configuredProviderNames.length > 6 ? ` +${summary.provider.configuredProviderNames.length - 6} more` : ""}`,
       status: "ok",
     })
   }
 
-  if (missing.length > 0 && configured.length === 0) {
+  if (summary.provider.missingProviderNames.length > 0 && summary.provider.configuredProviderNames.length === 0) {
     checks.push({
       label: "No providers configured",
       status: "fail",
@@ -136,7 +139,7 @@ async function checkProviders(): Promise<Check[]> {
   }
 
   // Check active model
-  const model = config.model
+  const model = summary.provider.activeModel
   if (model) {
     checks.push({ label: `Active model: ${model}`, status: "ok" })
   } else {
@@ -153,9 +156,8 @@ async function checkProviders(): Promise<Check[]> {
 
 async function checkMCP(): Promise<Check[]> {
   const checks: Check[] = []
-  const config = await Config.get()
-  const mcpServers = config.mcp ?? {}
-  const count = Object.keys(mcpServers).length
+  const summary = await getRuntimeSummary()
+  const count = summary.mcp.count
 
   if (count === 0) {
     checks.push({ label: "No MCP servers configured", status: "skip" })
@@ -164,12 +166,12 @@ async function checkMCP(): Promise<Check[]> {
 
   checks.push({ label: `${count} MCP server(s) configured`, status: "ok" })
 
-  for (const [name, server] of Object.entries(mcpServers)) {
-    if (typeof server !== "object" || server === null || !("type" in server)) {
-      checks.push({ label: `MCP: ${name}`, status: "warn", detail: "Invalid config format" })
+  for (const server of summary.mcp.servers) {
+    if (!server.valid) {
+      checks.push({ label: `MCP: ${server.name}`, status: "warn", detail: "Invalid config format" })
       continue
     }
-    checks.push({ label: `MCP: ${name} (${(server as any).type})`, status: "ok" })
+    checks.push({ label: `MCP: ${server.name} (${server.type})`, status: "ok" })
   }
 
   return checks
@@ -177,9 +179,8 @@ async function checkMCP(): Promise<Check[]> {
 
 async function checkLSP(): Promise<Check[]> {
   const checks: Check[] = []
-  const config = await Config.get()
-  const lsp = config.lsp ?? {}
-  const count = Object.keys(lsp).length
+  const summary = await getRuntimeSummary()
+  const count = summary.lsp.count
 
   if (count === 0) {
     checks.push({ label: "No LSP servers configured", status: "skip", detail: "LSP is optional" })
@@ -264,37 +265,31 @@ async function checkConfig(): Promise<Check[]> {
   const checks: Check[] = []
 
   try {
-    const config = await Config.get()
+    const summary = await getRuntimeSummary()
 
     // Check config file exists
-    const globalConfig = path.join(Global.Path.config, "hopcoderx.json")
-    const globalConfigExists = await Filesystem.exists(globalConfig)
     checks.push({
-      label: globalConfigExists ? "Global config found" : "No global config",
-      status: globalConfigExists ? "ok" : "skip",
-      detail: globalConfig,
-      fix: globalConfigExists ? undefined : `Create ${globalConfig} to configure HopCoderX globally`,
+      label: summary.config.globalExists ? "Global config found" : "No global config",
+      status: summary.config.globalExists ? "ok" : "skip",
+      detail: summary.config.globalConfigPath,
+      fix: summary.config.globalExists ? undefined : `Create ${summary.config.globalConfigPath} to configure HopCoderX globally`,
     })
 
     // Check project config
-    const projectConfig = path.join(process.cwd(), "hopcoderx.json")
-    const projectConfigExists = await Filesystem.exists(projectConfig)
     checks.push({
-      label: projectConfigExists ? "Project config found" : "No project config",
-      status: projectConfigExists ? "ok" : "skip",
-      detail: projectConfigExists ? projectConfig : "hopcoderx.json in current directory",
+      label: summary.config.projectExists ? "Project config found" : "No project config",
+      status: summary.config.projectExists ? "ok" : "skip",
+      detail: summary.config.projectExists ? summary.config.projectConfigPath : "hopcoderx.json in current directory",
     })
 
     // Check instructions
-    const instructions = config.instructions ?? []
-    if (instructions.length > 0) {
-      checks.push({ label: `Instructions: ${instructions.length} source(s) loaded`, status: "ok" })
+    if (summary.config.instructionsCount > 0) {
+      checks.push({ label: `Instructions: ${summary.config.instructionsCount} source(s) loaded`, status: "ok" })
     }
 
     // Check plugins
-    const plugins = config.plugin ?? []
-    if (plugins.length > 0) {
-      checks.push({ label: `Plugins: ${plugins.join(", ")}`, status: "ok" })
+    if (summary.config.plugins.length > 0) {
+      checks.push({ label: `Plugins: ${summary.config.plugins.join(", ")}`, status: "ok" })
     }
   } catch (e) {
     checks.push({
@@ -308,25 +303,42 @@ async function checkConfig(): Promise<Check[]> {
   return checks
 }
 
-async function runFixes(checks: Check[]) {
-  const fixable = checks.filter((c) => c.status === "fail" && c.fix)
+async function runFixes(checks: Check[], options?: { quiet?: boolean }) {
+  const fixable = checks.filter(
+    (c) => (c.status === "fail" || c.status === "warn") && (c.repair || c.fix?.startsWith("mkdir")),
+  )
+  const results: Array<{ label: string; fixed: boolean }> = []
   if (fixable.length === 0) {
-    console.log("\n\x1b[32m✓ No fixable issues found.\x1b[0m")
-    return
+    if (!options?.quiet) console.log("\n\x1b[32m✓ No fixable issues found.\x1b[0m")
+    return results
   }
-  console.log(`\n\x1b[33mAuto-fixing ${fixable.length} issue(s)...\x1b[0m`)
+  if (!options?.quiet) console.log(`\n\x1b[33mAuto-fixing ${fixable.length} issue(s)...\x1b[0m`)
   for (const check of fixable) {
-    console.log(`  → ${check.label}: ${check.fix}`)
+    if (!options?.quiet) console.log(`  → ${check.label}: ${check.fix}`)
+    if (check.repair) {
+      try {
+        await check.repair()
+        if (!options?.quiet) console.log(`    \x1b[32m✓ Fixed\x1b[0m`)
+        results.push({ label: check.label, fixed: true })
+      } catch {
+        if (!options?.quiet) console.log(`    \x1b[31m✗ Could not auto-fix — run manually\x1b[0m`)
+        results.push({ label: check.label, fixed: false })
+      }
+      continue
+    }
     // Only execute safe, non-destructive fixes
     if (check.fix?.startsWith("mkdir")) {
       try {
         execSync(check.fix, { stdio: "pipe" })
-        console.log(`    \x1b[32m✓ Fixed\x1b[0m`)
+        if (!options?.quiet) console.log(`    \x1b[32m✓ Fixed\x1b[0m`)
+        results.push({ label: check.label, fixed: true })
       } catch {
-        console.log(`    \x1b[31m✗ Could not auto-fix — run manually\x1b[0m`)
+        if (!options?.quiet) console.log(`    \x1b[31m✗ Could not auto-fix — run manually\x1b[0m`)
+        results.push({ label: check.label, fixed: false })
       }
     }
   }
+  return results
 }
 
 async function checkChannels(): Promise<Check[]> {
@@ -400,69 +412,110 @@ export const DoctorCommand = cmd({
   command: "doctor",
   describe: "diagnose HopCoderX installation and configuration",
   builder: (yargs: Argv) =>
-    yargs.option("fix", {
-      describe: "attempt to automatically fix issues",
-      type: "boolean",
-      default: false,
-    }),
+    yargs
+      .option("fix", {
+        describe: "attempt to automatically fix issues",
+        type: "boolean",
+        default: false,
+      })
+      .option("json", {
+        describe: "output diagnostic results as JSON",
+        type: "boolean",
+        default: false,
+      }),
   handler: async (args) => {
-    console.log("\n\x1b[1mHopCoderX Doctor\x1b[0m — system health check\n")
+    await Instance.provide({
+      directory: process.cwd(),
+      fn: async () => {
+        const allChecks: Check[] = []
+        const groupsOutput: CheckGroup[] = []
 
-    const allChecks: Check[] = []
-
-    const groups: [string, () => Promise<Check[]>][] = [
-      ["Installation", checkInstallation],
-      ["Configuration", checkConfig],
-      ["Providers & Models", checkProviders],
-      ["MCP Servers", checkMCP],
-      ["LSP", checkLSP],
-      ["Dependencies", checkDependencies],
-      ["Git", checkGit],
-      ["Channels", checkChannels],
-      ["Canvas Host", checkCanvas],
-    ]
-
-    for (const [title, fn] of groups) {
-      section(title)
-      let checks: Check[]
-      try {
-        checks = await fn()
-      } catch (e) {
-        checks = [
-          {
-            label: `${title} check failed`,
-            status: "fail",
-            detail: e instanceof Error ? e.message : String(e),
-          },
+        const groups: [string, () => Promise<Check[]>][] = [
+          ["Installation", checkInstallation],
+          ["Configuration", checkConfig],
+          ["Providers & Models", checkProviders],
+          ["MCP Servers", checkMCP],
+          ["LSP", checkLSP],
+          ["Dependencies", checkDependencies],
+          ["Git", checkGit],
+          ["Channels", checkChannels],
+          ["Canvas Host", checkCanvas],
         ]
-      }
-      for (const check of checks) {
-        printCheck(check)
-        allChecks.push(check)
-      }
-    }
 
-    const fails = allChecks.filter((c) => c.status === "fail").length
-    const warns = allChecks.filter((c) => c.status === "warn").length
-    const oks = allChecks.filter((c) => c.status === "ok").length
+        if (!args.json) console.log("\n\x1b[1mHopCoderX Doctor\x1b[0m — system health check\n")
 
-    console.log("\n" + "─".repeat(50))
-    if (fails === 0 && warns === 0) {
-      console.log(`\x1b[32m✓ All checks passed (${oks} ok)\x1b[0m`)
-    } else {
-      console.log(
-        `Summary: \x1b[32m${oks} ok\x1b[0m  \x1b[33m${warns} warn\x1b[0m  \x1b[31m${fails} fail\x1b[0m`,
-      )
-      if (fails > 0) {
-        console.log("\x1b[31mSome checks failed. Run \x1b[1mhopcoderx doctor --fix\x1b[0m\x1b[31m to attempt repairs.\x1b[0m")
-      }
-    }
-    console.log()
+        for (const [title, fn] of groups) {
+          if (!args.json) section(title)
+          let checks: Check[]
+          try {
+            checks = await fn()
+          } catch (e) {
+            checks = [
+              {
+                label: `${title} check failed`,
+                status: "fail",
+                detail: e instanceof Error ? e.message : String(e),
+              },
+            ]
+          }
+          groupsOutput.push({ title, checks })
+          for (const check of checks) {
+            if (!args.json) printCheck(check)
+            allChecks.push(check)
+          }
+        }
 
-    if (args.fix) {
-      await runFixes(allChecks)
-    }
+        const fails = allChecks.filter((c) => c.status === "fail").length
+        const warns = allChecks.filter((c) => c.status === "warn").length
+        const oks = allChecks.filter((c) => c.status === "ok").length
+        const skips = allChecks.filter((c) => c.status === "skip").length
 
-    if (fails > 0) process.exitCode = 1
+        if (!args.json) {
+          console.log("\n" + "─".repeat(50))
+          if (fails === 0 && warns === 0) {
+            console.log(`\x1b[32m✓ All checks passed (${oks} ok)\x1b[0m`)
+          } else {
+            console.log(
+              `Summary: \x1b[32m${oks} ok\x1b[0m  \x1b[33m${warns} warn\x1b[0m  \x1b[31m${fails} fail\x1b[0m`,
+            )
+            if (fails > 0) {
+              console.log(
+                "\x1b[31mSome checks failed. Run \x1b[1mhopcoderx doctor --fix\x1b[0m\x1b[31m to attempt repairs.\x1b[0m",
+              )
+            }
+          }
+          console.log()
+        }
+
+        const fixes = args.fix ? await runFixes(allChecks, { quiet: args.json }) : []
+        if (args.fix) {
+          // runFixes already executed above
+        }
+
+        if (args.json) {
+          console.log(
+            JSON.stringify(
+              {
+                summary: {
+                  ok: oks,
+                  warn: warns,
+                  fail: fails,
+                  skip: skips,
+                },
+                groups: groupsOutput.map((group) => ({
+                  title: group.title,
+                  checks: group.checks.map(serializeCheck),
+                })),
+                fixes,
+              },
+              null,
+              2,
+            ),
+          )
+        }
+
+        if (fails > 0) process.exitCode = 1
+      },
+    })
   },
 })

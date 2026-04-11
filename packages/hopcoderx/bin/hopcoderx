@@ -5,9 +5,18 @@ const fs = require("fs")
 const path = require("path")
 const os = require("os")
 
+const scriptPath = fs.realpathSync(__filename)
+const scriptDir = path.dirname(scriptPath)
+
 function run(target) {
   const result = childProcess.spawnSync(target, process.argv.slice(2), {
     stdio: "inherit",
+    env: {
+      ...process.env,
+      HOPCODERX_LAUNCHER_PATH: scriptPath,
+      HOPCODERX_LAUNCHER_DIR: scriptDir,
+      HOPCODERX_LAUNCHER_TARGET: target,
+    },
   })
   if (result.error) {
     console.error(result.error.message)
@@ -21,9 +30,6 @@ const envPath = process.env.HOPCODERX_BIN_PATH
 if (envPath) {
   run(envPath)
 }
-
-const scriptPath = fs.realpathSync(__filename)
-const scriptDir = path.dirname(scriptPath)
 
 //
 const cached = path.join(scriptDir, ".hopcoderx")

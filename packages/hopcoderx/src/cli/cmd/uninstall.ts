@@ -55,14 +55,22 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro("Uninstall HopCoderX")
+  prompts.intro("Uninstall HopCoderX")
+
+    const recovery = await Installation.recoveryPlan()
+    for (const warning of recovery.warnings) {
+      prompts.log.warn(warning)
+    }
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
+    if (recovery.installedMethods.length > 1) {
+      prompts.log.info(`Detected global installs: ${recovery.installedMethods.join(", ")}`)
+    }
 
     const targets = await collectRemovalTargets(args, method)
 
-    await showRemovalSummary(targets, method)
+    await showRemovalSummary(targets, method, recovery.installedMethods)
 
     if (!args.force && !args.dryRun) {
       const confirm = await prompts.confirm({
@@ -101,7 +109,11 @@ async function collectRemovalTargets(args: UninstallArgs, method: Installation.M
   return { directories, shellConfig, binary }
 }
 
-async function showRemovalSummary(targets: RemovalTargets, method: Installation.Method) {
+async function showRemovalSummary(
+  targets: RemovalTargets,
+  method: Installation.Method,
+  installedMethods: Installation.ManagedMethod[],
+) {
   prompts.log.message("The following will be removed:")
 
   for (const dir of targets.directories) {
@@ -138,6 +150,13 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
       scoop: "scoop uninstall hopcoderx",
     }
     prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
+  }
+
+  const extraInstalls = installedMethods.filter((candidate) => candidate !== method)
+  if (extraInstalls.length > 0) {
+    prompts.log.warn(
+      `Additional global installs were detected and will not be removed automatically: ${extraInstalls.join(", ")}`,
+    )
   }
 }
 

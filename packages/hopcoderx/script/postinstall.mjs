@@ -47,6 +47,63 @@ function detectPlatformAndArch() {
   return { platform, arch }
 }
 
+function detectInstaller() {
+  const ua = process.env.npm_config_user_agent || ""
+  if (ua.startsWith("bun/")) return "bun"
+  if (ua.startsWith("pnpm/")) return "pnpm"
+  if (ua.startsWith("yarn/")) return "yarn"
+  if (ua.startsWith("npm/")) return "npm"
+  return "unknown"
+}
+
+function extractBunShimTarget(shimPath) {
+  try {
+    const text = fs.readFileSync(shimPath, "utf8")
+    const match = text.match(/(\.\.[^"\r\n\0]*hopcoderx-ai[\\/]+bin[\\/]+hopcoderx)/)
+    if (match?.[1]) {
+      return path.resolve(path.dirname(shimPath), match[1])
+    }
+  } catch {}
+
+  return path.resolve(path.dirname(shimPath), "..", "node_modules", "hopcoderx-ai", "bin", "hopcoderx")
+}
+
+function findBrokenBunShim(binDir = path.join(os.homedir(), ".bun", "bin")) {
+  const bunxShim = path.join(binDir, "hopcoderx.bunx")
+  if (!fs.existsSync(bunxShim)) return null
+
+  const expectedTarget = extractBunShimTarget(bunxShim)
+  if (fs.existsSync(expectedTarget)) return null
+
+  return {
+    bunxShim,
+    expectedTarget,
+    related: [path.join(binDir, "hopcoderx"), path.join(binDir, "hopcoderx.exe"), bunxShim],
+  }
+}
+
+function cleanupBrokenBunShim(installer) {
+  if (installer === "bun") return
+
+  const broken = findBrokenBunShim()
+  if (!broken) return
+
+  const removed = []
+  for (const candidate of broken.related) {
+    if (!fs.existsSync(candidate)) continue
+    fs.unlinkSync(candidate)
+    removed.push(candidate)
+  }
+
+  if (removed.length === 0) return
+
+  console.warn("Removed stale Bun HopCoderX shim(s):")
+  for (const candidate of removed) {
+    console.warn(`  ${candidate}`)
+  }
+  console.warn(`These shims pointed to a missing module target: ${broken.expectedTarget}`)
+}
+
 function findBinary() {
   const { platform, arch } = detectPlatformAndArch()
   const packageName = `hopcoderx-${platform}-${arch}`
@@ -99,6 +156,7 @@ function symlinkBinary(sourcePath, binaryName) {
 
 async function main() {
   try {
+    const installer = detectInstaller()
     const { platform, arch } = detectPlatformAndArch()
     const { binaryPath } = findBinary()
     const target = path.join(__dirname, "bin", ".hopcoderx")
@@ -115,6 +173,7 @@ async function main() {
       }
       fs.chmodSync(target, 0o755)
     }
+    cleanupBrokenBunShim(installer)
   } catch (error) {
     console.error("Failed to setup hopcoderx binary:", error.message)
     const { platform, arch } = detectPlatformAndArch()

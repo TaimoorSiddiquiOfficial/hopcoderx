@@ -24,8 +24,47 @@ export const UpgradeCommand = {
     UI.println(UI.logo("  "))
     UI.empty()
     prompts.intro("Upgrade")
+    const recovery = await Installation.recoveryPlan()
+    for (const warning of recovery.warnings) {
+      prompts.log.warn(warning)
+    }
+    if (recovery.shimConflicts.length > 0) {
+      prompts.log.info("Run `hopcoderx repair --fix` first if the active launcher is failing before HopCoderX starts.")
+    }
+
     const detectedMethod = await Installation.method()
-    const method = (args.method as Installation.Method) ?? detectedMethod
+    let method = args.method as Installation.Method | undefined
+
+    if (!method) {
+      const selectableMethods = Array.from(
+        new Set<Installation.Method>(
+          [
+            recovery.displayMethod !== "local" ? recovery.displayMethod : undefined,
+            ...recovery.installedMethods,
+            detectedMethod,
+          ].filter((value): value is Installation.Method => !!value && value !== "unknown"),
+        ),
+      )
+
+      if (selectableMethods.length > 1) {
+        const selected = await prompts.select({
+          message: "Choose the package manager to upgrade with",
+          options: selectableMethods.map((candidate) => ({
+            label: candidate === recovery.displayMethod ? `${candidate} (active launcher)` : candidate,
+            value: candidate,
+          })),
+          initialValue: selectableMethods[0],
+        })
+        if (prompts.isCancel(selected)) {
+          prompts.outro("Done")
+          return
+        }
+        method = selected as Installation.Method
+      } else {
+        method = selectableMethods[0] ?? detectedMethod
+      }
+    }
+
     if (method === "unknown") {
       prompts.log.error(`HopCoderX is installed to ${process.execPath} and may be managed by a package manager`)
       const install = await prompts.select({
@@ -81,11 +120,11 @@ export const UpgradeCommand = {
             initialValue: "schedule",
           })
           if (prompts.isCancel(schedule) || schedule === "manual") {
-            prompts.log.info(`Manual fix — close HopCoderX, then run:\n  ${method} install -g hopcoderx-ai@${target}`)
+            prompts.log.info(`Manual fix — close HopCoderX, then run:\n  ${Installation.installCommand(method, target)}`)
           } else {
-            await Installation.scheduleWindowsUpgrade(target, method as "npm" | "pnpm" | "bun")
+            const scheduled = await Installation.scheduleWindowsUpgrade(target, method as "npm" | "pnpm" | "bun")
             prompts.log.success(
-              `Upgrade to ${target} scheduled!\nClose HopCoderX now and the upgrade will complete automatically.`,
+              `Upgrade to ${target} scheduled!\nClose HopCoderX now and the upgrade will complete automatically.\nLog: ${scheduled.logPath}`,
             )
           }
         } else {

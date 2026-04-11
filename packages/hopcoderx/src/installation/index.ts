@@ -6,6 +6,8 @@ import { NamedError } from "@hopcoderx/util/error"
 import { Log } from "../util/log"
 import { iife } from "@/util/iife"
 import { Flag } from "../flag/flag"
+import os from "os"
+import { existsSync, readFileSync, rmSync } from "fs"
 
 declare global {
   const HOPCODERX_VERSION: string
@@ -15,7 +17,305 @@ declare global {
 export namespace Installation {
   const log = Log.create({ service: "installation" })
 
-  export type Method = Awaited<ReturnType<typeof method>>
+  export type Method = "curl" | "npm" | "yarn" | "pnpm" | "bun" | "brew" | "scoop" | "choco" | "unknown"
+  export type ManagedMethod = Exclude<Method, "curl" | "unknown">
+
+  export type ShimConflict = {
+    manager: "bun"
+    shimPath: string
+    expectedTarget: string
+    fix: string
+    relatedPaths: string[]
+  }
+
+  export type DisplayMethod = Method | "local"
+  export type RecoveryStep = {
+    label: string
+    command?: string
+    automated: boolean
+  }
+  export type RecoveryPlan = {
+    displayMethod: DisplayMethod
+    launcherPath: string
+    installedMethods: ManagedMethod[]
+    shimConflicts: ShimConflict[]
+    warnings: string[]
+    steps: RecoveryStep[]
+  }
+
+  export function launcherPath() {
+    return process.env.HOPCODERX_LAUNCHER_PATH || process.execPath
+  }
+
+  export async function displayMethod(): Promise<DisplayMethod> {
+    const launcher = launcherPath()
+    const inferred = process.env.HOPCODERX_LAUNCHER_PATH ? inferMethodFromPath(launcher) : undefined
+    if (inferred) return inferred
+    if (isLocal()) return "local"
+    return method()
+  }
+
+  export function inferMethodFromPath(candidate?: string): Method | undefined {
+    if (!candidate) return
+
+    const value = candidate.replaceAll("/", "\\").toLowerCase()
+    const basename = path.basename(value)
+    const looksLikeHopcoderxLauncher = basename.startsWith("hopcoderx")
+    if (!looksLikeHopcoderxLauncher && !value.includes("\\.hopcoderx\\bin\\") && !value.includes("\\.local\\bin\\")) {
+      return
+    }
+
+    if (value.includes("\\.hopcoderx\\bin\\") || value.includes("\\.local\\bin\\")) return "curl"
+    if (value.includes("\\appdata\\roaming\\npm\\")) return "npm"
+    if (value.includes("\\.bun\\bin\\")) return "bun"
+    if (value.includes("\\pnpm\\")) return "pnpm"
+    if (value.includes("\\yarn\\")) return "yarn"
+    if (value.includes("\\scoop\\")) return "scoop"
+    if (value.includes("\\chocolatey\\") || value.includes("\\choco\\")) return "choco"
+    if (value.includes("/homebrew/".replaceAll("/", "\\")) || value.includes("\\linuxbrew\\") || value.includes("\\brew\\")) {
+      return "brew"
+    }
+  }
+
+  function extractBunShimTarget(shimPath: string) {
+    try {
+      const text = readFileSync(shimPath, "utf8")
+      const match = text.match(/(\.\.[^"\r\n\0]*hopcoderx-ai[\\/]+bin[\\/]+hopcoderx)/)
+      if (match?.[1]) {
+        return path.resolve(path.dirname(shimPath), match[1])
+      }
+    } catch {}
+
+    return path.resolve(path.dirname(shimPath), "..", "node_modules", "hopcoderx-ai", "bin", "hopcoderx")
+  }
+
+  export function shimConflicts(binDir = path.join(os.homedir(), ".bun", "bin")): ShimConflict[] {
+    const bunxShim = path.join(binDir, "hopcoderx.bunx")
+    if (!existsSync(bunxShim)) return []
+
+    const expectedTarget = extractBunShimTarget(bunxShim)
+    if (existsSync(expectedTarget)) return []
+
+    return [
+      {
+        manager: "bun",
+        shimPath: bunxShim,
+        expectedTarget,
+        fix: "Remove the stale Bun shims from ~/.bun/bin or reinstall HopCoderX with Bun to refresh them.",
+        relatedPaths: [path.join(binDir, "hopcoderx"), path.join(binDir, "hopcoderx.exe"), bunxShim],
+      },
+    ]
+  }
+
+  export function repairShimConflicts(conflicts = shimConflicts()) {
+    const removed = new Set<string>()
+    for (const conflict of conflicts) {
+      for (const candidate of conflict.relatedPaths) {
+        if (!existsSync(candidate)) continue
+        rmSync(candidate, { force: true })
+        removed.add(candidate)
+      }
+    }
+    return Array.from(removed)
+  }
+
+  function knownLauncherDirs() {
+    const home = os.homedir()
+    const appData = process.env.APPDATA || path.join(home, "AppData", "Roaming")
+    return Array.from(
+      new Set(
+        [
+          path.join(appData, "npm"),
+          path.join(home, ".bun", "bin"),
+          path.join(home, ".hopcoderx", "bin"),
+          path.join(home, ".local", "bin"),
+        ].filter(Boolean),
+      ),
+    )
+  }
+
+  function launcherNames() {
+    return process.platform === "win32"
+      ? ["hopcoderx.exe", "hopcoderx.cmd", "hopcoderx.ps1", "hopcoderx.bat", "hopcoderx", "hopcoderx.bunx"]
+      : ["hopcoderx"]
+  }
+
+  function launcherCandidates(pathValue = process.env.PATH || "", includeKnownDirs = true) {
+    const pathDirs = pathValue
+      .split(path.delimiter)
+      .map((entry) => entry.trim().replace(/^"(.*)"$/, "$1"))
+      .filter(Boolean)
+    const dirs = Array.from(new Set([...pathDirs, ...(includeKnownDirs ? knownLauncherDirs() : [])]))
+    const found = new Set<string>()
+
+    for (const dir of dirs) {
+      for (const name of launcherNames()) {
+        const candidate = path.join(dir, name)
+        if (existsSync(candidate)) found.add(candidate)
+      }
+    }
+
+    return Array.from(found)
+  }
+
+  export async function installedMethods(
+    execPath = process.execPath,
+    pathValue = process.env.PATH || "",
+    includeKnownDirs = true,
+  ): Promise<ManagedMethod[]> {
+    const found = new Set<ManagedMethod>()
+    const active = inferMethodFromPath(execPath)
+    if (active && active !== "curl" && active !== "unknown") found.add(active)
+
+    for (const candidate of launcherCandidates(pathValue, includeKnownDirs)) {
+      const inferred = inferMethodFromPath(candidate)
+      if (inferred && inferred !== "curl" && inferred !== "unknown") {
+        found.add(inferred)
+      }
+    }
+
+    return Array.from(found)
+  }
+
+  export function installCommand(method: Method, target = "latest") {
+    switch (method) {
+      case "curl":
+        return "curl -fsSL https://hopcoderx.dev/install | bash"
+      case "npm":
+        return `npm install -g hopcoderx-ai@${target}`
+      case "yarn":
+        return `yarn global add hopcoderx-ai@${target}`
+      case "pnpm":
+        return `pnpm install -g hopcoderx-ai@${target}`
+      case "bun":
+        return `bun install -g hopcoderx-ai@${target}`
+      case "brew":
+        return "brew reinstall hopcoderx"
+      case "scoop":
+        return "scoop uninstall hopcoderx && scoop install hopcoderx"
+      case "choco":
+        return "choco upgrade hopcoderx --yes"
+      case "unknown":
+        return
+    }
+  }
+
+  export function uninstallCommand(method: ManagedMethod) {
+    switch (method) {
+      case "npm":
+        return "npm uninstall -g hopcoderx-ai"
+      case "yarn":
+        return "yarn global remove hopcoderx-ai"
+      case "pnpm":
+        return "pnpm uninstall -g hopcoderx-ai"
+      case "bun":
+        return "bun remove -g hopcoderx-ai"
+      case "brew":
+        return "brew uninstall hopcoderx"
+      case "scoop":
+        return "scoop uninstall hopcoderx"
+      case "choco":
+        return "choco uninstall hopcoderx --yes"
+    }
+  }
+
+  function escapePowerShell(value: string) {
+    return value.replaceAll("`", "``").replaceAll('"', '`"')
+  }
+
+  export function recoveryWarnings(input: {
+    displayMethod: DisplayMethod
+    installedMethods: ManagedMethod[]
+    shimConflicts: ShimConflict[]
+  }) {
+    const warnings: string[] = []
+    if (input.shimConflicts.length > 0) {
+      warnings.push(
+        `Detected ${input.shimConflicts.length} stale Bun launcher ${input.shimConflicts.length === 1 ? "shim" : "shims"} that can shadow a working install.`,
+      )
+    }
+
+    const installed = Array.from(new Set(input.installedMethods))
+    if (input.displayMethod === "local") return warnings
+
+    if (installed.length > 1) {
+      warnings.push(`Multiple global HopCoderX installs were detected: ${installed.join(", ")}.`)
+    }
+
+    if (input.displayMethod === "unknown") {
+      warnings.push(
+        installed.length > 0
+          ? `Unable to confirm the active package manager from the current launcher. Detected installs: ${installed.join(", ")}.`
+          : "Unable to detect a managed HopCoderX install from the current launcher path.",
+      )
+      return warnings
+    }
+
+    if (input.displayMethod !== "curl") {
+      const active = input.displayMethod as ManagedMethod
+      if (installed.length > 0 && !installed.includes(active)) {
+        warnings.push(`The active launcher looks like ${active}, but the detected global installs are ${installed.join(", ")}.`)
+      }
+    }
+
+    return warnings
+  }
+
+  export async function recoveryPlan(): Promise<RecoveryPlan> {
+    const display = await displayMethod()
+    const installed = await installedMethods()
+    const conflicts = shimConflicts()
+    const warnings = recoveryWarnings({
+      displayMethod: display,
+      installedMethods: installed,
+      shimConflicts: conflicts,
+    })
+    const steps: RecoveryStep[] = []
+
+    if (conflicts.length > 0) {
+      steps.push({
+        label: "Remove stale Bun launcher shims",
+        command: "hopcoderx repair --fix",
+        automated: true,
+      })
+    }
+
+    const preferredMethod =
+      display !== "local" && display !== "unknown"
+        ? display
+        : installed[0]
+
+    if (warnings.length > 0 && preferredMethod) {
+      const reinstall = installCommand(preferredMethod)
+      if (reinstall) {
+        steps.push({
+          label: `Reinstall HopCoderX with ${preferredMethod}`,
+          command: reinstall,
+          automated: false,
+        })
+      }
+    }
+
+    if (display !== "local" && display !== "unknown" && display !== "curl") {
+      for (const method of installed) {
+        if (method === display) continue
+        steps.push({
+          label: `Remove conflicting ${method} global install`,
+          command: uninstallCommand(method),
+          automated: false,
+        })
+      }
+    }
+
+    return {
+      displayMethod: display,
+      launcherPath: launcherPath(),
+      installedMethods: installed,
+      shimConflicts: conflicts,
+      warnings,
+      steps,
+    }
+  }
 
   export const Event = {
     Updated: BusEvent.define(
@@ -58,59 +358,13 @@ export namespace Installation {
   }
 
   export async function method() {
+    const launchMethod = inferMethodFromPath(launcherPath())
+    if (launchMethod) return launchMethod
+
     if (process.execPath.includes(path.join(".hopcoderx", "bin"))) return "curl"
     if (process.execPath.includes(path.join(".local", "bin"))) return "curl"
-    const exec = process.execPath.toLowerCase()
-
-    const checks = [
-      {
-        name: "npm" as const,
-        command: () => $`npm list -g --depth=0`.throws(false).quiet().text(),
-      },
-      {
-        name: "yarn" as const,
-        command: () => $`yarn global list`.throws(false).quiet().text(),
-      },
-      {
-        name: "pnpm" as const,
-        command: () => $`pnpm list -g --depth=0`.throws(false).quiet().text(),
-      },
-      {
-        name: "bun" as const,
-        command: () => $`bun pm ls -g`.throws(false).quiet().text(),
-      },
-      {
-        name: "brew" as const,
-        command: () => $`brew list --formula hopcoderx`.throws(false).quiet().text(),
-      },
-      {
-        name: "scoop" as const,
-        command: () => $`scoop list hopcoderx`.throws(false).quiet().text(),
-      },
-      {
-        name: "choco" as const,
-        command: () => $`choco list --limit-output hopcoderx`.throws(false).quiet().text(),
-      },
-    ]
-
-    checks.sort((a, b) => {
-      const aMatches = exec.includes(a.name)
-      const bMatches = exec.includes(b.name)
-      if (aMatches && !bMatches) return -1
-      if (!aMatches && bMatches) return 1
-      return 0
-    })
-
-    for (const check of checks) {
-      const output = await check.command()
-      const installedName =
-        check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "hopcoderx" : "hopcoderx-ai"
-      if (output.includes(installedName)) {
-        return check.name
-      }
-    }
-
-    return "unknown"
+    const installed = await installedMethods()
+    return installed[0] ?? "unknown"
   }
 
   export const UpgradeFailedError = NamedError.create(
@@ -227,29 +481,43 @@ export namespace Installation {
    * process to exit, then retries the npm upgrade.  Call this when `isEbusyError`
    * is true and the rename trick was not sufficient.
    */
-  export async function scheduleWindowsUpgrade(target: string, method: "npm" | "pnpm" | "bun"): Promise<void> {
+  export async function scheduleWindowsUpgrade(
+    target: string,
+    method: "npm" | "pnpm" | "bun",
+  ): Promise<{ scriptPath: string; logPath: string }> {
     const pid = process.pid
-    const installCmd = method === "npm"
-      ? `npm install -g hopcoderx-ai@${target}`
-      : method === "pnpm"
-      ? `pnpm install -g hopcoderx-ai@${target}`
-      : `bun install -g hopcoderx-ai@${target}`
+    const installCmd = installCommand(method, target)
+    if (!installCmd) throw new Error(`Could not build install command for ${method}`)
     const oldBackup = process.execPath.replace(/\\/g, "\\\\") + ".old"
+    const tmpDir = process.env["TEMP"] ?? process.env["TMP"] ?? "C:\\Temp"
+    const suffix = `${Date.now()}-${pid}`
+    const psFile = path.join(tmpDir, `hopcoderx-upgrade-${suffix}.ps1`)
+    const logFile = path.join(tmpDir, `hopcoderx-upgrade-${suffix}.log`)
+    const escapedInstallCmd = escapePowerShell(installCmd)
+    const escapedBackup = escapePowerShell(oldBackup)
+    const escapedLog = escapePowerShell(logFile)
     const script = [
       `# HopCoderX deferred upgrade — auto-generated`,
+      `$ErrorActionPreference = "Stop"`,
       `$pid = ${pid}`,
-      `Write-Host "Waiting for HopCoderX (PID $pid) to exit..."`,
+      `$logFile = "${escapedLog}"`,
+      `function Write-Log([string]$message) { Add-Content -Path $logFile -Value $message }`,
+      `Write-Log "Waiting for HopCoderX (PID $pid) to exit..."`,
       `try { Wait-Process -Id $pid -Timeout 60 -ErrorAction SilentlyContinue } catch {}`,
       `Start-Sleep -Seconds 1`,
-      `Write-Host "Running: ${installCmd}"`,
-      `Invoke-Expression "${installCmd}"`,
+      `Write-Log "Running: ${escapedInstallCmd}"`,
+      `$upgradeOutput = (Invoke-Expression "${escapedInstallCmd}" 2>&1 | Out-String)`,
+      `if ($upgradeOutput) { Add-Content -Path $logFile -Value $upgradeOutput.TrimEnd() }`,
+      `if ($LASTEXITCODE -ne 0) { Write-Log "Upgrade command failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }`,
+      `Write-Log "Verifying launcher with: hopcoderx --version"`,
+      `$versionOutput = (& hopcoderx --version 2>&1 | Out-String)`,
+      `if ($versionOutput) { Add-Content -Path $logFile -Value $versionOutput.TrimEnd() }`,
+      `if ($LASTEXITCODE -ne 0) { Write-Log "Verification failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }`,
       `# Clean up backup`,
-      `if (Test-Path "${oldBackup}") { Remove-Item -Force "${oldBackup}" -ErrorAction SilentlyContinue }`,
-      `Write-Host "HopCoderX upgraded to ${target}. You can now relaunch it."`,
+      `if (Test-Path "${escapedBackup}") { Remove-Item -Force "${escapedBackup}" -ErrorAction SilentlyContinue }`,
+      `Write-Log "HopCoderX upgraded to ${target}. You can now relaunch it."`,
     ].join("\r\n")
 
-    const tmpDir = process.env["TEMP"] ?? process.env["TMP"] ?? "C:\\Temp"
-    const psFile = path.join(tmpDir, "hopcoderx-upgrade.ps1")
     await Bun.write(psFile, script)
 
     // Launch detached — survives after the current process exits
@@ -257,6 +525,7 @@ export namespace Installation {
       ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", psFile],
       { detached: true, stdio: ["ignore", "ignore", "ignore"] },
     ).unref()
+    return { scriptPath: psFile, logPath: logFile }
   }
 
   export const VERSION = typeof HOPCODERX_VERSION === "string" ? HOPCODERX_VERSION : "local"

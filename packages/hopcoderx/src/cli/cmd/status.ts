@@ -5,14 +5,10 @@
 
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
-import { Config } from "../../config/config"
-import { Provider } from "../../provider/provider"
-import { Auth } from "../../auth"
 import { Global } from "../../global"
-import { Installation } from "../../installation"
-import { Filesystem } from "../../util/filesystem"
-import path from "path"
 import { execSync } from "child_process"
+import { Instance } from "../../project/instance"
+import { getInstallationSummary, getRuntimeSummary } from "../diagnostics"
 
 function bold(s: string) { return `\x1b[1m${s}\x1b[0m` }
 function green(s: string) { return `\x1b[32m${s}\x1b[0m` }
@@ -30,6 +26,15 @@ function header(title: string) {
   console.log(`\n${bold(title)} ${dim(line)}`)
 }
 
+function readVersion(command: string, prefix?: string) {
+  try {
+    const value = execSync(command, { stdio: "pipe" }).toString().trim()
+    return prefix ? value.replace(prefix, "").trim() : value
+  } catch {
+    return undefined
+  }
+}
+
 export const StatusCommand = cmd({
   command: "status",
   describe: "show status of all HopCoderX integrations and services",
@@ -40,135 +45,152 @@ export const StatusCommand = cmd({
       default: false,
     }),
   handler: async (args) => {
-    const config = await Config.get()
-    const authAll = await Auth.all()
-    const env = process.env as Record<string, string | undefined>
+    await Instance.provide({
+      directory: process.cwd(),
+      fn: async () => {
+        const installation = await getInstallationSummary()
+        const runtime = await getRuntimeSummary()
+        const nodeVersion = readVersion("node --version 2>NUL || node --version 2>/dev/null")
+        const bunVersion = process.versions.bun ? `v${process.versions.bun}` : undefined
+        const gitVersion = readVersion("git --version 2>NUL || git --version 2>/dev/null", "git version ")
+        const providerList = runtime.provider.providerList
 
-    const statusData: Record<string, unknown> = {}
+        const statusData: Record<string, unknown> = {
+          version: installation.version,
+          dev: installation.dev,
+          ready: providerList.length > 0,
+          installation: {
+            version: installation.version,
+            dev: installation.dev,
+            method: installation.method,
+            launcherPath: installation.launcherPath,
+            shimConflicts: installation.shimConflicts,
+            logFile: installation.logFile,
+            logExists: installation.logExists,
+            directories: installation.directories,
+          },
+          providers: providerList,
+          provider: runtime.provider,
+          mcp: runtime.mcp,
+          auth: runtime.auth,
+          config: runtime.config,
+          daemon: runtime.daemon,
+          lsp: runtime.lsp,
+          environment: {
+            nodeVersion,
+            bunVersion,
+            gitVersion,
+          },
+        }
 
-    // ── Core ────────────────────────────────────────────────────────
-    header("HopCoderX")
-    console.log(`  Version      ${cyan(Installation.VERSION)}`)
-    console.log(`  Mode         ${Installation.isLocal() ? yellow("development") : green("production")}`)
-    console.log(`  Config dir   ${dim(Global.Path.config)}`)
-    console.log(`  Data dir     ${dim(Global.Path.data)}`)
+        // ── Core ────────────────────────────────────────────────────────
+        if (!args.json) {
+          header("HopCoderX")
+          console.log(`  Version      ${cyan(installation.version)}`)
+          console.log(`  Mode         ${installation.dev ? yellow("development") : green("production")}`)
+          console.log(`  Method       ${cyan(installation.method)}`)
+          console.log(`  Launcher     ${dim(installation.launcherPath)}`)
+          console.log(`  Config dir   ${dim(Global.Path.config)}`)
+          console.log(`  Data dir     ${dim(Global.Path.data)}`)
+          if (installation.shimConflicts.length > 0) {
+            for (const conflict of installation.shimConflicts) {
+              console.log(`  ${yellow("⚠")}  Broken ${conflict.manager} shim: ${dim(conflict.shimPath)}`)
+              console.log(`     ${dim(`Missing target: ${conflict.expectedTarget}`)}`)
+            }
+          }
+        }
 
-    statusData.version = Installation.VERSION
-    statusData.dev = Installation.isLocal()
+        // ── Providers ───────────────────────────────────────────────────
+        if (!args.json) {
+          header("Providers")
+          if (providerList.length === 0) {
+            console.log(`  ${yellow("⚠")}  No providers configured — run ${bold("hopcoderx auth")} or set an API key`)
+          } else {
+            for (const info of providerList) {
+              console.log(
+                `  ${green("●")}  ${bold(info.id)} ${dim(`(${info.source})`)} — ${info.models} model${info.models !== 1 ? "s" : ""}`,
+              )
+            }
+          }
+          const model = runtime.provider.activeModel
+          console.log(`\n  Active model  ${model ? cyan(model) : dim("(auto)")}`)
 
-    // ── Providers ───────────────────────────────────────────────────
-    header("Providers")
-    let providers: Awaited<ReturnType<typeof Provider.list>> = {}
-    try {
-      providers = await Provider.list()
-    } catch { /* not in instance context */ }
+          if (runtime.provider.failover.length > 0) {
+            console.log(`  Failover      ${runtime.provider.failover.join(dim(" → "))}`)
+          }
+        }
 
-    const providerList = Object.entries(providers)
-    if (providerList.length === 0) {
-      console.log(`  ${yellow("⚠")}  No providers configured — run ${bold("hopcoderx auth")} or set an API key`)
-    } else {
-      for (const [id, info] of providerList) {
-        const modelCount = Object.keys(info.models).length
-        console.log(`  ${green("●")}  ${bold(id)} ${dim(`(${info.source})`)} — ${modelCount} model${modelCount !== 1 ? "s" : ""}`)
-      }
-    }
-    statusData.providers = providerList.map(([id, info]) => ({ id, source: info.source, models: Object.keys(info.models).length }))
+        // ── MCP Servers ─────────────────────────────────────────────────
+        if (!args.json) {
+          header("MCP Servers")
+          if (runtime.mcp.count === 0) {
+            console.log(`  ${dim("○")}  No MCP servers configured`)
+          } else {
+            for (const server of runtime.mcp.servers) {
+              console.log(`  ${green("●")}  ${bold(server.name)} ${dim(`(${server.type})`)}`)
+            }
+          }
+        }
 
-    // Active model
-    const model = config.model
-    console.log(`\n  Active model  ${model ? cyan(model) : dim("(auto)")}`)
+        // ── Auth / API Keys ─────────────────────────────────────────────
+        if (!args.json) {
+          header("Authentication")
+          if (runtime.auth.count === 0) {
+            console.log(`  ${dim("○")}  No API keys stored`)
+          } else {
+            for (const entry of runtime.auth.entries) {
+              console.log(`  ${green("●")}  ${bold(entry.provider)} ${dim(`(${entry.type})`)}`)
+            }
+          }
+        }
 
-    // ── Failover chain ──────────────────────────────────────────────
-    const failover = (config as any).provider_failover as string[] | undefined
-    if (failover?.length) {
-      console.log(`  Failover      ${failover.join(dim(" → "))}`)
-    }
+        // ── Config ──────────────────────────────────────────────────────
+        if (!args.json) {
+          header("Configuration")
+          console.log(`  Global  ${statusBadge(runtime.config.globalExists)} ${dim(runtime.config.globalConfigPath)}`)
+          console.log(`  Project ${statusBadge(runtime.config.projectExists)} ${dim(runtime.config.projectConfigPath)}`)
 
-    // ── MCP Servers ─────────────────────────────────────────────────
-    header("MCP Servers")
-    const mcpServers = config.mcp ?? {}
-    const mcpCount = Object.keys(mcpServers).length
-    if (mcpCount === 0) {
-      console.log(`  ${dim("○")}  No MCP servers configured`)
-    } else {
-      for (const [name, server] of Object.entries(mcpServers)) {
-        const type = typeof server === "object" && server && "type" in server ? (server as any).type : "?"
-        console.log(`  ${green("●")}  ${bold(name)} ${dim(`(${type})`)}`)
-      }
-    }
-    statusData.mcp = { count: mcpCount }
+          if (runtime.config.plugins.length > 0) {
+            console.log(`  Plugins: ${runtime.config.plugins.join(", ")}`)
+          }
 
-    // ── Auth / API Keys ─────────────────────────────────────────────
-    header("Authentication")
-    const authCount = Object.keys(authAll).length
-    if (authCount === 0) {
-      console.log(`  ${dim("○")}  No API keys stored`)
-    } else {
-      for (const [provider, info] of Object.entries(authAll)) {
-        const type = (info as any).type === "oauth" ? "OAuth" : "API key"
-        console.log(`  ${green("●")}  ${bold(provider)} ${dim(`(${type})`)}`)
-      }
-    }
-    statusData.auth = { count: authCount }
+          if (runtime.config.instructionsCount > 0) {
+            console.log(`  Instructions: ${runtime.config.instructionsCount} source(s)`)
+          }
+        }
 
-    // ── Config ──────────────────────────────────────────────────────
-    header("Configuration")
-    const globalConfig = path.join(Global.Path.config, "hopcoderx.json")
-    const projectConfig = path.join(process.cwd(), "hopcoderx.json")
-    const globalExists = await Filesystem.exists(globalConfig)
-    const projectExists = await Filesystem.exists(projectConfig)
+        // ── Daemon / Background service ─────────────────────────────────
+        if (!args.json) {
+          header("Background Services")
+          console.log(
+            `  Daemon  ${statusBadge(runtime.daemon.running)}${runtime.daemon.running ? "" : dim(" — start with: hopcoderx serve")}`,
+          )
+        }
 
-    console.log(`  Global  ${statusBadge(globalExists)} ${dim(globalConfig)}`)
-    console.log(`  Project ${statusBadge(projectExists)} ${dim(projectConfig)}`)
+        // ── Git ─────────────────────────────────────────────────────────
+        if (!args.json) {
+          header("Environment")
+          if (nodeVersion) console.log(`  Node.js  ${green(nodeVersion)}`)
+          if (bunVersion) console.log(`  Bun      ${green(bunVersion)}`)
+          console.log(`  Git      ${gitVersion ? green(gitVersion) : red("not found")}`)
+        }
 
-    const plugins = config.plugin ?? []
-    if (plugins.length > 0) {
-      console.log(`  Plugins: ${plugins.join(", ")}`)
-    }
+        // ── Summary ─────────────────────────────────────────────────────
+        if (args.json) {
+          console.log(JSON.stringify(statusData, null, 2))
+          return
+        }
 
-    const instructions = config.instructions ?? []
-    if (instructions.length > 0) {
-      console.log(`  Instructions: ${instructions.length} source(s)`)
-    }
-
-    // ── Daemon / Background service ─────────────────────────────────
-    header("Background Services")
-    const daemonPidFile = path.join(Global.Path.state, "daemon.pid")
-    const daemonRunning = await Filesystem.exists(daemonPidFile)
-    console.log(`  Daemon  ${statusBadge(daemonRunning)}${daemonRunning ? "" : dim(" — start with: hopcoderx serve")}`)
-    statusData.daemon = { running: daemonRunning }
-
-    // ── Git ─────────────────────────────────────────────────────────
-    header("Environment")
-    try {
-      const nodeVer = execSync("node --version 2>NUL || node --version 2>/dev/null", { stdio: "pipe" }).toString().trim()
-      console.log(`  Node.js  ${green(nodeVer)}`)
-    } catch { }
-
-    const bunVer = process.versions.bun
-    if (bunVer) console.log(`  Bun      ${green("v" + bunVer)}`)
-
-    try {
-      const gitVer = execSync("git --version 2>NUL || git --version 2>/dev/null", { stdio: "pipe" })
-        .toString()
-        .replace("git version ", "")
-        .trim()
-      console.log(`  Git      ${green(gitVer)}`)
-    } catch {
-      console.log(`  Git      ${red("not found")}`)
-    }
-
-    // ── Summary ─────────────────────────────────────────────────────
-    console.log()
-    if (providerList.length === 0) {
-      console.log(yellow("⚠  No providers configured. Run: ") + bold("hopcoderx onboard") + yellow(" to get started."))
-    } else {
-      console.log(green("✓  Ready") + dim(` — ${providerList.length} provider(s) active`))
-    }
-    console.log()
-
-    if (args.json) {
-      console.log(JSON.stringify(statusData, null, 2))
-    }
+        console.log()
+        if (providerList.length === 0) {
+          console.log(
+            yellow("⚠  No providers configured. Run: ") + bold("hopcoderx onboard") + yellow(" to get started."),
+          )
+        } else {
+          console.log(green("✓  Ready") + dim(` — ${providerList.length} provider(s) active`))
+        }
+        console.log()
+      },
+    })
   },
 })
