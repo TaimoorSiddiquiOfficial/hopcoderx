@@ -224,7 +224,7 @@ export function DialogMcpRegistry() {
 
               setLoading(entry.name)
               try {
-                const config = McpRegistry.formatConfig(entry)
+                const config = { ...McpRegistry.formatConfig(entry), enabled: true }
                 await sdk.client.mcp.add({ name: entry.name, config })
 
                 const status = await sdk.client.mcp.status()
@@ -253,7 +253,7 @@ export function DialogMcpRegistry() {
             evt.stopPropagation()
             setLoading(entry.name)
             try {
-              const config = McpRegistry.formatConfig(entry)
+              const config = { ...McpRegistry.formatConfig(entry), enabled: true }
               await sdk.client.mcp.add({ name: entry.name, config })
               const status = await sdk.client.mcp.status()
               if (status.data) {
