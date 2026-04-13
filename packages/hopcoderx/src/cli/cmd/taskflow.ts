@@ -14,6 +14,8 @@ import type { Argv } from "yargs"
 import { cmd } from "./cmd"
 import { TaskFlowRegistry, type TaskStep } from "../../task/taskflow"
 import { execSync } from "child_process"
+import * as prompts from "@clack/prompts"
+import { UI } from "../ui"
 
 const STATUS_ICON: Record<string, string> = {
   pending: "⏳",
@@ -42,80 +44,135 @@ export const TaskflowCommand = cmd({
     const action = (args.action as string) ?? "list"
 
     if (action === "list") {
+      UI.empty()
+      prompts.intro("Task Flows")
       const status = args.status as string | undefined
       const flows = await TaskFlowRegistry.list(status as any)
       if (flows.length === 0) {
-        console.log("No task flows found.")
+        prompts.log.info("No task flows found")
+        prompts.log.info("Create one with: hopcoderx taskflow create --name <name> --steps '<json>'")
+        prompts.outro("Done")
         return
       }
-      console.log(`Task flows (${flows.length}):`)
+      prompts.log.info(`Found ${flows.length} task flow(s):\n`)
       for (const f of flows) {
         const done = f.steps.filter((s) => s.status === "done").length
-        console.log(`  ${STATUS_ICON[f.status]} ${f.id.padEnd(28)} ${f.name.padEnd(30)} [${done}/${f.steps.length} steps]`)
+        prompts.log.info(`  ${STATUS_ICON[f.status]} ${f.name}\n    ${UI.Style.TEXT_DIM}ID: ${f.id} | ${done}/${f.steps.length} steps${UI.Style.TEXT_NORMAL}`)
       }
+      prompts.outro(`${flows.length} flow(s)`)
       return
     }
 
     if (action === "status") {
+      UI.empty()
+      prompts.intro("Task Flow Status")
       const id = args.id as string | undefined
-      if (!id) { console.error("--id required"); process.exit(1) }
-      const flow = await TaskFlowRegistry.get(id)
-      if (!flow) { console.error(`Flow not found: ${id}`); process.exit(1) }
-      console.log(`Flow: ${flow.name} (${flow.id})`)
-      console.log(`Status: ${STATUS_ICON[flow.status]} ${flow.status}`)
-      if (flow.description) console.log(`Description: ${flow.description}`)
-      console.log(`Steps (${flow.steps.length}):`)
-      for (const step of flow.steps) {
-        const dep = step.dependsOn.length ? ` [deps: ${step.dependsOn.join(",")}]` : ""
-        console.log(`  ${STATUS_ICON[step.status]} ${step.id.padEnd(20)} ${step.name}${dep}`)
-        if (step.error) console.log(`    Error: ${step.error}`)
-        if (step.output) console.log(`    Output: ${step.output.slice(0, 100)}`)
+      if (!id) {
+        prompts.log.error("--id required")
+        prompts.outro("Failed")
+        process.exit(1)
       }
+      const flow = await TaskFlowRegistry.get(id)
+      if (!flow) {
+        prompts.log.error(`Flow not found: ${id}`)
+        prompts.outro("Failed")
+        process.exit(1)
+      }
+      prompts.log.info(`Flow: ${flow.name} ${UI.Style.TEXT_DIM}(${flow.id})${UI.Style.TEXT_NORMAL}`)
+      prompts.log.info(`Status: ${STATUS_ICON[flow.status]} ${flow.status}`)
+      if (flow.description) prompts.log.info(`Description: ${flow.description}`)
+      prompts.log.info(`\nSteps (${flow.steps.length}):\n`)
+      for (const step of flow.steps) {
+        const dep = step.dependsOn.length ? ` ${UI.Style.TEXT_DIM}[deps: ${step.dependsOn.join(",")}]${UI.Style.TEXT_NORMAL}` : ""
+        prompts.log.info(`  ${STATUS_ICON[step.status]} ${step.name}${dep}`)
+        if (step.error) prompts.log.error(`    Error: ${step.error}`)
+        if (step.output) prompts.log.info(`    Output: ${step.output.slice(0, 100)}${step.output.length > 100 ? "..." : ""}`)
+      }
+      prompts.outro("Done")
       return
     }
 
     if (action === "run") {
+      UI.empty()
+      prompts.intro("Run Task Flow")
       const id = args.id as string | undefined
-      if (!id) { console.error("--id required"); process.exit(1) }
+      if (!id) {
+        prompts.log.error("--id required")
+        prompts.outro("Failed")
+        process.exit(1)
+      }
       const flow = await TaskFlowRegistry.get(id)
-      if (!flow) { console.error(`Flow not found: ${id}`); process.exit(1) }
-      console.log(`Running flow: ${flow.name} …`)
-      await TaskFlowRegistry.executeReady(id, async (step: TaskStep) => {
-        console.log(`  ▶ ${step.name}: ${step.command}`)
-        try {
-          const out = execSync(step.command, { encoding: "utf8", timeout: step.timeoutMs || 60000 })
-          console.log(`  ✅ done`)
-          return out.slice(0, 2000)
-        } catch (e: any) {
-          throw new Error(e.stderr?.toString() || e.message)
+      if (!flow) {
+        prompts.log.error(`Flow not found: ${id}`)
+        prompts.outro("Failed")
+        process.exit(1)
+      }
+      prompts.log.info(`Running flow: ${flow.name}…`)
+      const spinner = prompts.spinner()
+      spinner.start("Executing steps")
+      try {
+        await TaskFlowRegistry.executeReady(id, async (step: TaskStep) => {
+          spinner.message(`${step.name}`)
+          try {
+            const out = execSync(step.command, { encoding: "utf8", timeout: step.timeoutMs || 60000 })
+            return out.slice(0, 2000)
+          } catch (e: any) {
+            throw new Error(e.stderr?.toString() || e.message)
+          }
+        })
+        const updated = await TaskFlowRegistry.get(id)
+        spinner.stop()
+        if (updated?.status === "done") {
+          prompts.log.success("Flow completed successfully")
+        } else {
+          prompts.log.warn(`Flow ended with status: ${updated?.status}`)
         }
-      })
-      const updated = await TaskFlowRegistry.get(id)
-      console.log(`\nFlow ${updated?.status === "done" ? "✅ completed" : `❌ ended with status: ${updated?.status}`}`)
+      } catch (error) {
+        spinner.stop()
+        prompts.log.error(error instanceof Error ? error.message : String(error))
+        prompts.outro("Failed")
+        return
+      }
+      prompts.outro("Done")
       return
     }
 
     if (action === "delete") {
+      UI.empty()
+      prompts.intro("Delete Task Flow")
       const id = args.id as string | undefined
-      if (!id) { console.error("--id required"); process.exit(1) }
+      if (!id) {
+        prompts.log.error("--id required")
+        prompts.outro("Failed")
+        process.exit(1)
+      }
       if (args.dryRun) {
-        console.log(`[dry-run] Would delete flow: ${id}`)
+        prompts.log.info(`[dry-run] Would delete flow: ${id}`)
+        prompts.outro("Dry run complete")
         return
       }
       await TaskFlowRegistry.delete(id)
-      console.log(`Deleted flow: ${id}`)
+      prompts.log.success(`Deleted flow: ${id}`)
+      prompts.outro("Done")
       return
     }
 
     if (action === "create") {
+      UI.empty()
+      prompts.intro("Create Task Flow")
       const name = args.name as string | undefined
       const stepsJson = args.steps as string | undefined
-      if (!name || !stepsJson) { console.error("--name and --steps required"); process.exit(1) }
+      if (!name || !stepsJson) {
+        prompts.log.error("--name and --steps required")
+        prompts.outro("Failed")
+        process.exit(1)
+      }
       let steps: TaskStep[]
       try {
         steps = JSON.parse(stepsJson)
       } catch {
-        console.error("--steps must be valid JSON array")
+        prompts.log.error("--steps must be valid JSON array")
+        prompts.outro("Failed")
         process.exit(1)
       }
       const tags = ((args.tags as string) ?? "").split(",").map((t) => t.trim()).filter(Boolean)
@@ -134,12 +191,14 @@ export const TaskflowCommand = cmd({
         })),
         tags,
       })
-      console.log(`✅ Created flow: ${flow.id}`)
-      console.log(`Run it with: hopcoderx taskflow run --id ${flow.id}`)
+      prompts.log.success(`Created flow: ${flow.id}`)
+      prompts.log.info(`Run it with: hopcoderx taskflow run --id ${flow.id}`)
+      prompts.outro("Done")
       return
     }
 
-    console.error(`Unknown action: ${action}`)
+    prompts.log.error(`Unknown action: ${action}`)
+    prompts.outro("Failed")
     process.exit(1)
   },
 })

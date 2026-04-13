@@ -21,6 +21,8 @@ import { MemoryPlugin } from "../../memory/memory"
 import { SQLiteMemory } from "../../memory/sqlite"
 import { runDreaming, readDreamLog } from "../../memory/dreaming"
 import { teamMemory } from "../../memory/team"
+import * as prompts from "@clack/prompts"
+import { UI } from "../ui"
 
 async function initMemory() {
   if (!MemoryPlugin.isActive()) {
@@ -70,116 +72,164 @@ export const MemoryCommand = cmd({
 
     switch (args.action ?? "") {
       case "add": {
+        UI.empty()
+        prompts.intro("Add Memory")
         const content = args.content ?? args.query
-        if (!content) { console.error("Provide content with --content or as argument"); process.exit(1) }
+        if (!content) {
+          prompts.log.error("Provide content with --content or as argument")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
         const entry = await mem.upsert({
           content,
           tags,
           projectScope: args.project ? projectScope : null,
           score: args.score ?? 1.0,
         })
-        console.log(`✅ Memory stored  id=${entry.id}`)
+        prompts.log.success(`Memory stored  id=${entry.id}`)
+        prompts.outro("Done")
         break
       }
 
       case "search": {
+        UI.empty()
+        prompts.intro("Search Memories")
         const query = args.query ?? args.content
-        if (!query) { console.error("Provide a search query with --query"); process.exit(1) }
+        if (!query) {
+          prompts.log.error("Provide a search query with --query")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
         const results = await mem.search(query, {
           limit: 10,
           projectScope: args.project ? projectScope : undefined,
           tags: tags.length ? tags : undefined,
         })
-        if (results.length === 0) { console.log("No memories found."); break }
-        console.log(`\n🔍 Search results for "${query}":\n`)
+        if (results.length === 0) {
+          prompts.log.info("No memories found")
+          prompts.outro("Done")
+          break
+        }
+        prompts.log.info(`\nSearch results for "${query}":\n`)
         for (const r of results) {
           const score = (r.similarity * 100).toFixed(0)
           const proj = r.entry.projectScope ? ` [${r.entry.projectScope.split(/[\\/]/).pop()}]` : " [global]"
-          console.log(`  ${r.entry.id.slice(0, 8)}  ${score}%${proj}  ${r.entry.content.slice(0, 120)}`)
-          if (r.entry.tags.length) console.log(`         tags: ${r.entry.tags.join(", ")}`)
+          prompts.log.info(`  ${r.entry.id.slice(0, 8)}  ${score}%${proj}  ${r.entry.content.slice(0, 120)}`)
+          if (r.entry.tags.length) prompts.log.info(`         tags: ${r.entry.tags.join(", ")}`)
         }
+        prompts.outro(`${results.length} result(s)`)
         break
       }
 
       case "list": {
+        UI.empty()
+        prompts.intro("Memories")
         const entries = await mem.list({
           projectScope: args.project ? projectScope : undefined,
           tags: tags.length ? tags : undefined,
           limit: 50,
         })
-        if (entries.length === 0) { console.log("No memories found."); break }
-        console.log(`\n📋 Memories (${entries.length}):\n`)
+        if (entries.length === 0) {
+          prompts.log.info("No memories found")
+          prompts.outro("Done")
+          break
+        }
+        prompts.log.info(`\nMemories (${entries.length}):\n`)
         for (const e of entries) {
           const proj = e.projectScope ? e.projectScope.split(/[\\/]/).pop() : "global"
           const date = new Date(e.updatedAt).toLocaleDateString()
-          console.log(`  ${e.id.slice(0, 8)}  [${proj}]  ${date}  score=${e.score}`)
-          console.log(`         ${e.content.slice(0, 100)}`)
-          if (e.tags.length) console.log(`         tags: ${e.tags.join(", ")}`)
+          prompts.log.info(`  ${e.id.slice(0, 8)}  [${proj}]  ${date}  score=${e.score}`)
+          prompts.log.info(`         ${e.content.slice(0, 100)}`)
+          if (e.tags.length) prompts.log.info(`         tags: ${e.tags.join(", ")}`)
         }
+        prompts.outro(`${entries.length} memory(ies)`)
         break
       }
 
       case "delete": {
-        if (!args.id) { console.error("Provide --id of the memory to delete"); process.exit(1) }
+        UI.empty()
+        prompts.intro("Delete Memory")
+        if (!args.id) {
+          prompts.log.error("Provide --id of the memory to delete")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
         if (args["dry-run"]) {
-          console.log(`[dry-run] Would delete memory ${args.id}`)
+          prompts.log.info(`[dry-run] Would delete memory ${args.id}`)
+          prompts.outro("Dry run complete")
           break
         }
         await mem.delete(args.id)
-        console.log(`🗑  Memory ${args.id} deleted.`)
+        prompts.log.success(`Memory ${args.id} deleted`)
+        prompts.outro("Done")
         break
       }
 
       case "export": {
+        UI.empty()
+        prompts.intro("Export Memories")
         const all = await mem.export()
-        console.log(JSON.stringify(all, null, 2))
+        process.stdout.write(JSON.stringify(all, null, 2) + "\n")
+        prompts.outro(`${all.length} memory(ies) exported`)
         break
       }
 
       case "clear": {
+        UI.empty()
+        prompts.intro("Clear Memories")
         if (args["dry-run"]) {
           const entries = await mem.list()
-          console.log(`[dry-run] Would clear ${entries.length} memories`)
+          prompts.log.info(`[dry-run] Would clear ${entries.length} memories`)
+          prompts.outro("Dry run complete")
           break
         }
         await mem.clear()
-        console.log("🧹 All memories cleared.")
+        prompts.log.success("All memories cleared")
+        prompts.outro("Done")
         break
       }
 
       case "stats": {
+        UI.empty()
+        prompts.intro("Memory Stats")
         const all = await mem.list()
         const projects = new Set(all.map((e) => e.projectScope).filter(Boolean))
         const globalCount = all.filter((e) => !e.projectScope).length
-        console.log(`\n📊 Memory Stats`)
-        console.log(`  Total entries : ${all.length}`)
-        console.log(`  Projects      : ${projects.size}`)
-        console.log(`  Global        : ${globalCount}`)
+        prompts.log.info(`\nTotal entries : ${all.length}`)
+        prompts.log.info(`Projects      : ${projects.size}`)
+        prompts.log.info(`Global        : ${globalCount}`)
         const tagCounts: Record<string, number> = {}
         for (const e of all) { for (const t of e.tags) { tagCounts[t] = (tagCounts[t] ?? 0) + 1 } }
         const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
         if (topTags.length) {
-          console.log(`  Top tags      : ${topTags.map(([t, n]) => `${t}(${n})`).join(", ")}`)
+          prompts.log.info(`Top tags      : ${topTags.map(([t, n]) => `${t}(${n})`).join(", ")}`)
         }
+        prompts.outro("Done")
         break
       }
 
       case "dream": {
-        console.log("🌙 Running memory consolidation (dreaming)…")
+        UI.empty()
+        prompts.intro("Memory Consolidation")
+        prompts.log.info("Running memory consolidation (dreaming)…")
+        const spinner = prompts.spinner()
+        spinner.start("Processing")
         const report = await runDreaming()
-        console.log(`✅ Done in ${report.durationMs}ms`)
-        console.log(`  Merged   : ${report.merged}`)
-        console.log(`  Decayed  : ${report.decayed}`)
-        console.log(`  Insights : ${report.insights.length}`)
-        for (const insight of report.insights) console.log(`    💡 ${insight}`)
+        spinner.stop()
+        prompts.log.success(`Done in ${report.durationMs}ms`)
+        prompts.log.info(`  Merged   : ${report.merged}`)
+        prompts.log.info(`  Decayed  : ${report.decayed}`)
+        prompts.log.info(`  Insights : ${report.insights.length}`)
+        for (const insight of report.insights) prompts.log.info(`    💡 ${insight}`)
         const history = await readDreamLog(5)
         if (history.length > 1) {
-          console.log(`\nLast ${history.length} dream runs:`)
+          prompts.log.info(`\nLast ${history.length} dream runs:`)
           for (const r of history.slice(0, -1).reverse()) {
             const d = new Date(r.timestamp).toLocaleString()
-            console.log(`  ${d}  merged=${r.merged} decayed=${r.decayed}`)
+            prompts.log.info(`  ${d}  merged=${r.merged} decayed=${r.decayed}`)
           }
         }
+        prompts.outro("Done")
         break
       }
 
@@ -189,25 +239,38 @@ export const MemoryCommand = cmd({
       }
 
       case "sync": {
+        UI.empty()
+        prompts.intro("Team Memory Sync")
         teamMemory.configure({
           syncUrl: args["sync-url"],
           syncKey: args["sync-key"],
         })
         if (!teamMemory.isConfigured()) {
-          console.error("Team sync not configured. Set HOPCODERX_TEAM_SYNC_URL and HOPCODERX_TEAM_SYNC_KEY, or pass --sync-url / --sync-key.")
+          prompts.log.error("Team sync not configured. Set HOPCODERX_TEAM_SYNC_URL and HOPCODERX_TEAM_SYNC_KEY, or pass --sync-url / --sync-key.")
+          prompts.outro("Failed")
           process.exit(1)
         }
-        console.log("🔄 Syncing with team memory server…")
+        prompts.log.info("Syncing with team memory server…")
+        const spinner = prompts.spinner()
+        spinner.start("Syncing")
         const result = await teamMemory.sync()
-        console.log(`✅ Sync complete`)
-        console.log(`  Pushed    : ${result.pushed}`)
-        console.log(`  Pulled    : ${result.pulled}`)
-        console.log(`  Conflicts : ${result.conflicts}`)
+        spinner.stop()
+        prompts.log.success("Sync complete")
+        prompts.log.info(`  Pushed    : ${result.pushed}`)
+        prompts.log.info(`  Pulled    : ${result.pulled}`)
+        prompts.log.info(`  Conflicts : ${result.conflicts}`)
+        prompts.outro("Done")
+        break
+      }
+
+      case "panel": {
+        await runMemoryPanel()
         break
       }
 
       default:
-        console.error(`Unknown action: ${args.action}`)
+        prompts.log.error(`Unknown action: ${args.action}`)
+        prompts.outro("Failed")
         process.exit(1)
     }
   },
