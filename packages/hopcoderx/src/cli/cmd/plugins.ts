@@ -8,6 +8,10 @@ import { Filesystem } from "../../util/filesystem"
 import path from "path"
 import { Global } from "../../global"
 import { modify, applyEdits } from "jsonc-parser"
+import { exec } from "child_process"
+import { promisify } from "util"
+import { Log } from "../../util/log"
+const execAsync = promisify(exec)
 
 export const PluginsCommand = cmd({
   command: "plugins",
@@ -108,25 +112,33 @@ export const PluginsInstallCommand = cmd({
         const spinner = prompts.spinner()
         spinner.start(`Installing ${args.plugin}`)
 
-        // Simulate plugin installation (actual implementation would fetch from registry)
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        try {
+          // Run bun add to install the plugin
+          const command = `bun add ${args.plugin}${args.global ? " --global" : ""}`
+          await execAsync(command, { cwd: process.cwd() })
 
-        plugins.push(args.plugin)
-        config.plugins = plugins
+          // Update config after successful install
+          plugins.push(args.plugin)
+          config.plugins = plugins
 
-        const edits = modify(configContent, ["plugins"], plugins, {
-          formattingOptions: { tabSize: 2, insertSpaces: true },
-        })
+          const edits = modify(configContent, ["plugins"], plugins, {
+            formattingOptions: { tabSize: 2, insertSpaces: true },
+          })
 
-        if (edits.length > 0) {
-          const result = applyEdits(configContent, edits)
-          await Filesystem.write(configPath, result)
+          if (edits.length > 0) {
+            const result = applyEdits(configContent, edits)
+            await Filesystem.write(configPath, result)
+          }
+
+          spinner.stop()
+          prompts.log.success(`Plugin ${args.plugin} installed successfully`)
+          prompts.log.info(`Edit ${configPath} to configure the plugin`)
+          prompts.outro("Done")
+        } catch (error) {
+          spinner.stop()
+          prompts.log.error(`Failed to install plugin: ${error instanceof Error ? error.message : String(error)}`)
+          prompts.outro("Failed")
         }
-
-        spinner.stop()
-        prompts.log.success(`Plugin ${args.plugin} installed successfully`)
-        prompts.log.info(`Edit ${configPath} to configure the plugin`)
-        prompts.outro("Done")
       },
     })
   },
@@ -193,24 +205,35 @@ export const PluginsUninstallCommand = cmd({
         const spinner = prompts.spinner()
         spinner.start(`Uninstalling ${args.plugin}`)
 
-        const index = plugins.indexOf(args.plugin)
-        if (index > -1) {
-          plugins.splice(index, 1)
+        try {
+          // Run bun remove to uninstall the plugin
+          const command = `bun remove ${args.plugin}${args.global ? " --global" : ""}`
+          await execAsync(command, { cwd: process.cwd() })
+
+          // Update config after successful uninstall
+          const index = plugins.indexOf(args.plugin)
+          if (index > -1) {
+            plugins.splice(index, 1)
+          }
+          config.plugins = plugins
+
+          const edits = modify(configContent, ["plugins"], plugins, {
+            formattingOptions: { tabSize: 2, insertSpaces: true },
+          })
+
+          if (edits.length > 0) {
+            const result = applyEdits(configContent, edits)
+            await Filesystem.write(configPath, result)
+          }
+
+          spinner.stop()
+          prompts.log.success(`Plugin ${args.plugin} uninstalled successfully`)
+          prompts.outro("Done")
+        } catch (error) {
+          spinner.stop()
+          prompts.log.error(`Failed to uninstall plugin: ${error instanceof Error ? error.message : String(error)}`)
+          prompts.outro("Failed")
         }
-        config.plugins = plugins
-
-        const edits = modify(configContent, ["plugins"], plugins, {
-          formattingOptions: { tabSize: 2, insertSpaces: true },
-        })
-
-        if (edits.length > 0) {
-          const result = applyEdits(configContent, edits)
-          await Filesystem.write(configPath, result)
-        }
-
-        spinner.stop()
-        prompts.log.success(`Plugin ${args.plugin} uninstalled successfully`)
-        prompts.outro("Done")
       },
     })
   },
