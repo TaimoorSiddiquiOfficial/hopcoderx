@@ -7,6 +7,7 @@ import { Instance } from "../../project/instance"
 import { Filesystem } from "../../util/filesystem"
 import path from "path"
 import { Global } from "../../global"
+import { getTelemetryData, clearTelemetryData } from "../../telemetry/storage"
 
 export const TelemetryCommand = cmd({
   command: "telemetry",
@@ -17,6 +18,7 @@ export const TelemetryCommand = cmd({
       .command(TelemetryEnableCommand)
       .command(TelemetryDisableCommand)
       .command(TelemetryDataCommand)
+      .command(TelemetryClearCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -151,49 +153,77 @@ export const TelemetryDataCommand = cmd({
           return
         }
 
-        // Note: Actual telemetry data storage and retrieval would be implemented here
-        // For now, we show what types of data would be collected
-
-        const telemetryInfo = {
-          enabled: true,
-          description: "HopCoderX collects the following anonymous usage data:",
-          dataTypes: [
-            "Command usage (which commands are run, not their arguments)",
-            "Session duration",
-            "Model provider selection (not prompts or responses)",
-            "Error rates and crash reports",
-            "Feature adoption metrics",
-          ],
-          notCollected: [
-            "Source code or file contents",
-            "API keys or credentials",
-            "Prompts sent to AI models",
-            "AI model responses",
-            "Personal or sensitive information",
-          ],
-        }
+        // Get actual telemetry data
+        const events = await getTelemetryData()
 
         if (args.json) {
-          process.stdout.write(JSON.stringify(telemetryInfo, null, 2) + "\n")
+          process.stdout.write(JSON.stringify({ enabled: true, events }, null, 2) + "\n")
           return
         }
 
         UI.empty()
         prompts.intro("Telemetry Data")
 
-        prompts.log.info("\nHopCoderX collects the following anonymous usage data:")
-        for (const item of telemetryInfo.dataTypes) {
-          prompts.log.info(`  ✓ ${item}`)
+        if (events.length === 0) {
+          prompts.log.info("No telemetry events collected yet")
+          prompts.log.info("\nHopCoderX collects the following anonymous usage data:")
+          prompts.log.info("  • Command usage (which commands are run, not their arguments)")
+          prompts.log.info("  • Session duration")
+          prompts.log.info("  • Model provider selection (not prompts or responses)")
+          prompts.log.info("  • Error rates and crash reports")
+          prompts.log.info("  • Feature adoption metrics")
+          prompts.log.info("\nWe do NOT collect:")
+          prompts.log.info("  • Source code or file contents")
+          prompts.log.info("  • API keys or credentials")
+          prompts.log.info("  • Prompts sent to AI models")
+          prompts.log.info("  • AI model responses")
+          prompts.log.info("  • Personal or sensitive information")
+          prompts.outro("Done")
+          return
         }
 
-        prompts.log.info("\nWe do NOT collect:")
-        for (const item of telemetryInfo.notCollected) {
-          prompts.log.info(`  ✗ ${item}`)
+        prompts.log.info(`Found ${events.length} telemetry event(s):\n`)
+        for (const event of events.slice(-10)) {
+          // Show last 10 events
+          prompts.log.info(`  ${UI.Style.TEXT_DIM}${event.timestamp}${UI.Style.TEXT_NORMAL} ${event.event}`)
+          if (event.properties && Object.keys(event.properties).length > 0) {
+            prompts.log.info(`    ${UI.Style.TEXT_DIM}${JSON.stringify(event.properties)}${UI.Style.TEXT_NORMAL}`)
+          }
         }
 
-        prompts.log.info("\nFor more details, see our privacy policy at:")
-        prompts.log.info("  https://hopcoder.dev/legal/privacy-policy")
+        if (events.length > 10) {
+          prompts.log.info(`\n  ... and ${events.length - 10} more events`)
+        }
 
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
+export const TelemetryClearCommand = cmd({
+  command: "clear",
+  describe: "clear all stored telemetry data",
+  async handler() {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Clear Telemetry Data")
+
+        const confirm = await prompts.confirm({
+          message: "Are you sure you want to clear all telemetry data?",
+          initialValue: false,
+        })
+
+        if (prompts.isCancel(confirm) || !confirm) {
+          prompts.outro("Cancelled")
+          return
+        }
+
+        await clearTelemetryData()
+
+        prompts.log.success("All telemetry data has been cleared")
         prompts.outro("Done")
       },
     })
