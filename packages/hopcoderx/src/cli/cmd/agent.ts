@@ -249,9 +249,69 @@ const AgentListCommand = cmd({
   },
 })
 
+const AgentDeleteCommand = cmd({
+  command: "delete <name>",
+  describe: "delete an agent",
+  builder: (yargs: Argv) =>
+    yargs.positional("name", {
+      describe: "name of the agent to delete",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Delete Agent")
+
+        const agents = await Agent.list()
+        const agent = agents.find((a) => a.name === args.name)
+
+        if (!agent) {
+          prompts.log.error(`Agent not found: ${args.name}`)
+          prompts.outro("Done")
+          return
+        }
+
+        if (agent.native) {
+          prompts.log.error("Cannot delete native agents")
+          prompts.outro("Done")
+          return
+        }
+
+        const confirm = await prompts.confirm({
+          message: `Are you sure you want to delete agent "${args.name}"?`,
+        })
+
+        if (prompts.isCancel(confirm) || !confirm) {
+          prompts.outro("Cancelled")
+          return
+        }
+
+        // Native agents cannot be deleted (already checked above)
+        // Custom agents are stored in .hopcoderx/agent/ directory
+        const agentDir = path.join(Instance.worktree, ".hopcoderx", "agent")
+        const filePath = path.join(agentDir, `${args.name}.md`)
+        try {
+          await fs.unlink(filePath)
+          prompts.log.success(`Agent deleted: ${filePath}`)
+        } catch (error) {
+          prompts.log.error(`Failed to delete agent: ${error instanceof Error ? error.message : String(error)}`)
+          prompts.outro("Done")
+          return
+        }
+
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
 export const AgentCommand = cmd({
   command: "agent",
   describe: "manage agents",
-  builder: (yargs) => yargs.command(AgentCreateCommand).command(AgentListCommand).demandCommand(),
+  builder: (yargs) =>
+    yargs.command(AgentCreateCommand).command(AgentListCommand).command(AgentDeleteCommand).demandCommand(),
   async handler() {},
 })

@@ -40,13 +40,13 @@ export const MemoryCommand = cmd({
       .positional("action", {
         describe: "Action to perform",
         type: "string",
-        choices: ["add", "search", "list", "delete", "export", "clear", "stats", "dream", "panel", "sync"] as const,
+        choices: ["add", "search", "list", "delete", "export", "clear", "stats", "dream", "panel", "sync", "edit", "tag"] as const,
       })
       .option("content", { alias: "c", type: "string", description: "Memory content to store" })
       .option("query",   { alias: "q", type: "string", description: "Search query" })
       .option("tags",    { alias: "t", type: "array",  description: "Tags to filter or apply" })
       .option("project", { alias: "p", type: "boolean", description: "Scope to current project", default: false })
-      .option("id",      { type: "string", description: "Memory ID (for delete)" })
+      .option("id",      { type: "string", description: "Memory ID (for delete/edit/tag)" })
       .option("global",  { alias: "g", type: "boolean", description: "Store as global (not project-scoped)", default: false })
       .option("score",   { type: "number", description: "Importance score 0-10", default: 1.0 })
       .option("sync-url", { type: "string", description: "Team sync server URL (or set HOPCODERX_TEAM_SYNC_URL)" })
@@ -265,6 +265,75 @@ export const MemoryCommand = cmd({
 
       case "panel": {
         await runMemoryPanel()
+        break
+      }
+
+      case "edit": {
+        UI.empty()
+        prompts.intro("Edit Memory")
+        if (!args.id) {
+          prompts.log.error("Provide --id of the memory to edit")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
+        const content = args.content ?? args.query
+        if (!content) {
+          prompts.log.error("Provide new content with --content or as argument")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
+        if (args["dry-run"]) {
+          prompts.log.info(`[dry-run] Would update memory ${args.id}`)
+          prompts.outro("Dry run complete")
+          break
+        }
+        const entry = await mem.upsert({
+          id: args.id,
+          content,
+          tags,
+          projectScope: args.project ? projectScope : null,
+          score: args.score ?? 1.0,
+        })
+        prompts.log.success(`Memory ${args.id} updated`)
+        prompts.outro("Done")
+        break
+      }
+
+      case "tag": {
+        UI.empty()
+        prompts.intro("Tag Memory")
+        if (!args.id) {
+          prompts.log.error("Provide --id of the memory to tag")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
+        if (tags.length === 0) {
+          prompts.log.error("Provide tags with --tags")
+          prompts.outro("Failed")
+          process.exit(1)
+        }
+        // Fetch existing memory to preserve content and score
+        const existing = await mem.list({ limit: 1000 })
+        const existingEntry = existing.find((e) => e.id === args.id)
+        if (!existingEntry) {
+          prompts.log.error(`Memory ${args.id} not found`)
+          prompts.outro("Failed")
+          process.exit(1)
+        }
+        if (args["dry-run"]) {
+          prompts.log.info(`[dry-run] Would add tags to memory ${args.id}: ${tags.join(", ")}`)
+          prompts.outro("Dry run complete")
+          break
+        }
+        const entry = await mem.upsert({
+          id: args.id,
+          content: existingEntry.content,
+          tags: [...new Set([...existingEntry.tags, ...tags])], // merge tags
+          projectScope: existingEntry.projectScope,
+          score: existingEntry.score,
+        })
+        prompts.log.success(`Tags added to memory ${args.id}: ${tags.join(", ")}`)
+        prompts.outro("Done")
         break
       }
 

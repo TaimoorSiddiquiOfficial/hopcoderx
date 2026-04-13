@@ -17,6 +17,7 @@ export const WorktreeCommand = cmd({
       .command(WorktreeSwitchCommand)
       .command(WorktreeDiffCommand)
       .command(WorktreePruneCommand)
+      .command(WorktreeRenameCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -221,6 +222,56 @@ export const WorktreePruneCommand = cmd({
       const result = await $`git worktree prune --verbose`.quiet().nothrow()
       const out = new TextDecoder().decode(result.stdout).trim()
       UI.println(out || "✓ Nothing to prune")
+    })
+  },
+})
+
+export const WorktreeRenameCommand = cmd({
+  command: "rename <oldName> <newName>",
+  describe: "rename a worktree",
+  builder: (yargs: Argv) =>
+    yargs
+      .positional("oldName", {
+        describe: "current name of the worktree",
+        type: "string",
+        demandOption: true,
+      })
+      .positional("newName", {
+        describe: "new name for the worktree",
+        type: "string",
+        demandOption: true,
+      }),
+  handler: async (args) => {
+    await bootstrap(process.cwd(), async () => {
+      const result = await $`git worktree list --porcelain`.quiet().nothrow()
+      const lines = new TextDecoder().decode(result.stdout).split("\n")
+      const worktrees: { path: string; branch: string }[] = []
+      let cur: { path?: string; branch?: string } = {}
+      for (const l of lines) {
+        if (l.startsWith("worktree ")) {
+          if (cur.path && cur.branch) worktrees.push({ path: cur.path, branch: cur.branch })
+          cur = { path: l.slice(9).trim() }
+        } else if (l.startsWith("branch ")) {
+          cur.branch = l.slice(15).trim()
+        }
+      }
+      if (cur.path && cur.branch) worktrees.push({ path: cur.path, branch: cur.branch })
+
+      const oldWorktree = worktrees.find((w) => w.branch === `refs/heads/${args.oldName}`)
+      if (!oldWorktree) {
+        UI.error(`Worktree not found: ${args.oldName}`)
+        process.exit(1)
+      }
+
+      const pathParts = oldWorktree.path.split(/[\\/]/)
+      const parentDir = pathParts.slice(0, -1).join("/")
+      const newPath = `${parentDir}/${args.newName}`
+
+      await $`git worktree move ${oldWorktree.path} ${newPath}`.quiet()
+
+      UI.println(
+        `${UI.Style.TEXT_SUCCESS_BOLD}Renamed worktree${UI.Style.TEXT_NORMAL} from ${args.oldName} to ${args.newName}`,
+      )
     })
   },
 })

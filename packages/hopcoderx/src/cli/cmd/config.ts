@@ -20,6 +20,8 @@ export const ConfigCommand = cmd({
       .command(ConfigEditCommand)
       .command(ConfigValidateCommand)
       .command(ConfigListCommand)
+      .command(ConfigResetCommand)
+      .command(ConfigDiffCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -314,6 +316,143 @@ export const ConfigListCommand = cmd({
         }
 
         prompts.outro(`Total: ${Object.keys(config).length} configuration keys`)
+      },
+    })
+  },
+})
+
+export const ConfigResetCommand = cmd({
+  command: "reset [key]",
+  describe: "reset configuration to defaults",
+  builder: (yargs: Argv) =>
+    yargs
+      .positional("key", {
+        describe: "specific key to reset (omit to reset all)",
+        type: "string",
+      })
+      .option("global", {
+        type: "boolean",
+        describe: "reset global config instead of project config",
+        default: false,
+      }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Config Reset")
+
+        const configPath = args.global
+          ? path.join(Global.Path.config, "hopcoderx.json")
+          : path.join(Instance.worktree, "hopcoderx.json")
+
+        if (!(await Filesystem.exists(configPath))) {
+          prompts.log.warn("No config file found to reset")
+          prompts.outro("Done")
+          return
+        }
+
+        if (args.key) {
+          // Reset specific key
+          const keys = args.key.split(".")
+          const configContent = await Filesystem.readText(configPath)
+          const edits = modify(configContent, keys, undefined, {
+            formattingOptions: { tabSize: 2, insertSpaces: true },
+          })
+          const result = applyEdits(configContent, edits)
+          await Filesystem.write(configPath, result)
+          prompts.log.success(`Reset ${args.key} to default`)
+        } else {
+          // Reset entire config
+          const template = {
+            $schema: "https://hopcoder.dev/config.json",
+          }
+          await Filesystem.write(configPath, JSON.stringify(template, null, 2))
+          prompts.log.success("Config reset to defaults")
+        }
+
+        prompts.log.info(`File: ${configPath}`)
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
+export const ConfigDiffCommand = cmd({
+  command: "diff",
+  describe: "show config diff from defaults",
+  builder: (yargs: Argv) =>
+    yargs
+      .option("global", {
+        type: "boolean",
+        describe: "show global config diff",
+        default: false,
+      })
+      .option("json", {
+        type: "boolean",
+        describe: "output as JSON",
+        default: false,
+      }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        const configPath = args.global
+          ? path.join(Global.Path.config, "hopcoderx.json")
+          : path.join(Instance.worktree, "hopcoderx.json")
+
+        if (!(await Filesystem.exists(configPath))) {
+          if (args.json) {
+            process.stdout.write(JSON.stringify({ diff: [], source: configPath }) + "\n")
+          } else {
+            UI.empty()
+            prompts.intro("Config Diff")
+            prompts.log.warn("No config file found")
+            prompts.outro("Done")
+          }
+          return
+        }
+
+        const configContent = await Filesystem.readText(configPath)
+        const config = JSON.parse(configContent)
+
+        const defaultConfig = {
+          $schema: "https://hopcoder.dev/config.json",
+        }
+
+        const diff: Array<{ key: string; current: unknown; default: undefined }> = []
+
+        function compareObjects(current: Record<string, unknown>, base: Record<string, unknown>, prefix = "") {
+          for (const key of Object.keys(current)) {
+            const fullKey = prefix ? `${prefix}.${key}` : key
+            if (!(key in base)) {
+              diff.push({ key: fullKey, current: current[key], default: undefined })
+            } else if (typeof current[key] === "object" && typeof base[key] === "object" && !Array.isArray(current[key])) {
+              compareObjects(current[key] as Record<string, unknown>, base[key] as Record<string, unknown>, fullKey)
+            }
+          }
+        }
+
+        compareObjects(config, defaultConfig)
+
+        if (args.json) {
+          process.stdout.write(JSON.stringify({ diff, source: configPath }, null, 2) + "\n")
+          return
+        }
+
+        UI.empty()
+        prompts.intro("Config Diff")
+
+        if (diff.length === 0) {
+          prompts.log.success("Config matches defaults")
+        } else {
+          prompts.log.info(`Found ${diff.length} custom setting(s):\n`)
+          for (const entry of diff) {
+            prompts.log.info(`  + ${entry.key}: ${JSON.stringify(entry.current)}`)
+          }
+        }
+
+        prompts.outro(`Source: ${configPath}`)
       },
     })
   },

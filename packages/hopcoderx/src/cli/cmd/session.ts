@@ -39,7 +39,14 @@ function pagerCmd(): string[] {
 export const SessionCommand = cmd({
   command: "session",
   describe: "manage sessions",
-  builder: (yargs: Argv) => yargs.command(SessionListCommand).command(SessionDeleteCommand).demandCommand(),
+  builder: (yargs: Argv) =>
+    yargs
+      .command(SessionListCommand)
+      .command(SessionDeleteCommand)
+      .command(SessionRenameCommand)
+      .command(SessionExportCommand)
+      .command(SessionForkCommand)
+      .demandCommand(),
   async handler() {},
 })
 
@@ -149,3 +156,96 @@ function formatSessionJSON(sessions: Session.Info[]): string {
   }))
   return JSON.stringify(jsonData, null, 2)
 }
+
+export const SessionRenameCommand = cmd({
+  command: "rename <sessionID> <newTitle>",
+  describe: "rename a session",
+  builder: (yargs: Argv) =>
+    yargs
+      .positional("sessionID", {
+        describe: "session ID to rename",
+        type: "string",
+        demandOption: true,
+      })
+      .positional("newTitle", {
+        describe: "new title for the session",
+        type: "string",
+        demandOption: true,
+      }),
+  handler: async (args) => {
+    await bootstrap(process.cwd(), async () => {
+      try {
+        const session = await Session.get(args.sessionID)
+        await Session.setTitle({ sessionID: args.sessionID, title: args.newTitle })
+        UI.println(UI.Style.TEXT_SUCCESS_BOLD + `Session renamed to: ${args.newTitle}` + UI.Style.TEXT_NORMAL)
+      } catch (error) {
+        UI.error(`Failed to rename session: ${error instanceof Error ? error.message : String(error)}`)
+        process.exit(1)
+      }
+    })
+  },
+})
+
+export const SessionExportCommand = cmd({
+  command: "export <sessionID>",
+  describe: "export a session to markdown",
+  builder: (yargs: Argv) =>
+    yargs
+      .positional("sessionID", {
+        describe: "session ID to export",
+        type: "string",
+        demandOption: true,
+      })
+      .option("output", {
+        alias: "o",
+        describe: "output file path (default: stdout)",
+        type: "string",
+      }),
+  handler: async (args) => {
+    await bootstrap(process.cwd(), async () => {
+      try {
+        const markdown = await Session.exportToMarkdown(args.sessionID)
+        if (args.output) {
+          await Filesystem.write(args.output, markdown)
+          UI.println(UI.Style.TEXT_SUCCESS_BOLD + `Session exported to: ${args.output}` + UI.Style.TEXT_NORMAL)
+        } else {
+          process.stdout.write(markdown + EOL)
+        }
+      } catch (error) {
+        UI.error(`Failed to export session: ${error instanceof Error ? error.message : String(error)}`)
+        process.exit(1)
+      }
+    })
+  },
+})
+
+export const SessionForkCommand = cmd({
+  command: "fork <sessionID>",
+  describe: "create a fork of a session",
+  builder: (yargs: Argv) =>
+    yargs
+      .positional("sessionID", {
+        describe: "session ID to fork",
+        type: "string",
+        demandOption: true,
+      })
+      .option("message-id", {
+        describe: "fork from a specific message (only copy messages before this)",
+        type: "string",
+      }),
+  handler: async (args) => {
+    await bootstrap(process.cwd(), async () => {
+      try {
+        const forkedSession = await Session.fork({
+          sessionID: args.sessionID,
+          messageID: args.messageId,
+        })
+        UI.println(UI.Style.TEXT_SUCCESS_BOLD + `Session forked: ${forkedSession.id}` + UI.Style.TEXT_NORMAL)
+        UI.println(`  Title: ${forkedSession.title}`)
+      } catch (error) {
+        UI.error(`Failed to fork session: ${error instanceof Error ? error.message : String(error)}`)
+        process.exit(1)
+      }
+    })
+  },
+})

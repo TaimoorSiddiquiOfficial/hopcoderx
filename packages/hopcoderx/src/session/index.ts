@@ -667,6 +667,45 @@ export namespace Session {
     }
   })
 
+  export async function exportToMarkdown(sessionID: string): Promise<string> {
+    const session = await get(sessionID)
+    const msgs = await messages({ sessionID })
+
+    const lines: string[] = []
+    lines.push(`# ${session.title}`)
+    lines.push("")
+    lines.push(`**Created:** ${new Date(session.time.created).toISOString()}`)
+    lines.push(`**Updated:** ${new Date(session.time.updated).toISOString()}`)
+    lines.push("")
+    lines.push("---")
+    lines.push("")
+
+    for (const msg of msgs) {
+      const role = msg.info.role === "user" ? "User" : "Assistant"
+      lines.push(`## ${role}`)
+      lines.push("")
+
+      for (const part of msg.parts) {
+        if (part.type === "text") {
+          lines.push(part.text)
+          lines.push("")
+        } else if (part.type === "tool") {
+          const tool = part.tool
+          const args = JSON.stringify(part.state.input, null, 2)
+          lines.push(`\`\`\`${tool}`)
+          lines.push(args)
+          lines.push("```")
+          lines.push("")
+        }
+      }
+
+      lines.push("---")
+      lines.push("")
+    }
+
+    return lines.join("\n")
+  }
+
   export const updateMessage = fn(MessageV2.Info, async (msg) => {
     const time_created = msg.time.created
     const { id, sessionID, ...data } = msg

@@ -71,6 +71,8 @@ export const McpCommand = cmd({
       .command(McpSetupCommand)
       .command(McpConfigureCommand)
       .command(McpBuiltinsCommand)
+      .command(McpTestCommand)
+      .command(McpReloadCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -1257,6 +1259,158 @@ export const McpBuiltinsCommand = cmd({
 
         prompts.log.info("Legend: 🟢 always-on  🔵 auto-detected  ⚪ manual")
         prompts.log.info("Use --enable <id> to enable / --disable <id> to disable")
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
+export const McpTestCommand = cmd({
+  command: "test <name>",
+  describe: "test MCP server connection",
+  builder: (yargs) =>
+    yargs.positional("name", {
+      describe: "name of the MCP server",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("MCP Server Test")
+
+        const config = await Config.get()
+        const mcpServers = config.mcp ?? {}
+        const serverConfig = mcpServers[args.name]
+
+        if (!serverConfig) {
+          prompts.log.error(`MCP server not found: ${args.name}`)
+          prompts.outro("Done")
+          return
+        }
+
+        if (!isMcpConfigured(serverConfig)) {
+          prompts.log.error(`MCP server is disabled: ${args.name}`)
+          prompts.outro("Done")
+          return
+        }
+
+        const spinner = prompts.spinner()
+        spinner.start(`Testing connection to ${args.name}...`)
+
+        try {
+          // Disconnect first to get fresh connection
+          await MCP.disconnect(args.name)
+
+          // Reconnect
+          await MCP.connect(args.name)
+
+          // Check status
+          const status = await MCP.status()
+          const serverStatus = status[args.name]
+
+          if (serverStatus?.status === "connected") {
+            spinner.stop(`Connection successful!`)
+
+            // Get tools count
+            const clients = await MCP.clients()
+            const client = clients[args.name]
+            if (client) {
+              const tools = await client.listTools()
+              prompts.log.success(`Connected with ${tools.tools.length} tool(s)`)
+            }
+          } else if (serverStatus?.status === "needs_auth") {
+            spinner.stop("Authentication required", 1)
+            prompts.log.warn("Server requires authentication")
+            prompts.log.info(`Run: hopcoderx mcp auth ${args.name}`)
+          } else if (serverStatus?.status === "needs_client_registration") {
+            spinner.stop("Client registration required", 1)
+            prompts.log.warn("Server requires client registration")
+            prompts.log.info(`Add clientId to your config for ${args.name}`)
+          } else if (serverStatus?.status === "failed") {
+            spinner.stop("Connection failed", 1)
+            prompts.log.error(serverStatus.error ?? "Unknown error")
+          } else {
+            spinner.stop("Connection failed", 1)
+            prompts.log.error("Unknown error")
+          }
+        } catch (error) {
+          spinner.stop("Connection failed", 1)
+          prompts.log.error(error instanceof Error ? error.message : String(error))
+        }
+
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
+export const McpReloadCommand = cmd({
+  command: "reload <name>",
+  describe: "reload an MCP server",
+  builder: (yargs) =>
+    yargs.positional("name", {
+      describe: "name of the MCP server",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("MCP Server Reload")
+
+        const config = await Config.get()
+        const mcpServers = config.mcp ?? {}
+        const serverConfig = mcpServers[args.name]
+
+        if (!serverConfig) {
+          prompts.log.error(`MCP server not found: ${args.name}`)
+          prompts.outro("Done")
+          return
+        }
+
+        if (!isMcpConfigured(serverConfig)) {
+          prompts.log.error(`MCP server is disabled: ${args.name}`)
+          prompts.outro("Done")
+          return
+        }
+
+        const spinner = prompts.spinner()
+        spinner.start(`Reloading ${args.name}...`)
+
+        try {
+          // Disconnect
+          await MCP.disconnect(args.name)
+
+          // Reconnect
+          await MCP.connect(args.name)
+
+          // Check status
+          const status = await MCP.status()
+          const serverStatus = status[args.name]
+
+          if (serverStatus?.status === "connected") {
+            spinner.stop(`Reloaded successfully!`)
+            prompts.log.success(`${args.name} is connected`)
+          } else if (serverStatus?.status === "failed") {
+            spinner.stop("Reload failed", 1)
+            prompts.log.error(serverStatus.error ?? "Failed to reconnect")
+          } else if (serverStatus?.status === "needs_auth") {
+            spinner.stop("Authentication required", 1)
+            prompts.log.warn(`${args.name} needs authentication`)
+            prompts.log.info(`Run: hopcoderx mcp auth ${args.name}`)
+          } else {
+            spinner.stop(`Reloaded with status: ${serverStatus?.status}`, 1)
+          }
+        } catch (error) {
+          spinner.stop("Reload failed", 1)
+          prompts.log.error(error instanceof Error ? error.message : String(error))
+        }
+
         prompts.outro("Done")
       },
     })

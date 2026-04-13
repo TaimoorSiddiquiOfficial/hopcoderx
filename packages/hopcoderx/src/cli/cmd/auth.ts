@@ -191,11 +191,176 @@ export function resolvePluginProviders(input: {
   return result
 }
 
+export const AuthRefreshCommand = cmd({
+  command: "refresh [provider]",
+  describe: "refresh provider credentials (OAuth token refresh)",
+  builder: (yargs) =>
+    yargs.positional("provider", {
+      describe: "provider to refresh credentials for",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    UI.empty()
+    prompts.intro("Refresh Credentials")
+
+    const provider = args.provider
+    const credentials = await Auth.all()
+    const cred = credentials[provider]
+
+    if (!cred) {
+      prompts.log.error(`No credentials found for provider: ${provider}`)
+      prompts.outro("Done")
+      return
+    }
+
+    if (cred.type !== "oauth") {
+      prompts.log.error(`Provider ${provider} uses API key authentication, not OAuth`)
+      prompts.outro("Done")
+      return
+    }
+
+    // Check for plugin-based refresh
+    const plugins = await Plugin.list()
+    const plugin = plugins.find((p) => p.auth?.provider === provider)
+
+    if (plugin?.auth?.methods) {
+      for (const method of plugin.auth.methods) {
+        if (method.type === "oauth" && "refresh" in method && typeof method.refresh === "function") {
+          const spinner = prompts.spinner()
+          spinner.start(`Refreshing ${provider} token`)
+
+          try {
+            const result = await method.refresh(cred.refresh)
+            if (result.type === "success") {
+              const { type: _, provider: __, refresh, access, expires, ...extraFields } = result
+              await Auth.set(provider, {
+                type: "oauth",
+                refresh,
+                access,
+                expires,
+                ...extraFields,
+              })
+              spinner.stop()
+              prompts.log.success("Credentials refreshed successfully")
+              prompts.outro("Done")
+              return
+            } else {
+              spinner.stop()
+              prompts.log.error("Failed to refresh credentials")
+              prompts.outro("Done")
+              return
+            }
+          } catch (error) {
+            spinner.stop()
+            prompts.log.error(`Refresh failed: ${error instanceof Error ? error.message : String(error)}`)
+            prompts.outro("Done")
+            return
+          }
+        }
+      }
+    }
+
+    prompts.log.warn(`No refresh method available for ${provider}. Please login again.`)
+    prompts.outro("Done")
+  },
+})
+
+export const AuthVerifyCommand = cmd({
+  command: "verify [provider]",
+  describe: "verify provider credentials are valid",
+  builder: (yargs) =>
+    yargs.positional("provider", {
+      describe: "provider to verify credentials for",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    UI.empty()
+    prompts.intro("Verify Credentials")
+
+    const provider = args.provider
+    const credentials = await Auth.all()
+    const cred = credentials[provider]
+
+    if (!cred) {
+      prompts.log.error(`No credentials found for provider: ${provider}`)
+      prompts.outro("Done")
+      return
+    }
+
+    const spinner = prompts.spinner()
+    spinner.start(`Verifying ${provider} credentials`)
+
+    // Check for plugin-based verification
+    const plugins = await Plugin.list()
+    const plugin = plugins.find((p) => p.auth?.provider === provider)
+
+    if (plugin?.auth?.methods) {
+      for (const method of plugin.auth.methods) {
+        if ("verify" in method && typeof method.verify === "function") {
+          try {
+            const isValid = await method.verify(cred)
+            spinner.stop()
+            if (isValid) {
+              prompts.log.success(`Credentials for ${provider} are valid`)
+              prompts.outro("Done")
+            } else {
+              prompts.log.error(`Credentials for ${provider} are invalid or expired`)
+              prompts.log.info("Run `hopcoderx auth login ${provider}` to re-authenticate")
+              prompts.outro("Done")
+            }
+            return
+          } catch (error) {
+            spinner.stop()
+            prompts.log.error(`Verification failed: ${error instanceof Error ? error.message : String(error)}`)
+            prompts.outro("Done")
+            return
+          }
+        }
+      }
+    }
+
+    // Default verification: check if credentials exist and haven't expired
+    if (cred.type === "oauth") {
+      const now = Date.now()
+      if (cred.expires && cred.expires < now) {
+        spinner.stop()
+        prompts.log.error(`Credentials for ${provider} have expired`)
+        prompts.log.info("Run `hopcoderx auth refresh ${provider}` or `hopcoderx auth login ${provider}`")
+        prompts.outro("Done")
+        return
+      }
+      spinner.stop()
+      prompts.log.success(`Credentials for ${provider} appear valid (not expired)`)
+      prompts.outro("Done")
+      return
+    }
+
+    if (cred.type === "api") {
+      spinner.stop()
+      prompts.log.success(`API key for ${provider} is configured`)
+      prompts.outro("Done")
+      return
+    }
+
+    spinner.stop()
+    prompts.log.success(`Credentials for ${provider} are configured`)
+    prompts.outro("Done")
+  },
+})
+
 export const AuthCommand = cmd({
   command: "auth",
   describe: "manage credentials",
   builder: (yargs) =>
-    yargs.command(AuthLoginCommand).command(AuthLogoutCommand).command(AuthListCommand).demandCommand(),
+    yargs
+      .command(AuthLoginCommand)
+      .command(AuthLogoutCommand)
+      .command(AuthListCommand)
+      .command(AuthRefreshCommand)
+      .command(AuthVerifyCommand)
+      .demandCommand(),
   async handler() {},
 })
 

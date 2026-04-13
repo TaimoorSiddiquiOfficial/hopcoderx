@@ -11,7 +11,7 @@
 
 import { execFile, spawn } from "child_process"
 import { promisify } from "util"
-import { join } from "path"
+import { join, dirname } from "path"
 import { homedir, platform } from "os"
 import { writeFile, readFile, mkdir, unlink } from "fs/promises"
 import { existsSync } from "fs"
@@ -19,6 +19,7 @@ import type { Argv } from "yargs"
 import { cmd } from "./cmd"
 import { Global } from "../../global"
 import { Log } from "../../util/log"
+import path from "path"
 
 const log = Log.create({ service: "daemon" })
 
@@ -284,14 +285,60 @@ function getExecPath(): string {
 
 // ─── CLI command ────────────────────────────────────────────────────────────────
 
+export const DaemonConfigureCommand = cmd({
+  command: "configure",
+  describe: "configure daemon settings",
+  builder: (yargs: Argv) =>
+    yargs
+      .option("log-level", {
+        type: "string",
+        describe: "log level (debug, info, warn, error)",
+        choices: ["debug", "info", "warn", "error"],
+      })
+      .option("heartbeat-interval", {
+        type: "number",
+        describe: "heartbeat interval in seconds",
+        default: 30,
+      })
+      .option("cron-interval", {
+        type: "number",
+        describe: "cron task check interval in milliseconds",
+        default: 60000,
+      }),
+  handler: async (args) => {
+    const configPath = path.join(Global.Path.config, "daemon.json")
+    let config: Record<string, any> = {}
+
+    try {
+      const raw = await readFile(configPath, "utf8")
+      config = JSON.parse(raw)
+    } catch {
+      // Config doesn't exist yet
+    }
+
+    if (args.logLevel) config.logLevel = args.logLevel
+    if (args.heartbeatInterval) config.heartbeatInterval = args.heartbeatInterval
+    if (args.cronInterval) config.cronInterval = args.cronInterval
+
+    await mkdir(path.dirname(configPath), { recursive: true })
+    await writeFile(configPath, JSON.stringify(config, null, 2), "utf8")
+
+    console.log("✅ Daemon configuration updated:")
+    for (const [key, value] of Object.entries(config)) {
+      console.log(`   ${key}: ${value}`)
+    }
+  },
+})
+
 export const DaemonCommand = cmd({
   command: "daemon [action]",
   describe: "Background agent service (install/start/stop/status/logs)",
   builder: (yargs: Argv) =>
     yargs
+      .command(DaemonConfigureCommand)
       .positional("action", {
         type: "string",
-        choices: ["install", "uninstall", "start", "stop", "restart", "status", "logs", "serve"] as const,
+        choices: ["install", "uninstall", "start", "stop", "restart", "status", "logs", "serve", "configure"] as const,
         default: "status",
       })
       .option("lines", { type: "number", description: "Log lines to show", default: 50 }),

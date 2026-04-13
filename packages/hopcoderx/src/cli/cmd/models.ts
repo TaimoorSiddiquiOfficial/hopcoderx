@@ -22,6 +22,8 @@ export const ModelsCommand = cmd({
       .command(ModelsCompareCommand)
       .command(ModelsFavoriteCommand)
       .command(ModelsRefreshCommand)
+      .command(ModelsDefaultCommand)
+      .command(ModelsRemoveFavoriteCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -311,5 +313,127 @@ export const ModelsRefreshCommand = cmd({
       prompts.log.error(`Refresh failed: ${error instanceof Error ? error.message : String(error)}`)
       prompts.outro("Done")
     }
+  },
+})
+
+export const ModelsDefaultCommand = cmd({
+  command: "default [model]",
+  describe: "set or show default model",
+  builder: (yargs: Argv) =>
+    yargs.positional("model", {
+      describe: "model to set as default (omit to show current default)",
+      type: "string",
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Default Model")
+
+        const configPath = path.join(Global.Path.config, "hopcoderx.json")
+        let configContent = "{}"
+
+        if (await Filesystem.exists(configPath)) {
+          configContent = await Filesystem.readText(configPath)
+        }
+
+        let config: any
+        try {
+          config = JSON.parse(configContent)
+        } catch {
+          config = {}
+        }
+
+        if (!args.model) {
+          // Show current default
+          const currentDefault = config.model
+          if (currentDefault) {
+            prompts.log.info(`Current default: ${currentDefault}`)
+          } else {
+            prompts.log.info("No default model set")
+            prompts.log.info("Use: hopcoderx models default <provider/model-id>")
+          }
+          prompts.outro("Done")
+          return
+        }
+
+        // Set new default
+        const edits = modify(configContent, ["model"], args.model, {
+          formattingOptions: { tabSize: 2, insertSpaces: true },
+        })
+
+        if (edits.length === 0) {
+          prompts.log.error("Failed to create edit operations")
+          prompts.outro("Done")
+          return
+        }
+
+        const result = applyEdits(configContent, edits)
+        await Filesystem.write(configPath, result)
+
+        prompts.log.success(`Set default model: ${args.model}`)
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
+export const ModelsRemoveFavoriteCommand = cmd({
+  command: "remove-favorite <model>",
+  aliases: ["unfavorite", "unfav"],
+  describe: "remove a model from favorites",
+  builder: (yargs: Argv) =>
+    yargs.positional("model", {
+      describe: "model to remove from favorites",
+      type: "string",
+      demandOption: true,
+    }),
+  async handler(args) {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("Remove Favorite")
+
+        const configPath = path.join(Global.Path.config, "hopcoderx.json")
+        let configContent = "{}"
+
+        if (await Filesystem.exists(configPath)) {
+          configContent = await Filesystem.readText(configPath)
+        }
+
+        let config: any
+        try {
+          config = JSON.parse(configContent)
+        } catch {
+          config = {}
+        }
+
+        const favorites = config.favoriteModels || []
+        const index = favorites.indexOf(args.model)
+
+        if (index === -1) {
+          prompts.log.info(`${args.model} is not in favorites`)
+          prompts.outro("Done")
+          return
+        }
+
+        favorites.splice(index, 1)
+        config.favoriteModels = favorites
+
+        const edits = modify(configContent, ["favoriteModels"], favorites, {
+          formattingOptions: { tabSize: 2, insertSpaces: true },
+        })
+
+        if (edits.length > 0) {
+          const result = applyEdits(configContent, edits)
+          await Filesystem.write(configPath, result)
+        }
+
+        prompts.log.success(`Removed ${args.model} from favorites`)
+        prompts.outro("Done")
+      },
+    })
   },
 })

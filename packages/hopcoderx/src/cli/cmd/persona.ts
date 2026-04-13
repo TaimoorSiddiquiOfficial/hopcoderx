@@ -164,7 +164,35 @@ export const PersonaCommand = cmd({
           UI.println(UI.Style.TEXT_SUCCESS_BOLD + "Personas reset to defaults" + UI.Style.TEXT_NORMAL)
         },
       )
-      .demandCommand(1, "specify a subcommand: list, show, add, remove, reset"),
+      .command(
+        "edit <id>",
+        "edit a persona's configuration",
+        (y) =>
+          y
+            .positional("id", { type: "string", demandOption: true })
+            .option("name", { type: "string", describe: "persona name" })
+            .option("description", { alias: "d", type: "string", describe: "persona description" })
+            .option("prompt", { alias: "p", type: "string", describe: "system prompt text" })
+            .option("model", { type: "string", describe: "preferred model ID" })
+            .option("temperature", { type: "number", describe: "temperature 0-2", default: 0.7 }),
+        async (args) => {
+          const personas = await loadPersonas()
+          const id = String(args.id)
+          const p = personas[id]
+          if (!p) {
+            UI.println(UI.Style.TEXT_DANGER_BOLD + `Persona '${id}' not found` + UI.Style.TEXT_NORMAL)
+            process.exit(1)
+          }
+          if (args.name) p.name = String(args.name)
+          if (args.description) p.description = String(args.description)
+          if (args.prompt) p.systemPrompt = String(args.prompt)
+          if (args.model) p.model = String(args.model)
+          if (args.temperature !== undefined) p.temperature = Number(args.temperature)
+          await savePersonas(personas)
+          UI.println(UI.Style.TEXT_SUCCESS_BOLD + `Persona '${id}' updated` + UI.Style.TEXT_NORMAL)
+        },
+      )
+      .demandCommand(1, "specify a subcommand: list, show, add, remove, reset, edit"),
   handler: async () => {},
 })
 
