@@ -17,6 +17,7 @@ import { DiffCommand } from "../cmd/diff"
 import { PermissionCommand } from "../cmd/permission"
 import { FeedbackCommand } from "../cmd/feedback"
 import { TelemetryCommand } from "../cmd/telemetry"
+import { PluginsCommand } from "../cmd/plugins"
 import { automationTaxonomy } from "../command-taxonomy"
 
 export const automationCommandGroup = {
@@ -41,5 +42,6 @@ export const automationCommandGroup = {
     PermissionCommand,
     FeedbackCommand,
     TelemetryCommand,
+    PluginsCommand,
   ],
 }

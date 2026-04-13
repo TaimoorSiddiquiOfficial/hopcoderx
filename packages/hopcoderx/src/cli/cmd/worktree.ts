@@ -109,13 +109,23 @@ export const WorktreeDeleteCommand = cmd({
   command: "delete <directory>",
   describe: "delete a worktree",
   builder: (yargs: Argv) =>
-    yargs.positional("directory", {
-      describe: "directory of the worktree to delete",
-      type: "string",
-      demandOption: true,
-    }),
+    yargs
+      .positional("directory", {
+        describe: "directory of the worktree to delete",
+        type: "string",
+        demandOption: true,
+      })
+      .option("dry-run", {
+        type: "boolean",
+        describe: "preview changes without applying",
+        default: false,
+      }),
   handler: async (args) => {
     await bootstrap(process.cwd(), async () => {
+      if (args.dryRun) {
+        UI.println(`${UI.Style.TEXT_INFO}[dry-run] Would delete worktree at ${args.directory}${UI.Style.TEXT_NORMAL}`)
+        return
+      }
       await Worktree.remove({ directory: args.directory })
       UI.println(`${UI.Style.TEXT_SUCCESS_BOLD}Deleted worktree${UI.Style.TEXT_NORMAL} at ${args.directory}`)
     })

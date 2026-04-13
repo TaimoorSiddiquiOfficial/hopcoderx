@@ -35,7 +35,8 @@ export const TaskflowCommand = cmd({
       .option("name", { type: "string", describe: "Flow name (create)" })
       .option("description", { alias: "desc", type: "string", default: "", describe: "Description (create)" })
       .option("steps", { type: "string", describe: "JSON array of steps (create)" })
-      .option("tags", { type: "string", describe: "Comma-separated tags (create)" }),
+      .option("tags", { type: "string", describe: "Comma-separated tags (create)" })
+      .option("dry-run", { type: "boolean", describe: "Preview changes without applying", default: false }),
 
   async handler(args) {
     const action = (args.action as string) ?? "list"
@@ -97,6 +98,10 @@ export const TaskflowCommand = cmd({
     if (action === "delete") {
       const id = args.id as string | undefined
       if (!id) { console.error("--id required"); process.exit(1) }
+      if (args.dryRun) {
+        console.log(`[dry-run] Would delete flow: ${id}`)
+        return
+      }
       await TaskFlowRegistry.delete(id)
       console.log(`Deleted flow: ${id}`)
       return

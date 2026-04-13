@@ -62,6 +62,7 @@ export const automationTaxonomy: TaxonomyGroup = {
     "permission",
     "feedback",
     "telemetry",
+    "plugins",
   ],
   completion: [
     "generate",
@@ -84,6 +85,8 @@ export const automationTaxonomy: TaxonomyGroup = {
     "permission",
     "feedback",
     "telemetry",
+    "plugins",
+    "plug",
   ],
 }
 

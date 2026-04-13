@@ -132,13 +132,19 @@ export const PersonaCommand = cmd({
       .command(
         "remove <id>",
         "remove a persona",
-        (y) => y.positional("id", { type: "string", demandOption: true }),
+        (y) => y
+          .positional("id", { type: "string", demandOption: true })
+          .option("dry-run", { type: "boolean", description: "preview changes without applying", default: false }),
         async (args) => {
           const personas = await loadPersonas()
           const id = String(args.id)
           if (!personas[id]) {
             UI.println(UI.Style.TEXT_DANGER_BOLD + `Persona '${id}' not found` + UI.Style.TEXT_NORMAL)
             process.exit(1)
+          }
+          if (args.dryRun) {
+            UI.println(UI.Style.TEXT_INFO + `[dry-run] Would remove persona '${id}'` + UI.Style.TEXT_NORMAL)
+            return
           }
           delete personas[id]
           await savePersonas(personas)
@@ -148,8 +154,12 @@ export const PersonaCommand = cmd({
       .command(
         "reset",
         "reset to default personas",
-        {},
-        async () => {
+        (y) => y.option("dry-run", { type: "boolean", description: "preview changes without applying", default: false }),
+        async (args) => {
+          if (args.dryRun) {
+            UI.println(UI.Style.TEXT_INFO + "[dry-run] Would reset personas to defaults" + UI.Style.TEXT_NORMAL)
+            return
+          }
           await savePersonas(defaultPersonas())
           UI.println(UI.Style.TEXT_SUCCESS_BOLD + "Personas reset to defaults" + UI.Style.TEXT_NORMAL)
         },

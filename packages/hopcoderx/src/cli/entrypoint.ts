@@ -1,6 +1,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { Log } from "../util/log"
+import { loadAliases, expandAlias } from "./aliases"
 
 // Bun-specific error class for module resolution failures
 declare class ResolveMessage extends Error {
@@ -145,8 +146,32 @@ export function registerProcessHandlers() {
   })
 }
 
-export function createCli() {
-  const cli = yargs(hideBin(process.argv))
+export async function createCli() {
+  // Load user-defined aliases
+  const aliases = await loadAliases()
+
+  // Pre-process argv to expand aliases
+  const rawArgs = hideBin(process.argv)
+  const processedArgs: string[] = []
+
+  for (let i = 0; i < rawArgs.length; i++) {
+    const arg = rawArgs[i]
+    // Only expand the first positional (command) argument
+    if (i === 0 && !arg.startsWith("-")) {
+      const expanded = expandAlias(aliases, arg)
+      if (expanded) {
+        if (Array.isArray(expanded)) {
+          processedArgs.push(...expanded)
+        } else {
+          processedArgs.push(expanded)
+        }
+        continue
+      }
+    }
+    processedArgs.push(arg)
+  }
+
+  const cli = yargs(processedArgs)
     .parserConfiguration({ "populate--": true })
     .scriptName("hopcoderx")
     .wrap(100)

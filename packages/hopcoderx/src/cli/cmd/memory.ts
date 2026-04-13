@@ -48,7 +48,8 @@ export const MemoryCommand = cmd({
       .option("global",  { alias: "g", type: "boolean", description: "Store as global (not project-scoped)", default: false })
       .option("score",   { type: "number", description: "Importance score 0-10", default: 1.0 })
       .option("sync-url", { type: "string", description: "Team sync server URL (or set HOPCODERX_TEAM_SYNC_URL)" })
-      .option("sync-key", { type: "string", description: "Team sync API key (or set HOPCODERX_TEAM_SYNC_KEY)" }),
+      .option("sync-key", { type: "string", description: "Team sync API key (or set HOPCODERX_TEAM_SYNC_KEY)" })
+      .option("dry-run", { type: "boolean", description: "Preview changes without applying", default: false }),
   handler: async (args: {
     action?: string
     content?: string
@@ -60,6 +61,7 @@ export const MemoryCommand = cmd({
     score?: number
     "sync-url"?: string
     "sync-key"?: string
+    "dry-run"?: boolean
   }) => {
     await initMemory()
     const mem = MemoryPlugin.active
@@ -119,6 +121,10 @@ export const MemoryCommand = cmd({
 
       case "delete": {
         if (!args.id) { console.error("Provide --id of the memory to delete"); process.exit(1) }
+        if (args["dry-run"]) {
+          console.log(`[dry-run] Would delete memory ${args.id}`)
+          break
+        }
         await mem.delete(args.id)
         console.log(`🗑  Memory ${args.id} deleted.`)
         break
@@ -131,6 +137,11 @@ export const MemoryCommand = cmd({
       }
 
       case "clear": {
+        if (args["dry-run"]) {
+          const entries = await mem.list()
+          console.log(`[dry-run] Would clear ${entries.length} memories`)
+          break
+        }
         await mem.clear()
         console.log("🧹 All memories cleared.")
         break

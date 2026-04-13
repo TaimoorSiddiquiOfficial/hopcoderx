@@ -145,13 +145,19 @@ export const PromptsCommand = cmd({
       .command(
         "remove <id>",
         "remove a prompt template",
-        (y) => y.positional("id", { type: "string", demandOption: true }),
+        (y) => y
+          .positional("id", { type: "string", demandOption: true })
+          .option("dry-run", { type: "boolean", description: "preview changes without applying", default: false }),
         async (args) => {
           const prompts = await loadPrompts()
           const id = String(args.id)
           if (!prompts[id]) {
             UI.println(UI.Style.TEXT_DANGER_BOLD + `Template '${id}' not found` + UI.Style.TEXT_NORMAL)
             process.exit(1)
+          }
+          if (args.dryRun) {
+            UI.println(UI.Style.TEXT_INFO + `[dry-run] Would remove template '${id}'` + UI.Style.TEXT_NORMAL)
+            return
           }
           delete prompts[id]
           await savePrompts(prompts)

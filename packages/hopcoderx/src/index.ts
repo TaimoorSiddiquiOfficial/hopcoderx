@@ -3,23 +3,27 @@ import { createCli, handleFatal, isTopLevelHelpRequest, registerProcessHandlers,
 
 registerProcessHandlers()
 
-const cli = createCli()
+async function main() {
+  const cli = await createCli()
 
-registerCommands(cli)
-cli.epilogue(buildCommandOverview())
+  registerCommands(cli)
+  cli.epilogue(buildCommandOverview())
 
-try {
-  if (isTopLevelHelpRequest()) {
-    process.stdout.write(await renderTopLevelHelp(cli))
-    process.exit(0)
+  try {
+    if (isTopLevelHelpRequest()) {
+      process.stdout.write(await renderTopLevelHelp(cli))
+      process.exit(0)
+    }
+    await cli.parse()
+  } catch (e) {
+    handleFatal(e)
+  } finally {
+    // Some subprocesses don't react properly to SIGTERM and similar signals.
+    // Most notably, some docker-container-based MCP servers don't handle such signals unless
+    // run using `docker run --init`.
+    // Explicitly exit to avoid any hanging subprocesses.
+    process.exit()
   }
-  await cli.parse()
-} catch (e) {
-  handleFatal(e)
-} finally {
-  // Some subprocesses don't react properly to SIGTERM and similar signals.
-  // Most notably, some docker-container-based MCP servers don't handle such signals unless
-  // run using `docker run --init`.
-  // Explicitly exit to avoid any hanging subprocesses.
-  process.exit()
 }
+
+main()
