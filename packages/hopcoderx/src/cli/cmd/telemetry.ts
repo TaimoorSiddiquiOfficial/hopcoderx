@@ -9,6 +9,12 @@ import path from "path"
 import { Global } from "../../global"
 import { getTelemetryData, clearTelemetryData } from "../../telemetry/storage"
 
+interface TelemetryConfig {
+  telemetry?: boolean
+}
+
+type ConfigWithTelemetry = Config.Info & TelemetryConfig
+
 export const TelemetryCommand = cmd({
   command: "telemetry",
   describe: "view and manage telemetry settings",
@@ -33,8 +39,8 @@ export const TelemetryStatusCommand = cmd({
         UI.empty()
         prompts.intro("Telemetry Status")
 
-        const config = await Config.get()
-        const telemetryEnabled = (config as any).telemetry !== false
+        const config = await Config.get() as ConfigWithTelemetry
+        const telemetryEnabled = config.telemetry !== false
 
         if (telemetryEnabled) {
           prompts.log.info(`${UI.Style.TEXT_SUCCESS}✓${UI.Style.TEXT_NORMAL} Telemetry is ${UI.Style.TEXT_SUCCESS}enabled${UI.Style.TEXT_NORMAL}`)
@@ -137,8 +143,8 @@ export const TelemetryDataCommand = cmd({
     await Instance.provide({
       directory: process.cwd(),
       async fn() {
-        const config = await Config.get()
-        const telemetryEnabled = (config as any).telemetry !== false
+        const config = await Config.get() as ConfigWithTelemetry
+        const telemetryEnabled = config.telemetry !== false
 
         if (!telemetryEnabled) {
           if (args.json) {

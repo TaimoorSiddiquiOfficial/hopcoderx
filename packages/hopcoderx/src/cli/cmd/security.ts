@@ -145,8 +145,8 @@ async function auditConfig(findings: AuditFinding[], fix: boolean) {
   }
 
   // Check for insecure CORS settings
-  const corsOrigins = (cfg as any).cors?.origins
-  if (Array.isArray(corsOrigins) && corsOrigins.includes("*")) {
+  const corsOrigins = (cfg as Record<string, unknown>).cors as { origins?: string[] } | undefined
+  if (Array.isArray(corsOrigins?.origins) && corsOrigins.origins.includes("*")) {
     findings.push({
       severity: "high",
       category: "config",
@@ -157,7 +157,7 @@ async function auditConfig(findings: AuditFinding[], fix: boolean) {
   }
 
   // Check for auto-approve permissions
-  const perms = (cfg as any).permission
+  const perms = (cfg as Record<string, unknown>).permission as { bash?: string; write?: string; edit?: string } | undefined
   if (perms?.bash === "allow" && perms?.write === "allow" && perms?.edit === "allow") {
     findings.push({
       severity: "medium",
@@ -178,7 +178,7 @@ async function auditCredentials(findings: AuditFinding[]) {
   }
 
   for (const [provider, info] of Object.entries(authInfo)) {
-    const keyLen = (info as any)?.key?.length ?? 0
+    const keyLen = (info as { key?: string })?.key?.length ?? 0
 
     // Warn about suspiciously short API keys
     if (keyLen > 0 && keyLen < 20) {
@@ -208,7 +208,7 @@ async function auditFilePermissions(findings: AuditFinding[], fix: boolean) {
     if (process.platform !== "win32") {
       try {
         const stat = await Bun.file(file).stat?.()
-        const mode = (stat as any)?.mode
+        const mode = (stat as { mode?: number })?.mode
         if (mode) {
           const isWorldReadable = (mode & 0o004) !== 0
           if (isWorldReadable) {
@@ -232,17 +232,19 @@ async function auditFilePermissions(findings: AuditFinding[], fix: boolean) {
 }
 
 async function auditMCP(findings: AuditFinding[]) {
-  let cfg: any
+  let cfg: Config.Info
   try {
     cfg = await Config.get()
   } catch {
     return
   }
 
-  const mcpServers: Record<string, any> = (cfg as any).mcp?.servers ?? {}
+  const mcpConfig = cfg.mcp as Record<string, unknown> | undefined
+  const mcpServers = mcpConfig ?? {}
   for (const [name, server] of Object.entries(mcpServers)) {
+    const serverConfig = server as { url?: string; headers?: Record<string, string>; apiKey?: string; token?: string }
     // Check for HTTP (non-HTTPS) MCP servers
-    const url: string = (server as any).url ?? ""
+    const url = serverConfig.url ?? ""
     if (url.startsWith("http://") && !url.startsWith("http://localhost") && !url.startsWith("http://127.")) {
       findings.push({
         severity: "high",
@@ -254,7 +256,7 @@ async function auditMCP(findings: AuditFinding[]) {
     }
 
     // Check for unauthenticated remote MCP servers
-    const hasAuth = (server as any).headers?.Authorization || (server as any).apiKey || (server as any).token
+    const hasAuth = serverConfig.headers?.Authorization || serverConfig.apiKey || serverConfig.token
     if (url && !url.includes("localhost") && !url.includes("127.0.0.1") && !hasAuth) {
       findings.push({
         severity: "medium",

@@ -12,7 +12,7 @@
 
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
-import { TaskFlowRegistry, type TaskStep } from "../../task/taskflow"
+import { TaskFlowRegistry, type TaskStep, type FlowStatus } from "../../task/taskflow"
 import { execSync } from "child_process"
 import * as prompts from "@clack/prompts"
 import { UI } from "../ui"
@@ -46,8 +46,10 @@ export const TaskflowCommand = cmd({
     if (action === "list") {
       UI.empty()
       prompts.intro("Task Flows")
-      const status = args.status as string | undefined
-      const flows = await TaskFlowRegistry.list(status as any)
+      const statusArg = args.status as string | undefined
+      const validStatuses = ["pending", "running", "done", "failed", "cancelled"]
+      const status = statusArg && validStatuses.includes(statusArg) ? statusArg as FlowStatus : undefined
+      const flows = await TaskFlowRegistry.list(status)
       if (flows.length === 0) {
         prompts.log.info("No task flows found")
         prompts.log.info("Create one with: hopcoderx taskflow create --name <name> --steps '<json>'")

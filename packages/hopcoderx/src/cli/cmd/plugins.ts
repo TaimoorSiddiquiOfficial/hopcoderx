@@ -13,6 +13,13 @@ import { promisify } from "util"
 import { Log } from "../../util/log"
 const execAsync = promisify(exec)
 
+interface PluginConfig {
+  plugins?: string[]
+  disabledPlugins?: (string | unknown)[]
+}
+
+type ConfigWithPlugins = Config.Info & PluginConfig
+
 export const PluginsCommand = cmd({
   command: "plugins",
   aliases: ["plugin", "plug"],
@@ -42,8 +49,8 @@ export const PluginsListCommand = cmd({
     await Instance.provide({
       directory: process.cwd(),
       async fn() {
-        const config = await Config.get()
-        const plugins = (config as any).plugins || []
+        const config = await Config.get() as ConfigWithPlugins
+        const plugins = config.plugins ?? []
 
         if (args.json) {
           process.stdout.write(JSON.stringify({ plugins }, null, 2) + "\n")
@@ -250,9 +257,9 @@ export const PluginsEnableCommand = cmd({
         UI.empty()
         prompts.intro(`Enabling Plugin: ${args.plugin}`)
 
-        const config = await Config.get()
-        const disabledPlugins = (config as any).disabledPlugins || []
-        const index = disabledPlugins.indexOf(args.plugin)
+        const config = await Config.get() as ConfigWithPlugins
+        const disabledPlugins: string[] = (config.disabledPlugins ?? []).filter((p): p is string => typeof p === "string")
+        const index = disabledPlugins.indexOf(args.plugin as string)
 
         if (index === -1) {
           prompts.log.info(`${args.plugin} is already enabled`)
@@ -261,7 +268,7 @@ export const PluginsEnableCommand = cmd({
         }
 
         disabledPlugins.splice(index, 1)
-        ;(config as any).disabledPlugins = disabledPlugins
+        config.disabledPlugins = disabledPlugins
 
         await Config.update(config)
 
@@ -289,31 +296,32 @@ export const PluginsDisableCommand = cmd({
         UI.empty()
         prompts.intro(`Disabling Plugin: ${args.plugin}`)
 
-        const config = await Config.get()
-        const plugins = (config as any).plugins || []
-        const disabledPlugins = (config as any).disabledPlugins || []
+        const config = await Config.get() as ConfigWithPlugins
+        const plugins: string[] = config.plugins ?? []
+        const disabledPlugins: string[] = (config.disabledPlugins ?? []).filter((p): p is string => typeof p === "string")
+        const pluginName = args.plugin as string
 
-        if (!plugins.includes(args.plugin)) {
-          prompts.log.warn(`${args.plugin} is not installed`)
+        if (!plugins.includes(pluginName)) {
+          prompts.log.warn(`${pluginName} is not installed`)
           prompts.outro("Done")
           return
         }
 
-        if (disabledPlugins.includes(args.plugin)) {
-          prompts.log.info(`${args.plugin} is already disabled`)
+        if (disabledPlugins.includes(pluginName)) {
+          prompts.log.info(`${pluginName} is already disabled`)
           prompts.outro("Done")
           return
         }
 
         if (args.dryRun) {
           prompts.log.info("Dry run - changes preview:")
-          prompts.log.info(`  Disabling: ${args.plugin}`)
+          prompts.log.info(`  Disabling: ${pluginName}`)
           prompts.outro("Dry run complete")
           return
         }
 
-        disabledPlugins.push(args.plugin)
-        ;(config as any).disabledPlugins = disabledPlugins
+        disabledPlugins.push(pluginName)
+        config.disabledPlugins = disabledPlugins
 
         await Config.update(config)
 

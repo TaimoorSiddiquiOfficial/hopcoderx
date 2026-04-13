@@ -293,8 +293,9 @@ export const ConfigListCommand = cmd({
           { key: "plugin", label: "Plugins" },
         ]
 
+        const configRecord = config as Record<string, unknown>
         for (const { key, label } of sections) {
-          const value = (config as any)[key]
+          const value = configRecord[key]
           if (value === undefined || value === null) continue
 
           if (typeof value === "object" && !Array.isArray(value)) {
