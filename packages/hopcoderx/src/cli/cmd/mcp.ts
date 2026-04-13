@@ -18,7 +18,8 @@ import { Bus } from "../../bus"
 import { McpRegistry } from "../../mcp/registry"
 import { McpBuiltins } from "../../mcp/builtins"
 import { getMcpSummary } from "../diagnostics"
-import { buildDisabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
+import { buildDisabledMcpEntry, buildEnabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
+import { findMissingMcpEnvVars } from "../../mcp/runtime-config"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -68,6 +69,7 @@ export const McpCommand = cmd({
       .command(McpInstallCommand)
       .command(McpRemoveCommand)
       .command(McpSetupCommand)
+      .command(McpConfigureCommand)
       .command(McpBuiltinsCommand)
       .demandCommand(),
   async handler() {},
@@ -1029,6 +1031,131 @@ export const McpSetupCommand = cmd({
   },
 })
 
+export const McpConfigureCommand = cmd({
+  command: "configure",
+  describe: "configure MCP servers that require setup",
+  async handler() {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("MCP Server Configuration")
+
+        const config = await Config.get()
+        const mcpServers = config.mcp ?? {}
+        const needsConfig: Array<{
+          name: string
+          reason: string
+          action: () => Promise<void>
+        }> = []
+
+        // Check each server for configuration issues
+        for (const [name, mcp] of Object.entries(mcpServers)) {
+          // Skip disabled servers
+          if (typeof mcp === "object" && "enabled" in mcp && mcp.enabled === false) {
+            continue
+          }
+
+          if (!isMcpConfigured(mcp)) continue
+
+          // Check missing env vars
+          const missingEnv = findMissingMcpEnvVars(mcp)
+          if (missingEnv.length > 0) {
+            needsConfig.push({
+              name,
+              reason: `Missing env vars: ${missingEnv.join(", ")}`,
+              action: async () => {
+                prompts.log.info(`Set the following environment variables:`)
+                for (const envVar of missingEnv) {
+                  const value = await prompts.password({
+                    message: `Enter value for ${envVar}:`,
+                  })
+                  if (prompts.isCancel(value)) return
+                  prompts.log.info(`  Add ${envVar} to your environment or .env file`)
+                }
+              },
+            })
+            continue
+          }
+
+          // Check OAuth status
+          const authStatus = await MCP.getAuthStatus(name)
+          if (authStatus === "not_authenticated" || authStatus === "expired") {
+            needsConfig.push({
+              name,
+              reason: authStatus === "expired" ? "OAuth credentials expired" : "Requires OAuth authentication",
+              action: async () => {
+                const status = await MCP.authenticate(name)
+                if (status.status === "failed" || status.status === "needs_client_registration") {
+                  throw new Error(status.error ?? "Authentication failed")
+                }
+                if (status.status !== "connected") {
+                  throw new Error(`Unexpected status: ${status.status}`)
+                }
+              },
+            })
+            continue
+          }
+
+          // Check client registration status
+          const status = await MCP.status()
+          if (status[name]?.status === "needs_client_registration") {
+            needsConfig.push({
+              name,
+              reason: "Requires client registration (clientId)",
+              action: async () => {
+                prompts.log.info(`Add clientId to config for ${name}:`)
+                prompts.log.info(
+                  JSON.stringify(
+                    {
+                      mcp: { [name]: { type: "remote", url: isMcpRemote(mcp) ? mcp.url : "...", oauth: { clientId: "..." } } },
+                    },
+                    null,
+                    2,
+                  ),
+                )
+              },
+            })
+          }
+        }
+
+        if (needsConfig.length === 0) {
+          prompts.log.success("All MCP servers are properly configured")
+          prompts.outro("Done")
+          return
+        }
+
+        prompts.log.info(`Found ${needsConfig.length} server(s) needing configuration:\n`)
+        for (const server of needsConfig) {
+          prompts.log.info(`  • ${server.name}: ${server.reason}`)
+        }
+
+        const proceed = await prompts.confirm({
+          message: "Configure these servers now?",
+        })
+
+        if (prompts.isCancel(proceed) || !proceed) {
+          prompts.outro("Cancelled")
+          return
+        }
+
+        for (const server of needsConfig) {
+          prompts.log.info(`\nConfiguring ${server.name}...`)
+          try {
+            await server.action()
+            prompts.log.success(`  ✓ ${server.name} configured`)
+          } catch (error) {
+            prompts.log.error(`  ✗ ${server.name}: ${error instanceof Error ? error.message : String(error)}`)
+          }
+        }
+
+        prompts.log.success("Configuration complete")
+        prompts.outro("Done")
+      },
+    })
+  },
+})
+
 export const McpBuiltinsCommand = cmd({
   command: "builtins",
   aliases: ["b"],
@@ -1058,13 +1185,20 @@ export const McpBuiltinsCommand = cmd({
 
         if (args.enable) {
           const id = args.enable.startsWith("builtin:") ? args.enable : `builtin:${args.enable}`
-          const entry = McpBuiltins.getById(id)
-          if (!entry) {
-            prompts.log.error(`Unknown built-in: ${id}`)
+          const config = await Config.get()
+          const configPath = await resolveMcpConfigPath(Global.Path.config, { global: true })
+
+          // Try to build enabled entry (works for both built-in and custom servers)
+          const mcpConfig = buildEnabledMcpEntry(id, config.mcp)
+          if (!mcpConfig) {
+            prompts.log.error(`Unknown or not configured server: ${id}`)
             prompts.outro("Done")
             return
           }
-          if (entry.requiresCredentials) {
+
+          // If it's a built-in that requires credentials, check env vars
+          const entry = McpBuiltins.getById(id)
+          if (entry?.requiresCredentials) {
             const missing = (entry.requiredEnvVars ?? []).filter((k) => !process.env[k])
             if (missing.length) {
               prompts.log.error(`Missing env vars: ${missing.join(", ")}`)
@@ -1073,11 +1207,14 @@ export const McpBuiltinsCommand = cmd({
               return
             }
           }
-          const mcpConfig = McpBuiltins.toMcpConfig(entry, true)
-          await MCP.add(id, mcpConfig)
-          const configPath = await resolveMcpConfigPath(Global.Path.config, { global: true })
+
+          // Only add to MCP runtime if it's a full config (not just { enabled: true })
+          if ("type" in mcpConfig) {
+            await MCP.add(id, mcpConfig)
+          }
           await updateMcpConfigEntry(id, mcpConfig, configPath)
-          prompts.log.success(`Enabled ${entry.icon} ${entry.name}`)
+          const displayName = entry ? `${entry.icon} ${entry.name}` : id
+          prompts.log.success(`Enabled ${displayName}`)
           prompts.outro("Done")
           return
         }

@@ -69,3 +69,28 @@ export function buildDisabledMcpEntry(name: string, configMcp?: NonNullable<Conf
 
   return undefined
 }
+
+export function buildEnabledMcpEntry(name: string, configMcp?: NonNullable<Config.Info["mcp"]>): PersistedMcpEntry | undefined {
+  const existing = configMcp?.[name]
+
+  // If server is configured (has type), just enable it
+  // This handles both: custom servers and built-in servers that were disabled
+  if (isMcpConfigured(existing)) {
+    return {
+      ...existing,
+      enabled: true,
+    }
+  }
+
+  // If it's a built-in without explicit config, create config from builtin definition
+  const builtin = McpBuiltins.getById(name)
+  if (builtin) {
+    return {
+      ...McpBuiltins.toMcpConfig(builtin, true),
+      enabled: true,
+    }
+  }
+
+  // Server not found in config or builtins
+  return undefined
+}
