@@ -122,8 +122,8 @@ export const ModelsTestCommand = cmd({
       return
     }
 
-    const model = provider.models[modelID]
-    if (!model) {
+    const modelInfo = provider.models[modelID]
+    if (!modelInfo) {
       prompts.log.error(`Model not found: ${modelID}`)
       prompts.outro(`Available models: ${Object.keys(provider.models).slice(0, 5).join(", ")}...`)
       return
@@ -135,12 +135,14 @@ export const ModelsTestCommand = cmd({
     try {
       // Simple test via AI SDK
       const { streamText } = await import("ai")
-      const { text } = await streamText({
-        model: Provider.getModel(args.model),
+      const modelConfig = Provider.getModel(providerID, modelID)
+      const languageModel = await Provider.getLanguage(await modelConfig)
+      const result = await streamText({
+        model: languageModel,
         messages: [{ role: "user", content: args.prompt }],
       })
 
-      const response = await text()
+      const response = await result.text
       spinner.stop()
 
       prompts.log.success("Response:")
@@ -183,16 +185,23 @@ export const ModelsCompareCommand = cmd({
 
     const results: Record<string, string> = {}
 
-    for (const model of [args.model1, args.model2]) {
+    for (const modelArg of [args.model1, args.model2]) {
       try {
+        const [providerID, modelID] = modelArg.split("/")
+        if (!providerID || !modelID) {
+          results[modelArg] = "Error: Invalid model format"
+          continue
+        }
         const { streamText } = await import("ai")
-        const { text } = await streamText({
-          model: Provider.getModel(model),
+        const modelConfig = Provider.getModel(providerID, modelID)
+        const languageModel = await Provider.getLanguage(await modelConfig)
+        const result = await streamText({
+          model: languageModel,
           messages: [{ role: "user", content: args.prompt }],
         })
-        results[model] = (await text()).trim()
+        results[modelArg] = (await result.text).trim()
       } catch (error) {
-        results[model] = `Error: ${error instanceof Error ? error.message : String(error)}`
+        results[modelArg] = `Error: ${error instanceof Error ? error.message : String(error)}`
       }
     }
 

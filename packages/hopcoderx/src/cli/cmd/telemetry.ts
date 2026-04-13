@@ -32,7 +32,7 @@ export const TelemetryStatusCommand = cmd({
         prompts.intro("Telemetry Status")
 
         const config = await Config.get()
-        const telemetryEnabled = config.telemetry !== false
+        const telemetryEnabled = (config as any).telemetry !== false
 
         if (telemetryEnabled) {
           prompts.log.info(`${UI.Style.TEXT_SUCCESS}✓${UI.Style.TEXT_NORMAL} Telemetry is ${UI.Style.TEXT_SUCCESS}enabled${UI.Style.TEXT_NORMAL}`)
@@ -136,7 +136,7 @@ export const TelemetryDataCommand = cmd({
       directory: process.cwd(),
       async fn() {
         const config = await Config.get()
-        const telemetryEnabled = config.telemetry !== false
+        const telemetryEnabled = (config as any).telemetry !== false
 
         if (!telemetryEnabled) {
           if (args.json) {

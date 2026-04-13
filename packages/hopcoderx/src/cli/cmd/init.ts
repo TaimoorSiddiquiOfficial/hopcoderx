@@ -65,35 +65,37 @@ export const InitCommand = cmd({
 
       try {
         await ModelsDev.refresh()
-        const models = ModelsDev.models()
-        const providerModels = models.filter((m) => m.providerId === provider)
-        const sortedModels = pipe(
-          providerModels,
-          sortBy((m) => m.name)
-        )
+        const providers = await ModelsDev.get()
+        const providerData = providers[provider]
 
         spinner.stop()
 
-        if (sortedModels.length === 0) {
+        if (!providerData || Object.keys(providerData.models).length === 0) {
           prompts.log.warn(`No models found for provider: ${provider}`)
           prompts.log.info("You can configure the model manually in hopcoderx.json")
         } else {
-          const modelOptions = sortedModels.map((m) => ({
-            label: m.name,
-            value: m.id,
-            hint: m.contextWindow ? `${Math.round(m.contextWindow / 1000)}K context` : undefined,
+          const modelEntries = Object.entries(providerData.models)
+          const sortedModels = pipe(
+            modelEntries,
+            sortBy(([id]) => id)
+          )
+
+          const modelOptions = sortedModels.map(([id, model]) => ({
+            label: model.name || id,
+            value: id,
+            hint: model.limit?.context ? `${Math.round(model.limit.context / 1000)}K context` : undefined,
           }))
 
           // Pre-select recommended model if available
-          const recommendedModel = sortedModels.find((m) =>
-            m.name.toLowerCase().includes("sonnet") ||
-            m.name.toLowerCase().includes("claude")
+          const recommendedModel = sortedModels.find(([, m]) =>
+            m.name?.toLowerCase().includes("sonnet") ||
+            m.name?.toLowerCase().includes("claude")
           ) || sortedModels[0]
 
           const model = await prompts.select({
             message: "Select default model",
             options: modelOptions,
-            initialValue: recommendedModel?.id,
+            initialValue: recommendedModel?.[0],
           })
 
           if (prompts.isCancel(model)) throw new UI.CancelledError()
@@ -195,7 +197,10 @@ export const InitCommand = cmd({
         const serverName = await prompts.text({
           message: "Enter MCP server name",
           placeholder: "my-server",
-          validate: (value) => (value.length > 0 ? undefined : "Required"),
+          validate: (value) => {
+            if (!value || value.length === 0) return "Required"
+            return undefined
+          },
         })
 
         if (prompts.isCancel(serverName)) throw new UI.CancelledError()

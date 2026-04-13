@@ -56,7 +56,12 @@ export const FeedbackCommand = cmd({
 
     const title = await prompts.text({
       message: "Brief title",
-      validate: (value) => (value.length < 10 ? "Please enter at least 10 characters" : undefined),
+      validate: (value) => {
+        if (!value || value.length < 10) {
+          return "Please enter at least 10 characters"
+        }
+        return undefined
+      },
     })
 
     if (prompts.isCancel(title)) throw new UI.CancelledError()
@@ -64,7 +69,12 @@ export const FeedbackCommand = cmd({
     const description = await prompts.text({
       message: "Description (brief)",
       placeholder: "Describe your feedback in a few sentences",
-      validate: (value) => (value.length < 20 ? "Please enter at least 20 characters" : undefined),
+      validate: (value) => {
+        if (!value || value.length < 20) {
+          return "Please enter at least 20 characters"
+        }
+        return undefined
+      },
     })
 
     if (prompts.isCancel(description)) throw new UI.CancelledError()
@@ -73,7 +83,13 @@ export const FeedbackCommand = cmd({
     const spinner = prompts.spinner()
     spinner.start("Gathering diagnostic information")
 
-    let diagnostics = {
+    let diagnostics: {
+      version: string
+      platform: NodeJS.Platform
+      nodeVersion: string
+      bunVersion: string
+      gitVersion?: string
+    } = {
       version: Installation.VERSION,
       platform: process.platform,
       nodeVersion: process.version,
@@ -84,7 +100,7 @@ export const FeedbackCommand = cmd({
       const gitVersion = execSync("git --version 2>/dev/null || git --version 2>NUL", { stdio: "pipe" })
         .toString()
         .trim()
-      diagnostics = { ...diagnostics, gitVersion }
+      diagnostics.gitVersion = gitVersion
     } catch {
       // Git not available - not critical
     }

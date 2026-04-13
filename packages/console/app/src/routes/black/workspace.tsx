@@ -42,8 +42,8 @@ export default function BlackWorkspace() {
   let listRef: HTMLUListElement | undefined
 
   const { active, setActive, onKeyDown } = createList({
-    items: () => workspaces.map((w) => w.id),
-    initialActive: workspaces[0]?.id ?? null,
+    items: () => workspaces().map((w) => w.id),
+    initialActive: workspaces()[0]?.id ?? null,
     handleTab: true,
   })
 
@@ -196,7 +196,7 @@ export default function BlackWorkspace() {
               }
             }}
           >
-            <For each={workspaces}>
+            <For each={workspaces()}>
               {(workspace) => (
                 <li
                   data-slot="workspace"

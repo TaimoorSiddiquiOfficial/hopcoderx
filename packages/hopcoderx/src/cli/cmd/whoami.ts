@@ -22,7 +22,7 @@ export const WhoamiCommand = cmd({
         // Display active model
         const activeModel = config.model
         if (activeModel) {
-          prompts.log.info(`Model: ${UI.Style.TEXT_STRONG}${activeModel}${UI.Style.TEXT_NORMAL}`)
+          prompts.log.info(`Model: ${UI.Style.TEXT_NORMAL_BOLD}${activeModel}${UI.Style.TEXT_NORMAL}`)
         } else {
           prompts.log.warn("No default model configured")
         }
