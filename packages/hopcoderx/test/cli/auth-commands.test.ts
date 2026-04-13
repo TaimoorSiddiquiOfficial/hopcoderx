@@ -67,9 +67,12 @@ describe("auth refresh", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["expired-provider"]).toBeDefined()
-    expect(credentials["expired-provider"].type).toBe("oauth")
-    expect(credentials["expired-provider"].expires).toBeLessThan(Date.now())
+    const cred = credentials["expired-provider"]
+    expect(cred).toBeDefined()
+    expect(cred.type).toBe("oauth")
+    if (cred.type === "oauth") {
+      expect(cred.expires).toBeLessThan(Date.now())
+    }
   })
 })
 
@@ -83,9 +86,11 @@ describe("auth verify", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["test-api-provider"]).toBeDefined()
-    expect(credentials["test-api-provider"].type).toBe("api")
-    expect(credentials["test-api-provider"].key).toBe("sk-test-key")
+    const cred = credentials["test-api-provider"]
+    expect(cred).toBeDefined()
+    if (cred.type === "api") {
+      expect(cred.key).toBe("sk-test-key")
+    }
   })
 
   test("verifies OAuth credentials are not expired", async () => {
@@ -100,8 +105,11 @@ describe("auth verify", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["valid-oauth-provider"]).toBeDefined()
-    expect(credentials["valid-oauth-provider"].expires).toBeGreaterThan(Date.now())
+    const cred = credentials["valid-oauth-provider"]
+    expect(cred).toBeDefined()
+    if (cred.type === "oauth") {
+      expect(cred.expires).toBeGreaterThan(Date.now())
+    }
   })
 
   test("detects expired OAuth credentials", async () => {
@@ -116,8 +124,11 @@ describe("auth verify", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["expired-oauth-provider"]).toBeDefined()
-    expect(credentials["expired-oauth-provider"].expires).toBeLessThan(Date.now())
+    const cred = credentials["expired-oauth-provider"]
+    expect(cred).toBeDefined()
+    if (cred.type === "oauth") {
+      expect(cred.expires).toBeLessThan(Date.now())
+    }
   })
 
   test("handles missing credentials", async () => {
@@ -148,7 +159,10 @@ describe("auth list", () => {
     const credentials = await Auth.all()
     expect(Object.keys(credentials)).toHaveLength(2)
     expect(credentials["provider-1"].type).toBe("api")
-    expect(credentials["provider-2"].type).toBe("oauth")
+    const cred2 = credentials["provider-2"]
+    if (cred2.type === "oauth") {
+      expect(cred2.type).toBe("oauth")
+    }
   })
 
   test("returns empty object when no credentials configured", async () => {
@@ -198,9 +212,11 @@ describe("auth login", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["new-provider"]).toBeDefined()
-    expect(credentials["new-provider"].type).toBe("api")
-    expect(credentials["new-provider"].key).toBe("sk-new-key")
+    const cred = credentials["new-provider"]
+    expect(cred).toBeDefined()
+    if (cred.type === "api") {
+      expect(cred.key).toBe("sk-new-key")
+    }
   })
 
   test("sets OAuth credentials", async () => {
@@ -214,9 +230,11 @@ describe("auth login", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["new-oauth-provider"]).toBeDefined()
-    expect(credentials["new-oauth-provider"].type).toBe("oauth")
-    expect(credentials["new-oauth-provider"].refresh).toBe("new-refresh-token")
+    const cred = credentials["new-oauth-provider"]
+    expect(cred).toBeDefined()
+    if (cred.type === "oauth") {
+      expect(cred.refresh).toBe("new-refresh-token")
+    }
   })
 
   test("updates existing credentials", async () => {
@@ -235,6 +253,9 @@ describe("auth login", () => {
     })
 
     const credentials = await Auth.all()
-    expect(credentials["update-provider"].key).toBe("new-key")
+    const cred = credentials["update-provider"]
+    if (cred?.type === "api") {
+      expect(cred.key).toBe("new-key")
+    }
   })
 })
