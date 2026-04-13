@@ -2,6 +2,9 @@ import path from "path"
 import { Global } from "../global"
 import z from "zod"
 import { Filesystem } from "../util/filesystem"
+import { Log } from "../util/log"
+
+const log = Log.create({ service: "auth" })
 
 export const OAUTH_DUMMY_KEY = "hopcoderx-oauth-dummy-key"
 
@@ -43,7 +46,10 @@ export namespace Auth {
   }
 
   export async function all(): Promise<Record<string, Info>> {
-    const data = await Filesystem.readJson<Record<string, unknown>>(filepath).catch(() => ({}))
+    const data = await Filesystem.readJson<Record<string, unknown>>(filepath).catch((err) => {
+      log.debug("auth file read failed, using empty", { error: String(err) })
+      return {}
+    })
     return Object.entries(data).reduce(
       (acc, [key, value]) => {
         const parsed = Info.safeParse(value)

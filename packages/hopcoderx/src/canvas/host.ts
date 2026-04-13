@@ -51,7 +51,7 @@ const LIVE_RELOAD_SNIPPET = `
   ws.onclose=()=>setTimeout(()=>location.reload(),2000);
   ws.onmessage=(e)=>{
     if(e.data==="reload"){location.reload();return;}
-    try{renderA2Ui(JSON.parse(e.data));}catch{}
+    try{renderA2Ui(JSON.parse(e.data));}catch(err){console.debug("canvas: failed to render A2UI", err)}
   };
   function renderA2Ui(ev){
     const el=document.getElementById("hopcoderx-a2ui-log");
@@ -121,7 +121,10 @@ export async function startCanvasHost(opts: CanvasHostOptions = {}): Promise<Can
   const broadcast = (event: A2UiEvent) => {
     const msg = JSON.stringify(event)
     for (const ws of clients) {
-      try { ws.send(msg) } catch {}
+      try { ws.send(msg) } catch {
+        // Client disconnected, will be cleaned up by close handler
+        clients.delete(ws)
+      }
     }
   }
 
@@ -164,7 +167,10 @@ export async function startCanvasHost(opts: CanvasHostOptions = {}): Promise<Can
         const lines = jsonl.split("\n").filter(Boolean)
         for (const line of lines) {
           for (const ws of clients) {
-            try { ws.send(line) } catch {}
+            try { ws.send(line) } catch {
+              // Client disconnected
+              clients.delete(ws)
+            }
           }
         }
         return Response.json({ ok: true, delivered: clients.size, lines: lines.length })
@@ -174,7 +180,10 @@ export async function startCanvasHost(opts: CanvasHostOptions = {}): Promise<Can
       if (path === "/canvas/a2ui/reset" && req.method === "POST") {
         const msg = JSON.stringify({ type: "reset" })
         for (const ws of clients) {
-          try { ws.send(msg) } catch {}
+          try { ws.send(msg) } catch {
+            // Client disconnected
+            clients.delete(ws)
+          }
         }
         return Response.json({ ok: true })
       }
@@ -202,7 +211,8 @@ export async function startCanvasHost(opts: CanvasHostOptions = {}): Promise<Can
       try {
         const s = await stat(filePath)
         if (s.isDirectory()) filePath = join(filePath, "index.html")
-      } catch {
+      } catch (err) {
+        // File doesn't exist
         return new Response("Not Found", { status: 404 })
       }
 
@@ -221,7 +231,8 @@ export async function startCanvasHost(opts: CanvasHostOptions = {}): Promise<Can
         }
 
         return new Response(data.buffer as ArrayBuffer, { headers: { "Content-Type": mimeType, "Cache-Control": "no-store" } })
-      } catch {
+      } catch (err) {
+        // Read failed after stat succeeded
         return new Response("Not Found", { status: 404 })
       }
     },

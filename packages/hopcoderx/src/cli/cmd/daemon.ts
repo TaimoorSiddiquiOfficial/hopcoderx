@@ -18,6 +18,9 @@ import { existsSync } from "fs"
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
 import { Global } from "../../global"
+import { Log } from "../../util/log"
+
+const log = Log.create({ service: "daemon" })
 
 const execFileAsync = promisify(execFile)
 const PLATFORM = platform()
@@ -77,8 +80,12 @@ class LaunchdBackend implements DaemonBackend {
   }
 
   async uninstall(): Promise<void> {
-    try { await execFileAsync("launchctl", ["unload", this.plistPath]) } catch {}
-    try { await unlink(this.plistPath) } catch {}
+    try { await execFileAsync("launchctl", ["unload", this.plistPath]) } catch {
+      // Service may not be loaded
+    }
+    try { await unlink(this.plistPath) } catch {
+      // File may not exist
+    }
   }
 
   async start(): Promise<void> {
@@ -147,10 +154,18 @@ WantedBy=default.target
   }
 
   async uninstall(): Promise<void> {
-    try { await execFileAsync("systemctl", ["--user", "stop", DAEMON_NAME]) } catch {}
-    try { await execFileAsync("systemctl", ["--user", "disable", DAEMON_NAME]) } catch {}
-    try { await unlink(this.unitFile) } catch {}
-    try { await execFileAsync("systemctl", ["--user", "daemon-reload"]) } catch {}
+    try { await execFileAsync("systemctl", ["--user", "stop", DAEMON_NAME]) } catch {
+      // Service may not be running
+    }
+    try { await execFileAsync("systemctl", ["--user", "disable", DAEMON_NAME]) } catch {
+      // Service may not be enabled
+    }
+    try { await unlink(this.unitFile) } catch {
+      // File may not exist
+    }
+    try { await execFileAsync("systemctl", ["--user", "daemon-reload"]) } catch {
+      // systemctl may not be available
+    }
   }
 
   async start(): Promise<void> {
@@ -213,7 +228,9 @@ class WindowsTaskBackend implements DaemonBackend {
   }
 
   async uninstall(): Promise<void> {
-    try { await execFileAsync("schtasks", ["/Delete", "/F", "/TN", this.taskName]) } catch {}
+    try { await execFileAsync("schtasks", ["/Delete", "/F", "/TN", this.taskName]) } catch {
+      // Task may not exist
+    }
   }
 
   async start(): Promise<void> {
@@ -304,7 +321,9 @@ export const DaemonCommand = cmd({
             pid: process.pid,
             ts: Date.now(),
           }))
-        } catch {}
+        } catch (err) {
+          log.warn("Failed to write heartbeat", { error: String(err) })
+        }
       }, 30_000)
 
       // Cron runner — execute due tasks every minute
@@ -312,7 +331,9 @@ export const DaemonCommand = cmd({
         try {
           const { executeDueTasks } = await import("./cron")
           await executeDueTasks()
-        } catch {}
+        } catch (err) {
+          log.error("Cron task execution failed", { error: String(err) })
+        }
       }, 60_000)
       return
     }
@@ -362,7 +383,9 @@ export const DaemonCommand = cmd({
             const hb = JSON.parse(require("fs").readFileSync(heartbeatFile, "utf8"))
             const age = Math.round((Date.now() - hb.ts) / 1000)
             console.log(`  Last heartbeat: ${age}s ago (pid=${hb.pid})`)
-          } catch {}
+          } catch (err) {
+            log.warn("Failed to read heartbeat file", { error: String(err) })
+          }
         }
         break
       }

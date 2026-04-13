@@ -15,6 +15,9 @@
  */
 
 import { ChannelRegistry, type ChannelMessage } from "./channel"
+import { Log } from "../util/log"
+
+const log = Log.create({ service: "auto-reply" })
 
 export interface AutoReplyConfig {
   /** Milliseconds to wait after last message before replying (default: 1000) */
@@ -114,7 +117,7 @@ export class AutoReplyEngine {
       state.windowStart = now
     }
     if (state.replyCount >= this.config.maxRpm) {
-      console.warn(`[auto-reply] Rate limit hit for thread ${threadKey}`)
+      log.warn(`Rate limit hit for thread ${threadKey}`)
       state.messages = []
       return
     }
@@ -133,7 +136,7 @@ export class AutoReplyEngine {
         })
       }
     } catch (e) {
-      console.warn(`[auto-reply] Handler error for ${threadKey}:`, e)
+      log.warn(`Handler error for ${threadKey}`, { error: String(e) })
     }
   }
 
@@ -160,9 +163,9 @@ export class AutoReplyEngine {
     if (!ch?.startListening) return
     try {
       await ch.startListening()
-      console.log(`[auto-reply] Listening on ${channelId}`)
+      log.info(`Listening on ${channelId}`)
     } catch (err) {
-      console.error(`[auto-reply] Failed to start ${channelId}:`, err)
+      log.error(`Failed to start ${channelId}`, { error: String(err) })
       if (this.config.keepAlive && this._running) {
         this._scheduleReconnect(channelId)
       }
@@ -172,7 +175,7 @@ export class AutoReplyEngine {
   private _scheduleReconnect(channelId: string): void {
     setTimeout(async () => {
       if (!this._running) return
-      console.log(`[auto-reply] Reconnecting ${channelId}…`)
+      log.info(`Reconnecting ${channelId}…`)
       await this._startChannel(channelId)
     }, this.config.reconnectDelayMs)
   }
@@ -246,7 +249,7 @@ export class HeartbeatScheduler {
     if (this._running) return
     this._running = true
     this._schedule()
-    console.log(`[heartbeat] Scheduled every ${Math.round(this.config.intervalMs / 60000)}m`)
+    log.info(`Heartbeat scheduled every ${Math.round(this.config.intervalMs / 60000)}m`)
   }
 
   stop(): void {
@@ -265,7 +268,7 @@ export class HeartbeatScheduler {
       if (!reply || reply.trim() === "HEARTBEAT_OK") return
       await this._deliver(reply)
     } catch (err) {
-      console.error("[heartbeat] tick error:", err)
+      log.error("Heartbeat tick error", { error: String(err) })
     }
   }
 
@@ -286,7 +289,7 @@ export class HeartbeatScheduler {
       const to = this.config.recipients?.[channelId]
       if (!to) continue
       await ChannelRegistry.send(channelId, to, { text: message }).catch((err) => {
-        console.warn(`[heartbeat] Delivery failed on ${channelId}:`, err)
+        log.warn(`Heartbeat delivery failed on ${channelId}`, { error: String(err) })
       })
     }
   }

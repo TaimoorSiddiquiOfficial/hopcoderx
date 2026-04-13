@@ -1,6 +1,9 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { Log } from "../util/log"
+
+// Bun-specific error class for module resolution failures
+declare const ResolveMessage: typeof Error
 import { UI } from "./ui"
 import { Installation } from "../installation"
 import { NamedError } from "@hopcoderx/util/error"

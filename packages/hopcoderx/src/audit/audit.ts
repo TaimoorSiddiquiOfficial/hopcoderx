@@ -24,7 +24,9 @@ export namespace AuditLog {
 
   const logPath = () => {
     const dir = Global.Path.config
-    try { mkdirSync(dir, { recursive: true }) } catch {}
+    try { mkdirSync(dir, { recursive: true }) } catch (err) {
+      log.debug("audit mkdir failed", { err: String(err) })
+    }
     return path.join(dir, "audit.jsonl")
   }
 
@@ -49,7 +51,8 @@ export namespace AuditLog {
     try {
       const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean)
       return lines.slice(-n).map((l) => JSON.parse(l) as Entry).reverse()
-    } catch {
+    } catch (err) {
+      log.warn("audit tail failed", { err: String(err) })
       return []
     }
   }
@@ -65,7 +68,12 @@ export namespace AuditLog {
         .trim()
         .split("\n")
         .filter(Boolean)
-        .map((l) => { try { return JSON.parse(l) as Entry } catch { return null } })
+        .map((l) => {
+          try { return JSON.parse(l) as Entry } catch (err) {
+            log.debug("audit search: failed to parse line", { err: String(err) })
+            return null
+          }
+        })
         .filter(Boolean) as Entry[]
 
       return entries.filter((e) => {
@@ -74,7 +82,8 @@ export namespace AuditLog {
         }
         return true
       }).reverse()
-    } catch {
+    } catch (err) {
+      log.warn("audit search failed", { err: String(err) })
       return []
     }
   }
