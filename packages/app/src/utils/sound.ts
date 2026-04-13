@@ -107,7 +107,12 @@ export function playSound(src: string | undefined) {
   if (typeof Audio === "undefined") return
   if (!src) return
   const audio = new Audio(src)
-  audio.play().catch(() => undefined)
+  audio.play().catch((err) => {
+    // Silently ignore autoplay policy errors - these are expected when user hasn't interacted
+    if (err instanceof Error && err.name === "NotAllowedError") return
+    // Log other errors for debugging
+    console.warn("Failed to play sound:", err)
+  })
 
   // Return a cleanup function to pause the sound.
   return () => {

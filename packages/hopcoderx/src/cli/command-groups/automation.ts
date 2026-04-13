@@ -15,6 +15,8 @@ import { CostCommand } from "../cmd/cost"
 import { SbomCommand } from "../cmd/sbom"
 import { DiffCommand } from "../cmd/diff"
 import { PermissionCommand } from "../cmd/permission"
+import { FeedbackCommand } from "../cmd/feedback"
+import { TelemetryCommand } from "../cmd/telemetry"
 import { automationTaxonomy } from "../command-taxonomy"
 
 export const automationCommandGroup = {
@@ -37,5 +39,7 @@ export const automationCommandGroup = {
     SbomCommand,
     DiffCommand,
     PermissionCommand,
+    FeedbackCommand,
+    TelemetryCommand,
   ],
 }

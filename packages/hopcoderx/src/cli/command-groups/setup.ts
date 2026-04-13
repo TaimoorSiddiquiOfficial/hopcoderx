@@ -4,9 +4,11 @@ import { RepairCommand } from "../cmd/repair"
 import { UninstallCommand } from "../cmd/uninstall"
 import { ModelsCommand } from "../cmd/models"
 import { OnboardCommand } from "../cmd/onboard"
+import { WhoamiCommand } from "../cmd/whoami"
+import { InitCommand } from "../cmd/init"
 import { setupTaxonomy } from "../command-taxonomy"
 
 export const setupCommandGroup = {
   ...setupTaxonomy,
-  commands: [OnboardCommand, AuthCommand, ModelsCommand, UpgradeCommand, RepairCommand, UninstallCommand],
+  commands: [OnboardCommand, AuthCommand, ModelsCommand, UpgradeCommand, RepairCommand, UninstallCommand, WhoamiCommand, InitCommand],
 }

@@ -15,8 +15,8 @@ export const sessionTaxonomy: TaxonomyGroup = {
 export const setupTaxonomy: TaxonomyGroup = {
   name: "setup",
   title: "Setup & install",
-  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall"],
-  completion: ["onboard", "auth", "models", "upgrade", "repair", "uninstall"],
+  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init"],
+  completion: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init"],
 }
 
 export const servicesTaxonomy: TaxonomyGroup = {
@@ -29,8 +29,8 @@ export const servicesTaxonomy: TaxonomyGroup = {
 export const diagnosticsTaxonomy: TaxonomyGroup = {
   name: "diagnostics",
   title: "Diagnostics & maintenance",
-  summary: ["doctor", "status", "debug", "stats", "db", "completion"],
-  completion: ["doctor", "status", "debug", "stats", "db", "completion"],
+  summary: ["doctor", "status", "debug", "stats", "db", "completion", "config"],
+  completion: ["doctor", "status", "debug", "stats", "db", "completion", "config"],
 }
 
 export const integrationsTaxonomy: TaxonomyGroup = {
@@ -60,6 +60,8 @@ export const automationTaxonomy: TaxonomyGroup = {
     "sbom",
     "diff",
     "permission",
+    "feedback",
+    "telemetry",
   ],
   completion: [
     "generate",
@@ -80,6 +82,8 @@ export const automationTaxonomy: TaxonomyGroup = {
     "sbom",
     "diff",
     "permission",
+    "feedback",
+    "telemetry",
   ],
 }
 

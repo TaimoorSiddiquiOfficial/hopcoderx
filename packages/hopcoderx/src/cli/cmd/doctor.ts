@@ -348,7 +348,7 @@ async function checkConfig(): Promise<Check[]> {
   return checks
 }
 
-async function runFixes(checks: Check[], options?: { quiet?: boolean }) {
+async function runFixes(checks: Check[], options?: { quiet?: boolean; all?: boolean }) {
   const fixable = checks.filter(
     (c) => (c.status === "fail" || c.status === "warn") && (c.repair || c.fix?.startsWith("mkdir")),
   )
@@ -463,6 +463,11 @@ export const DoctorCommand = cmd({
         type: "boolean",
         default: false,
       })
+      .option("fix-all", {
+        describe: "attempt to fix all fixable issues without confirmation",
+        type: "boolean",
+        default: false,
+      })
       .option("json", {
         describe: "output diagnostic results as JSON",
         type: "boolean",
@@ -532,9 +537,17 @@ export const DoctorCommand = cmd({
           console.log()
         }
 
-        const fixes = args.fix ? await runFixes(allChecks, { quiet: args.json }) : []
-        if (args.fix) {
+        const fixes = args.fix || args.fixAll ? await runFixes(allChecks, { quiet: args.json, all: args.fixAll }) : []
+        if (args.fix || args.fixAll) {
           // runFixes already executed above
+          if (!args.json && fixes.length > 0) {
+            const fixedCount = fixes.filter(f => f.fixed).length
+            const failedCount = fixes.filter(f => !f.fixed).length
+            console.log(`\n\x1b[32m✓ Fixed ${fixedCount} issue(s)\x1b[0m`)
+            if (failedCount > 0) {
+              console.log(`\x1b[31m✗ ${failedCount} issue(s) require manual attention\x1b[0m`)
+            }
+          }
         }
 
         if (args.json) {
