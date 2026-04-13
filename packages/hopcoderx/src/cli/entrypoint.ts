@@ -3,7 +3,14 @@ import { hideBin } from "yargs/helpers"
 import { Log } from "../util/log"
 
 // Bun-specific error class for module resolution failures
-declare const ResolveMessage: typeof Error
+declare class ResolveMessage extends Error {
+  readonly name: "ResolveMessage"
+  readonly code: string
+  readonly specifier: string
+  readonly referrer: string
+  readonly position: { line: number; column: number }
+  readonly importKind: string
+}
 import { UI } from "./ui"
 import { Installation } from "../installation"
 import { NamedError } from "@hopcoderx/util/error"
