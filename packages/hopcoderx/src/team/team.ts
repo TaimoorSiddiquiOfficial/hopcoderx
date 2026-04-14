@@ -254,6 +254,12 @@ export class Team {
 
   /**
    * Sync with team server
+   *
+   * Implements bidirectional sync with last-write-wins conflict resolution:
+   * 1. Push local changes (memories, agents, skills) to server
+   * 2. Pull remote changes from server
+   * 3. Resolve conflicts using timestamps (last-write-wins)
+   * 4. Update sync cursor
    */
   async sync(): Promise<{
     pushed: number
@@ -267,21 +273,276 @@ export class Team {
     log.info("sync started", { teamId: this.config.id })
 
     const result = { pushed: 0, pulled: 0, conflicts: 0 }
-
-    // TODO: Implement actual sync logic with:
-    // 1. Push local changes to server
-    // 2. Pull remote changes
-    // 3. Resolve conflicts (last-write-wins)
-    // 4. Update cursor
-
-    if (this.cursor) {
-      this.cursor.lastSyncAt = Date.now()
-      await this.saveCursor(this.cursor)
+    const headers = {
+      "Authorization": `Bearer ${this.config.syncKey || ""}`,
+      "Content-Type": "application/json",
+      "X-Team-ID": this.config.id,
     }
 
-    log.info("sync completed", result)
+    try {
+      // 1. Collect local changes since last sync
+      const localChanges = await this.collectLocalChanges()
 
-    return result
+      // 2. Push local changes to server
+      if (localChanges.hasChanges) {
+        const pushResponse = await fetch(`${this.config.syncUrl}/push`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            teamId: this.config.id,
+            memories: localChanges.memories,
+            agents: localChanges.agents,
+            skills: localChanges.skills,
+            syncedAt: Date.now(),
+          }),
+        })
+
+        if (pushResponse.ok) {
+          const pushResult = await pushResponse.json()
+          result.pushed = pushResult.accepted?.length ?? localChanges.memories.length + localChanges.agents.length + localChanges.skills.length
+          result.conflicts = pushResult.conflicts?.length ?? 0
+        }
+      }
+
+      // 3. Pull remote changes from server
+      const pullUrl = new URL(`${this.config.syncUrl}/pull`)
+      pullUrl.searchParams.set("since", String(this.cursor?.lastSyncAt ?? 0))
+      pullUrl.searchParams.set("teamId", this.config.id)
+
+      const pullResponse = await fetch(pullUrl.toString(), {
+        method: "GET",
+        headers,
+      })
+
+      if (pullResponse.ok) {
+        const remoteData = await pullResponse.json() as {
+          memories?: Array<{ id: string; content: string; tags?: string[]; updatedAt: number }>
+          agents?: Array<{ id: string; name: string; config: Record<string, unknown>; updatedAt: number }>
+          skills?: Array<{ id: string; name: string; content: string; updatedAt: number }>
+        }
+
+        // Apply remote changes with last-write-wins conflict resolution
+        if (remoteData.memories) {
+          for (const memory of remoteData.memories) {
+            const shouldApply = await this.applyRemoteMemory(memory)
+            if (shouldApply) result.pulled++
+          }
+        }
+
+        if (remoteData.agents) {
+          for (const agent of remoteData.agents) {
+            const shouldApply = await this.applyRemoteAgent(agent)
+            if (shouldApply) result.pulled++
+          }
+        }
+
+        if (remoteData.skills) {
+          for (const skill of remoteData.skills) {
+            const shouldApply = await this.applyRemoteSkill(skill)
+            if (shouldApply) result.pulled++
+          }
+        }
+      }
+
+      // 4. Update cursor
+      if (this.cursor) {
+        this.cursor.lastSyncAt = Date.now()
+        await this.saveCursor(this.cursor)
+      }
+
+      log.info("sync completed", result)
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      log.error("sync failed", { error: errorMessage })
+      throw TeamError({ message: `Sync failed: ${errorMessage}` })
+    }
+  }
+
+  /**
+   * Collect local changes since last sync
+   */
+  private async collectLocalChanges(): Promise<{
+    hasChanges: boolean
+    memories: Array<{ id: string; content: string; tags?: string[]; updatedAt: number }>
+    agents: Array<{ id: string; name: string; config: Record<string, unknown>; updatedAt: number }>
+    skills: Array<{ id: string; name: string; content: string; updatedAt: number }>
+  }> {
+    const since = this.cursor?.lastSyncAt ?? 0
+    const memories: Array<{ id: string; content: string; tags?: string[]; updatedAt: number }> = []
+    const agents: Array<{ id: string; name: string; config: Record<string, unknown>; updatedAt: number }> = []
+    const skills: Array<{ id: string; name: string; content: string; updatedAt: number }> = []
+
+    // Collect changed memories from SQLite
+    try {
+      const sqlitePath = path.join(Global.Path.data, "memory.db")
+      const { Database } = await import("bun:sqlite")
+      const db = new Database(sqlitePath, { readonly: true })
+      const stmt = db.query("SELECT id, content, tags, updated_at FROM memories WHERE updated_at > ?")
+      for (const row of stmt.all(since) as Array<Record<string, unknown>>) {
+        memories.push({
+          id: row.id as string,
+          content: row.content as string,
+          tags: row.tags ? JSON.parse(row.tags as string) : undefined,
+          updatedAt: row.updated_at as number,
+        })
+      }
+      db.close()
+    } catch {
+      // SQLite not available or no memories
+    }
+
+    // Collect changed agents
+    try {
+      const agentsPath = path.join(Global.Path.data, "agents.json")
+      const content = await fs.readFile(agentsPath, "utf8").catch(() => "[]")
+      const allAgents = JSON.parse(content) as Array<{ id: string; name: string; config: Record<string, unknown>; updatedAt: number }>
+      agents.push(...allAgents.filter((a) => (a.updatedAt ?? 0) > since))
+    } catch {
+      // No agents file
+    }
+
+    // Collect changed skills
+    try {
+      const skillsDir = path.join(Global.Path.config, "skills")
+      const skillFiles = await fs.readdir(skillsDir).catch(() => [])
+      for (const file of skillFiles) {
+        if (!file.endsWith(".md")) continue
+        const skillPath = path.join(skillsDir, file)
+        const stat = await fs.stat(skillPath).catch(() => null)
+        if (stat && stat.mtimeMs > since) {
+          const skillContent = await fs.readFile(skillPath, "utf8")
+          skills.push({
+            id: file.replace(/\.md$/, ""),
+            name: file.replace(/\.md$/, ""),
+            content: skillContent,
+            updatedAt: stat.mtimeMs,
+          })
+        }
+      }
+    } catch {
+      // No skills directory
+    }
+
+    return {
+      hasChanges: memories.length > 0 || agents.length > 0 || skills.length > 0,
+      memories,
+      agents,
+      skills,
+    }
+  }
+
+  /**
+   * Apply remote memory with last-write-wins conflict resolution
+   */
+  private async applyRemoteMemory(remote: { id: string; content: string; tags?: string[]; updatedAt: number }): Promise<boolean> {
+    try {
+      const { MemoryPlugin } = await import("../memory/memory")
+      if (!MemoryPlugin.isActive()) return false
+
+      const existing = await MemoryPlugin.active.get(remote.id)
+
+      // Last-write-wins: only apply if remote is newer
+      if (existing && existing.updatedAt >= remote.updatedAt) {
+        return false
+      }
+
+      await MemoryPlugin.active.upsert({
+        id: remote.id,
+        content: remote.content,
+        tags: remote.tags ?? [],
+        projectScope: null,
+        score: 1.0,
+      })
+
+      // Update cursor
+      if (this.cursor && !this.cursor.syncedMemoryIds.includes(remote.id)) {
+        this.cursor.syncedMemoryIds.push(remote.id)
+      }
+
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Apply remote agent with last-write-wins conflict resolution
+   */
+  private async applyRemoteAgent(remote: { id: string; name: string; config: Record<string, unknown>; updatedAt: number }): Promise<boolean> {
+    try {
+      const agentsPath = path.join(Global.Path.data, "agents.json")
+      let allAgents: Array<{ id: string; name: string; config: Record<string, unknown>; updatedAt: number }> = []
+
+      try {
+        const content = await fs.readFile(agentsPath, "utf8")
+        allAgents = JSON.parse(content)
+      } catch {
+        // File doesn't exist yet
+      }
+
+      const existing = allAgents.find((a) => a.id === remote.id)
+
+      // Last-write-wins: only apply if remote is newer
+      if (existing && (existing.updatedAt ?? 0) >= remote.updatedAt) {
+        return false
+      }
+
+      if (existing) {
+        allAgents = allAgents.map((a) => (a.id === remote.id ? remote : a))
+      } else {
+        allAgents.push(remote)
+      }
+
+      await fs.mkdir(Global.Path.data, { recursive: true })
+      await fs.writeFile(agentsPath, JSON.stringify(allAgents, null, 2))
+
+      // Update cursor
+      if (this.cursor && !this.cursor.syncedAgentIds.includes(remote.id)) {
+        this.cursor.syncedAgentIds.push(remote.id)
+      }
+
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Apply remote skill with last-write-wins conflict resolution
+   */
+  private async applyRemoteSkill(remote: { id: string; name: string; content: string; updatedAt: number }): Promise<boolean> {
+    try {
+      const skillsDir = path.join(Global.Path.data, "team-skills")
+      const skillPath = path.join(skillsDir, `${remote.id}.md`)
+
+      let existingContent: string | null = null
+      try {
+        existingContent = await fs.readFile(skillPath, "utf8")
+      } catch {
+        // File doesn't exist yet
+      }
+
+      // If skill exists locally with same or newer mtime, skip
+      if (existingContent) {
+        const stat = await fs.stat(skillPath)
+        if (stat.mtimeMs >= remote.updatedAt) {
+          return false
+        }
+      }
+
+      await fs.mkdir(skillsDir, { recursive: true })
+      await fs.writeFile(skillPath, remote.content)
+
+      // Update cursor
+      if (this.cursor && !this.cursor.syncedSkillIds.includes(remote.id)) {
+        this.cursor.syncedSkillIds.push(remote.id)
+      }
+
+      return true
+    } catch {
+      return false
+    }
   }
 
   /**
