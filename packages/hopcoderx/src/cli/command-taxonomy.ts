@@ -15,8 +15,8 @@ export const sessionTaxonomy: TaxonomyGroup = {
 export const setupTaxonomy: TaxonomyGroup = {
   name: "setup",
   title: "Setup & install",
-  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init", "new"],
-  completion: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init", "new"],
+  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init", "new", "context"],
+  completion: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init", "new", "context"],
 }
 
 export const servicesTaxonomy: TaxonomyGroup = {
