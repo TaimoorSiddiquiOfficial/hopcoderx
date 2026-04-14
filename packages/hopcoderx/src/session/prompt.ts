@@ -556,6 +556,18 @@ export namespace SessionPrompt {
         lastFinished.summary !== true &&
         (await SessionCompaction.isOverflow({ tokens: lastFinished.tokens, model }))
       ) {
+        // Try pruning first to free up space before compaction
+        await SessionCompaction.prune({ sessionID })
+
+        // Re-check if pruning was enough
+        const updatedMsgs = await Session.messages({ sessionID })
+        const lastMsg = updatedMsgs.findLast((m) => m.info.role === "assistant" && m.info.summary !== true)
+        if (lastMsg && !(await SessionCompaction.isOverflow({ tokens: lastMsg.info.tokens, model }))) {
+          log.info("pruning resolved context overflow, skipping compaction")
+          continue
+        }
+
+        // Still need compaction after pruning
         await SessionCompaction.create({
           sessionID,
           agent: lastUser.agent,
