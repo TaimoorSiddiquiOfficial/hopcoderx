@@ -3,6 +3,7 @@ import { xdgData, xdgCache, xdgConfig, xdgState } from "xdg-basedir"
 import path from "path"
 import os from "os"
 import { Filesystem } from "../util/filesystem"
+import { Log } from "../util/log"
 
 const app = "hopcoderx"
 
@@ -52,7 +53,9 @@ export namespace Global {
             }),
           ),
         )
-      } catch (e) {}
+      } catch (e) {
+        Log.Default.warn("global.init", "cache cleanup failed", { error: e instanceof Error ? e.message : String(e) })
+      }
       await Filesystem.write(path.join(Global.Path.cache, "version"), CACHE_VERSION)
     }
   }
@@ -60,5 +63,5 @@ export namespace Global {
 
 // Initialize on first import (lazy initialization pattern)
 Global.init().catch((err) => {
-  console.error("Failed to initialize Global paths:", err)
+  Log.Default.error("global.init", "initialization failed", { error: err instanceof Error ? err.message : String(err) })
 })

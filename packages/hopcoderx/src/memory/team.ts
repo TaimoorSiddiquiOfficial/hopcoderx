@@ -21,6 +21,7 @@ import { existsSync } from "fs"
 import { join } from "path"
 import { Global } from "../global"
 import { MemoryPlugin } from "./memory"
+import { Log } from "../util/log"
 import type { MemoryEntry } from "./memory"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -163,10 +164,10 @@ export class TeamMemory {
       try {
         const result = await this.sync()
         if (result.pushed > 0 || result.pulled > 0) {
-          console.log(`[team-memory] Sync: pushed=${result.pushed}, pulled=${result.pulled}, conflicts=${result.conflicts}`)
+          Log.Default.info("team.sync", "auto-sync completed", result)
         }
       } catch (err: any) {
-        console.error(`[team-memory] Auto-sync failed: ${err.message}`)
+        Log.Default.error("team.sync", "auto-sync failed", { error: err.message })
       }
     }, intervalMs)
   }

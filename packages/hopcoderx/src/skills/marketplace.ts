@@ -18,6 +18,8 @@
  *   await mp.uninstall("hopcoderx-skill-github-pro")
  */
 
+import { Log } from "../util/log"
+
 import { execFile } from "child_process"
 import { promisify } from "util"
 import { readFile, readdir, mkdir, writeFile } from "fs/promises"
@@ -163,7 +165,7 @@ export class SkillsMarketplace {
     const skill = await this._loadSkillModule(pkgDir, manifest)
     this.framework.loadBuiltin(manifest, skill)
 
-    console.log(`[skills] Installed ${packageName}@${manifest.version}`)
+    Log.Default.info("skills.marketplace", "skill installed", { packageName, version: manifest.version })
     return result
   }
 
@@ -174,7 +176,7 @@ export class SkillsMarketplace {
     const pm = await this._detectPackageManager()
     const removeArgs = pm === "bun" ? ["remove", packageName] : ["uninstall", packageName]
     await execFileAsync(pm, removeArgs, { cwd: this.installDir })
-    console.log(`[skills] Uninstalled ${packageName}`)
+    Log.Default.info("skills.marketplace", "skill uninstalled", { packageName })
   }
 
   /**

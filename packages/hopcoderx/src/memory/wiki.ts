@@ -189,7 +189,9 @@ export class WikiMemoryBackend implements MemoryBackend {
     this.cache.delete(id)
     try {
       await unlink(this.entryPath(id))
-    } catch {}
+    } catch (e) {
+      Log.Default.warn("wiki.delete", "failed to delete wiki entry", { id, error: e instanceof Error ? e.message : String(e) })
+    }
   }
 
   async search(query: string, opts?: { limit?: number; projectScope?: string | null; tags?: string[] }): Promise<MemorySearchResult[]> {

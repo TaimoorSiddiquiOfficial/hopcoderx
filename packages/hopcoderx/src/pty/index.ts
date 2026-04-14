@@ -150,7 +150,9 @@ export namespace Pty {
       for (const session of sessions.values()) {
         try {
           session.process.kill()
-        } catch {}
+        } catch (e) {
+          log.warn("cleanup", "failed to kill process", { sessionId: session.info.id, error: e instanceof Error ? e.message : String(e) })
+        }
         for (const ws of session.subscribers.keys()) {
           try {
             ws.close()
@@ -290,7 +292,9 @@ export namespace Pty {
     log.info("removing session", { id })
     try {
       session.process.kill()
-    } catch {}
+    } catch (e) {
+      log.warn("remove", "failed to kill process", { sessionId: id, error: e instanceof Error ? e.message : String(e) })
+    }
     for (const ws of session.subscribers.keys()) {
       try {
         ws.close()

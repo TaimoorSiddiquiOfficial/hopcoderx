@@ -1430,7 +1430,9 @@ export namespace Config {
           const plugin = data.plugin[i]
           try {
             data.plugin[i] = import.meta.resolve!(plugin, options.path)
-          } catch (err) {}
+          } catch (err) {
+            Log.Default.warn("config.resolve", "plugin resolution failed", { plugin, error: err instanceof Error ? err.message : String(err) })
+          }
         }
       }
       return data

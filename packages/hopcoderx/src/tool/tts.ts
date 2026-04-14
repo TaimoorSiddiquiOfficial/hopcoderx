@@ -20,6 +20,7 @@ import { join } from "path"
 import { tmpdir } from "os"
 import { execFile } from "child_process"
 import { promisify } from "util"
+import { Log } from "../util/log"
 
 const execFileAsync = promisify(execFile)
 type Meta = Record<string, string | number | boolean | undefined>
@@ -50,8 +51,10 @@ async function ttsSystem(text: string): Promise<void> {
   if (platform === "darwin") {
     await execFileAsync("say", [safeText])
   } else if (platform === "linux") {
-    try { await execFileAsync("espeak", ["-s", "150", safeText]) } catch {
-      try { await execFileAsync("festival", ["--tts", safeText]) } catch {}
+    try { await execFileAsync("espeak", ["-s", "150", safeText]) } catch (e) {
+      try { await execFileAsync("festival", ["--tts", safeText]) } catch (e) {
+        Log.Default.warn("tts.system", "TTS failed", { platform, error: e instanceof Error ? e.message : String(e) })
+      }
     }
   } else if (platform === "win32") {
     await execFileAsync("powershell", ["-Command", `Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.Speak("${safeText}")`])
@@ -66,8 +69,10 @@ async function playAudio(buffer: Buffer): Promise<void> {
   const platform = process.platform
   if (platform === "darwin") await execFileAsync("afplay", [outPath])
   else if (platform === "linux") {
-    try { await execFileAsync("mpv", [outPath]) } catch {
-      try { await execFileAsync("aplay", [outPath]) } catch {}
+    try { await execFileAsync("mpv", [outPath]) } catch (e) {
+      try { await execFileAsync("aplay", [outPath]) } catch (e) {
+        Log.Default.warn("tts.play", "audio playback failed", { platform, error: e instanceof Error ? e.message : String(e) })
+      }
     }
   } else if (platform === "win32") {
     await execFileAsync("powershell", ["-Command", `(New-Object Media.SoundPlayer "${outPath}").PlaySync()`])

@@ -48,9 +48,15 @@ export const {{pascalName}}Command = cmd({
         UI.empty()
         prompts.intro("{{pascalName}}")
 
-        // TODO: Implement command logic here
-        prompts.log.info("Command executed successfully")
+        // Example: Access config, read files, or run tools
+        // const config = await Config.get()
+        // const files = await ctx.tool.call("glob", { pattern: "**/*.ts" })
 
+        if (args.verbose) {
+          prompts.log.info("Verbose mode enabled")
+        }
+
+        prompts.log.success("{{pascalName}} completed successfully")
         prompts.outro("Done")
       },
     })
