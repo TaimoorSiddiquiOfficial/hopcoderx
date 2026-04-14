@@ -1228,6 +1228,12 @@ export namespace Config {
             .min(0)
             .optional()
             .describe("Token buffer for compaction. Leaves enough window to avoid overflow during compaction."),
+          threshold: z
+            .number()
+            .min(0.1)
+            .max(0.95)
+            .optional()
+            .describe("Context usage threshold (0.1-0.95) to trigger compaction. Default: 0.70 (70%)"),
         })
         .optional(),
       experimental: z
