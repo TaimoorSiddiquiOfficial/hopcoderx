@@ -44,9 +44,13 @@ export namespace SessionCompaction {
       input.tokens.total ||
       input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
 
-    // Check percentage threshold first - trigger compaction at 70% context usage
+    // Allow users to customize compaction threshold (default 70%)
+    const threshold = config.compaction?.threshold ?? COMPACTION_THRESHOLD_PERCENTAGE
+
+    // Check percentage threshold first - trigger compaction at threshold (default 70%)
     const percentageUsed = count / context
-    if (percentageUsed >= COMPACTION_THRESHOLD_PERCENTAGE) {
+    if (percentageUsed >= threshold) {
+      log.info("compaction triggered by percentage threshold", { percentage: Math.round(percentageUsed * 100), threshold: Math.round(threshold * 100) })
       return true
     }
 
@@ -56,15 +60,22 @@ export namespace SessionCompaction {
     const usable = input.model.limit.input
       ? input.model.limit.input - reserved
       : context - ProviderTransform.maxOutputTokens(input.model)
+
+    if (count >= usable) {
+      log.info("compaction triggered by reserved buffer", { count, usable, reserved })
+    }
     return count >= usable
   }
 
-  export const PRUNE_MINIMUM = 20_000
-  export const PRUNE_PROTECT = 40_000
+  // Prune thresholds - reduced for more aggressive memory management
+  // PRUNE_MINIMUM: minimum tokens to prune before it's worth doing
+  // PRUNE_PROTECT: keep this many tokens of recent tool outputs protected
+  export const PRUNE_MINIMUM = 10_000
+  export const PRUNE_PROTECT = 20_000
 
   const PRUNE_PROTECTED_TOOLS = ["skill"]
 
-  // goes backwards through parts until there are 40_000 tokens worth of tool
+  // goes backwards through parts until there are PRUNE_PROTECT tokens worth of tool
   // calls. then erases output of previous tool calls. idea is to throw away old
   // tool calls that are no longer relevant.
   export async function prune(input: { sessionID: string }) {
