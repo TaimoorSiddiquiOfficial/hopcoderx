@@ -23,15 +23,15 @@ export namespace Log {
   }
 
   export type Logger = {
-    debug(message?: any, extra?: Record<string, any>): void
-    info(message?: any, extra?: Record<string, any>): void
-    error(message?: any, extra?: Record<string, any>): void
-    warn(message?: any, extra?: Record<string, any>): void
+    debug(message?: string, extra?: Record<string, unknown>): void
+    info(message?: string, extra?: Record<string, unknown>): void
+    error(message?: string, extra?: Record<string, unknown>): void
+    warn(message?: string, extra?: Record<string, unknown>): void
     tag(key: string, value: string): Logger
     clone(): Logger
     time(
       message: string,
-      extra?: Record<string, any>,
+      extra?: Record<string, unknown>,
     ): {
       stop(): void
       [Symbol.dispose](): void
@@ -108,7 +108,7 @@ export namespace Log {
       }
     }
 
-    function build(message: any, extra?: Record<string, any>) {
+    function build(message?: string, extra?: Record<string, unknown>) {
       const prefix = Object.entries({
         ...tags,
         ...extra,
@@ -127,22 +127,22 @@ export namespace Log {
       return [next.toISOString().split(".")[0], "+" + diff + "ms", prefix, message].filter(Boolean).join(" ") + "\n"
     }
     const result: Logger = {
-      debug(message?: any, extra?: Record<string, any>) {
+      debug(message?: string, extra?: Record<string, unknown>) {
         if (shouldLog("DEBUG")) {
           write("DEBUG " + build(message, extra))
         }
       },
-      info(message?: any, extra?: Record<string, any>) {
+      info(message?: string, extra?: Record<string, unknown>) {
         if (shouldLog("INFO")) {
           write("INFO  " + build(message, extra))
         }
       },
-      error(message?: any, extra?: Record<string, any>) {
+      error(message?: string, extra?: Record<string, unknown>) {
         if (shouldLog("ERROR")) {
           write("ERROR " + build(message, extra))
         }
       },
-      warn(message?: any, extra?: Record<string, any>) {
+      warn(message?: string, extra?: Record<string, unknown>) {
         if (shouldLog("WARN")) {
           write("WARN  " + build(message, extra))
         }
