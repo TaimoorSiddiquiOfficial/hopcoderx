@@ -49,12 +49,14 @@ export function Header() {
   const context = createMemo(() => {
     const last = messages().findLast((x) => x.role === "assistant" && x.tokens.output > 0) as AssistantMessage
     if (!last) return
-    const total =
-      last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
+    // Show response tokens (billed) separately from context tokens
+    const billedTokens = last.tokens.output + (last.tokens.reasoning ?? 0)
+    const contextTokens = last.tokens.input + (last.tokens.cache.read ?? 0) + (last.tokens.cache.write ?? 0)
+    const totalTokens = billedTokens + contextTokens
     const model = sync.data.provider.find((x) => x.id === last.providerID)?.models[last.modelID]
-    let result = total.toLocaleString()
+    let result = `${billedTokens.toLocaleString()} resp / ${totalTokens.toLocaleString()} total`
     if (model?.limit.context) {
-      result += "  " + Math.round((total / model.limit.context) * 100) + "%"
+      result += "  " + Math.round((totalTokens / model.limit.context) * 100) + "%"
     }
     return result
   })

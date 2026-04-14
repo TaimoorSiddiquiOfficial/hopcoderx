@@ -27,7 +27,12 @@ export namespace SessionCompaction {
     ),
   }
 
-  const COMPACTION_BUFFER = 20_000
+  // Compaction buffer - reserve this much space for new responses
+  // Reduced from 20K to 10K for more aggressive compaction
+  const COMPACTION_BUFFER = 10_000
+
+  // Trigger compaction when context reaches this percentage (70% instead of waiting until nearly full)
+  const COMPACTION_THRESHOLD_PERCENTAGE = 0.70
 
   export async function isOverflow(input: { tokens: MessageV2.Assistant["tokens"]; model: Provider.Model }) {
     const config = await Config.get()
@@ -39,6 +44,13 @@ export namespace SessionCompaction {
       input.tokens.total ||
       input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
 
+    // Check percentage threshold first - trigger compaction at 70% context usage
+    const percentageUsed = count / context
+    if (percentageUsed >= COMPACTION_THRESHOLD_PERCENTAGE) {
+      return true
+    }
+
+    // Also check reserved buffer for models with large context windows
     const reserved =
       config.compaction?.reserved ?? Math.min(COMPACTION_BUFFER, ProviderTransform.maxOutputTokens(input.model))
     const usable = input.model.limit.input

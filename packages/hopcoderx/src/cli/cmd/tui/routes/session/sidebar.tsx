@@ -51,12 +51,18 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const context = createMemo(() => {
     const last = messages().findLast((x) => x.role === "assistant" && x.tokens.output > 0) as AssistantMessage
     if (!last) return
-    const total =
-      last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
+    // Separate billed tokens (output + reasoning) from context tokens (input)
+    // Output tokens are what you actually "consume" and pay for per response
+    // Input tokens represent the context window used (conversation history, files, system prompts)
+    const billedTokens = last.tokens.output + (last.tokens.reasoning ?? 0)
+    const contextTokens = last.tokens.input + (last.tokens.cache.read ?? 0) + (last.tokens.cache.write ?? 0)
+    const totalTokens = billedTokens + contextTokens
     const model = sync.data.provider.find((x) => x.id === last.providerID)?.models[last.modelID]
     return {
-      tokens: total.toLocaleString(),
-      percentage: model?.limit.context ? Math.round((total / model.limit.context) * 100) : null,
+      billed: billedTokens.toLocaleString(),
+      context: contextTokens.toLocaleString(),
+      total: totalTokens.toLocaleString(),
+      percentage: model?.limit.context ? Math.round((totalTokens / model.limit.context) * 100) : null,
     }
   })
 
@@ -102,8 +108,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               <text fg={theme.text}>
                 <b>Context</b>
               </text>
-              <text fg={theme.textMuted}>{context()?.tokens ?? 0} tokens</text>
-              <text fg={theme.textMuted}>{context()?.percentage ?? 0}% used</text>
+              <text fg={theme.textMuted}>Response: {context()?.billed ?? 0} tokens</text>
+              <text fg={theme.textMuted}>Context: {context()?.context ?? 0} tokens</text>
+              <text fg={theme.textMuted}>Total: {context()?.total ?? 0} tokens ({context()?.percentage ?? 0}%)</text>
               <text fg={theme.textMuted}>{cost()} spent</text>
             </box>
             <Show when={mcpEntries().length > 0}>
