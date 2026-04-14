@@ -1,0 +1,7 @@
+{
+  "name": "Configuration Reference",
+  "description": "Complete configuration options for HopCoderX",
+  "tags": ["config", "reference", "settings"],
+  "categories": ["configuration", "documentation"],
+  "content": "See hopcoderx.json or ~/.config/hopcoderx/hopcoderx.json for configuration options"
+}
