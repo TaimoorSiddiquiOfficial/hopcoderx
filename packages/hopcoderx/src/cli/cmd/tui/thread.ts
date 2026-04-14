@@ -113,14 +113,14 @@ export const TuiThreadCommand = cmd({
         ),
       })
       worker.onerror = (e) => {
-        Log.Default.error(e)
+        Log.Default.error("worker error", { error: e.message || e })
       }
       const client = Rpc.client<typeof rpc>(worker)
       process.on("uncaughtException", (e) => {
-        Log.Default.error(e)
+        Log.Default.error("uncaught exception", { error: e.message || e })
       })
       process.on("unhandledRejection", (e) => {
-        Log.Default.error(e)
+        Log.Default.error("unhandled rejection", { error: e instanceof Error ? e.message : String(e) })
       })
       process.on("SIGUSR2", async () => {
         await client.call("reload", undefined)
