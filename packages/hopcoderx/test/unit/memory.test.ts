@@ -56,6 +56,7 @@ describe("SQLiteMemory", () => {
         content: "Original content",
         tags: ["test"],
         projectScope: null,
+        score: 1.0,
       })
 
       const updated = await memory.upsert({
@@ -77,6 +78,7 @@ describe("SQLiteMemory", () => {
         content: "Test",
         tags: [],
         projectScope: null,
+        score: 1.0,
       })
 
       expect(entry.id).toMatch(
@@ -91,6 +93,7 @@ describe("SQLiteMemory", () => {
         content: "Retrieve test",
         tags: ["retrieve"],
         projectScope: null,
+        score: 1.0,
       })
 
       const retrieved = await memory.get(created.id)
@@ -110,6 +113,7 @@ describe("SQLiteMemory", () => {
         content: "Access test",
         tags: [],
         projectScope: null,
+        score: 1.0,
       })
 
       expect(entry.accessCount).toBe(0)
@@ -127,6 +131,7 @@ describe("SQLiteMemory", () => {
         content: "Delete test",
         tags: [],
         projectScope: null,
+        score: 1.0,
       })
 
       await memory.delete(entry.id)
@@ -174,6 +179,7 @@ describe("SQLiteMemory", () => {
         content: "Project specific memory",
         tags: [],
         projectScope: "/test/project",
+        score: 1.0,
       })
 
       const results = await memory.search("project", {
@@ -208,9 +214,9 @@ describe("SQLiteMemory", () => {
 
   describe("list", () => {
     beforeEach(async () => {
-      await memory.upsert({ content: "Item 1", tags: ["a"], projectScope: null })
-      await memory.upsert({ content: "Item 2", tags: ["b"], projectScope: null })
-      await memory.upsert({ content: "Item 3", tags: ["a", "b"], projectScope: null })
+      await memory.upsert({ content: "Item 1", tags: ["a"], projectScope: null, score: 1.0 })
+      await memory.upsert({ content: "Item 2", tags: ["b"], projectScope: null, score: 1.0 })
+      await memory.upsert({ content: "Item 3", tags: ["a", "b"], projectScope: null, score: 1.0 })
     })
 
     it("should list all entries", async () => {
@@ -229,6 +235,7 @@ describe("SQLiteMemory", () => {
         content: "Project item",
         tags: [],
         projectScope: "/project",
+        score: 1.0,
       })
 
       const entries = await memory.list({ projectScope: "/project" })
@@ -241,8 +248,8 @@ describe("SQLiteMemory", () => {
     })
 
     it("should sort by score descending", async () => {
-      await memory.upsert({ content: "Low score", tags: [], score: 0.1 })
-      await memory.upsert({ content: "High score", tags: [], score: 0.9 })
+      await memory.upsert({ content: "Low score", tags: [], projectScope: null, score: 0.1 })
+      await memory.upsert({ content: "High score", tags: [], projectScope: null, score: 0.9 })
 
       const entries = await memory.list()
       expect(entries[0].score).toBeGreaterThanOrEqual(entries[entries.length - 1].score)
@@ -251,8 +258,8 @@ describe("SQLiteMemory", () => {
 
   describe("export", () => {
     it("should export all entries", async () => {
-      await memory.upsert({ content: "Export 1", tags: [], projectScope: null })
-      await memory.upsert({ content: "Export 2", tags: [], projectScope: null })
+      await memory.upsert({ content: "Export 1", tags: [], projectScope: null, score: 0.5 })
+      await memory.upsert({ content: "Export 2", tags: [], projectScope: null, score: 0.5 })
 
       const exported = await memory.export()
       expect(exported.length).toBe(2)
@@ -261,8 +268,8 @@ describe("SQLiteMemory", () => {
 
   describe("clear", () => {
     it("should clear all entries", async () => {
-      await memory.upsert({ content: "Clear 1", tags: [], projectScope: null })
-      await memory.upsert({ content: "Clear 2", tags: [], projectScope: null })
+      await memory.upsert({ content: "Clear 1", tags: [], projectScope: null, score: 0.5 })
+      await memory.upsert({ content: "Clear 2", tags: [], projectScope: null, score: 0.5 })
 
       await memory.clear()
 

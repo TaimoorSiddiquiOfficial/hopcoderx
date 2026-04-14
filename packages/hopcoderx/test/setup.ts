@@ -4,7 +4,7 @@
  * This file provides common test utilities, mocks, and fixtures.
  */
 
-import { expect, beforeEach, afterEach, vi } from "bun:test"
+import { expect, beforeEach, afterEach, vi, describe } from "bun:test"
 import { tmpdir } from "os"
 import { join } from "path"
 import { mkdtemp, rm } from "fs/promises"

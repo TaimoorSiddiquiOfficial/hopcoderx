@@ -169,7 +169,7 @@ export class Team {
     })
 
     if (!response.ok) {
-      throw TeamError({ message: `Failed to join team: ${response.statusText}` })
+      throw new TeamError({ message: `Failed to join team: ${response.statusText}` })
     }
 
     const remoteConfig = await response.json()
@@ -203,11 +203,11 @@ export class Team {
    */
   async addMember(member: Omit<TeamMember, "id" | "joinedAt" | "lastSyncAt">): Promise<TeamMember> {
     if (!this.config) {
-      throw TeamError({ message: "Not in a team" })
+      throw new TeamError({ message: "Not in a team" })
     }
 
     if (!this.isAdmin()) {
-      throw TeamError({ message: "Only admins can add members" })
+      throw new TeamError({ message: "Only admins can add members" })
     }
 
     const newMember: TeamMember = {
@@ -230,20 +230,20 @@ export class Team {
    */
   async removeMember(memberId: string): Promise<void> {
     if (!this.config) {
-      throw TeamError({ message: "Not in a team" })
+      throw new TeamError({ message: "Not in a team" })
     }
 
     if (!this.isAdmin()) {
-      throw TeamError({ message: "Only admins can remove members" })
+      throw new TeamError({ message: "Only admins can remove members" })
     }
 
     const member = this.config.members.find((m) => m.id === memberId)
     if (!member) {
-      throw TeamError({ message: `Member not found: ${memberId}` })
+      throw new TeamError({ message: `Member not found: ${memberId}` })
     }
 
     if (member.role === "owner") {
-      throw TeamError({ message: "Cannot remove team owner" })
+      throw new TeamError({ message: "Cannot remove team owner" })
     }
 
     this.config.members = this.config.members.filter((m) => m.id !== memberId)
@@ -355,7 +355,7 @@ export class Team {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
       log.error("sync failed", { error: errorMessage })
-      throw TeamError({ message: `Sync failed: ${errorMessage}` })
+      throw new TeamError({ message: `Sync failed: ${errorMessage}` })
     }
   }
 
