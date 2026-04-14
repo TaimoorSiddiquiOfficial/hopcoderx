@@ -22,6 +22,7 @@
 import { join } from "path"
 import { existsSync, readdirSync } from "fs"
 import { Global } from "../global"
+import { Log } from "../util/log"
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ export const Hooks = {
     const fns = _hooks.get(event) ?? []
     for (const fn of fns) {
       try { await fn(fullCtx) } catch (e) {
-        console.warn(`[hooks] ${event} hook error:`, e instanceof Error ? e.message : e)
+        Log.Default.warn("hooks", `${event} hook error`, { error: e instanceof Error ? e.message : String(e) })
       }
     }
     return fullCtx
@@ -95,7 +96,7 @@ export const Hooks = {
           }
         }
       } catch (e) {
-        console.warn(`[hooks] failed to load ${file}:`, e instanceof Error ? e.message : e)
+        Log.Default.warn("hooks.load", `failed to load hook file`, { file, error: e instanceof Error ? e.message : String(e) })
       }
     }
     return loaded

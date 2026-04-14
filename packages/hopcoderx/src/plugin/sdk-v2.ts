@@ -28,6 +28,7 @@
 
 import { readFile, writeFile, mkdir } from "fs/promises"
 import { existsSync, watch as fsWatch } from "fs"
+import { Log } from "../util/log"
 import { join } from "path"
 import { Global } from "../global"
 
@@ -170,7 +171,7 @@ export class PluginLoader {
     const dir = loaded.path
     await this.unload(id)
     await this.load(dir)
-    console.log(`[sdk-v2] Hot-reloaded plugin: ${id}`)
+    Log.Default.info("sdk-v2", "plugin hot-reloaded", { id })
   }
 
   get(id: string): LoadedPlugin | undefined {
@@ -203,8 +204,8 @@ export class PluginLoader {
     try {
       const watcher = fsWatch(dir, { recursive: true }, (_event, filename) => {
         if (!filename?.endsWith(".js") && !filename?.endsWith(".ts")) return
-        console.log(`[sdk-v2] File changed: ${filename} — reloading plugin '${id}'`)
-        this.reload(id).catch((err) => console.error(`[sdk-v2] Reload failed:`, err.message))
+        Log.Default.info("sdk-v2.watch", "plugin file changed", { id, file: filename })
+        this.reload(id).catch((err) => Log.Default.error("sdk-v2.watch", "reload failed", { id, error: err.message }))
       })
       loaded.watcher = watcher
     } catch {
@@ -227,7 +228,7 @@ export class PluginLoader {
     const paths: string[] = JSON.parse(await readFile(file, "utf8"))
     for (const dir of paths) {
       if (existsSync(dir)) {
-        await this.load(dir).catch((err) => console.error(`[sdk-v2] Failed to restore '${dir}':`, err.message))
+        await this.load(dir).catch((err) => Log.Default.error("sdk-v2.restore", "failed to restore plugin", { dir, error: err.message }))
       }
     }
   }

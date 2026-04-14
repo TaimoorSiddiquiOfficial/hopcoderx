@@ -216,7 +216,7 @@ export class SkillsMarketplace {
         this.framework.loadBuiltin(s.manifest, skill)
         count++
       } catch (err) {
-        console.warn(`[skills] Failed to load ${s.name}:`, err)
+        Log.Default.warn("skills.marketplace", "failed to load skill", { name: s.name, error: err instanceof Error ? err.message : String(err) })
       }
     }
     return count
