@@ -1236,6 +1236,32 @@ export namespace Config {
             .describe("Context usage threshold (0.1-0.95) to trigger compaction. Default: 0.70 (70%)"),
         })
         .optional(),
+      context: z
+        .object({
+          enabled: z.boolean().optional().default(true).describe("Enable lazy context loading from .hopcoderx/context/"),
+          directory: z.string().optional().describe("Context directory path (default: .hopcoderx/context)"),
+          autoLoad: z.boolean().optional().default(true).describe("Auto-load relevant context files based on query"),
+          notifyOnLoad: z.boolean().optional().default(true).describe("Show notification when context is loaded"),
+          maxFiles: z.number().int().min(1).optional().default(10).describe("Maximum context files to keep loaded"),
+          maxTotalTokens: z
+            .number()
+            .int()
+            .min(1000)
+            .optional()
+            .default(50000)
+            .describe("Maximum total tokens for loaded context files"),
+          include: z.array(z.string()).optional().describe("Glob patterns for context files to include"),
+          exclude: z.array(z.string()).optional().describe("Glob patterns for context files to exclude"),
+          autoLoadThreshold: z
+            .number()
+            .min(0)
+            .max(1)
+            .optional()
+            .default(0.3)
+            .describe("Minimum relevance score (0-1) for auto-loading context"),
+        })
+        .optional()
+        .describe("Lazy context loading configuration, see https://hopcoder.dev/docs/context"),
       experimental: z
         .object({
           disable_paste_summary: z.boolean().optional(),

@@ -8,6 +8,7 @@ import { Flag } from "@/flag/flag"
 import { Log } from "../util/log"
 import { Glob } from "../util/glob"
 import type { MessageV2 } from "./message-v2"
+import { Context } from "../context"
 
 const log = Log.create({ service: "instruction" })
 
@@ -138,7 +139,29 @@ export namespace InstructionPrompt {
         .then((x) => (x ? "Instructions from: " + url + "\n" + x : "")),
     )
 
-    return Promise.all([...files, ...fetches]).then((result) => result.filter(Boolean))
+    // Load lazy context if enabled
+    const contextContent = await loadContext()
+
+    return Promise.all([...files, ...fetches, contextContent]).then((result) => result.filter(Boolean))
+  }
+
+  async function loadContext(): Promise<string> {
+    try {
+      const config = await Config.get()
+      const ctx = await Context.create({ projectDir: Instance.directory, config })
+
+      if (!ctx.enabled) return ""
+
+      // Get initial context content (empty if nothing loaded yet)
+      const content = ctx.loader.getAll()
+      if (content) {
+        return "Context Files:\n" + content
+      }
+      return ""
+    } catch (err) {
+      log.warn("failed to load context", { error: err instanceof Error ? err.message : String(err) })
+      return ""
+    }
   }
 
   export function loaded(messages: MessageV2.WithParts[]) {

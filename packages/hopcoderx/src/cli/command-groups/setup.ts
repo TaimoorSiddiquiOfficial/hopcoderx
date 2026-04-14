@@ -7,9 +7,10 @@ import { OnboardCommand } from "../cmd/onboard"
 import { WhoamiCommand } from "../cmd/whoami"
 import { InitCommand } from "../cmd/init"
 import { NewCommand } from "../cmd/new"
+import { ContextCommand } from "../cmd/context"
 import { setupTaxonomy } from "../command-taxonomy"
 
 export const setupCommandGroup = {
   ...setupTaxonomy,
-  commands: [OnboardCommand, AuthCommand, ModelsCommand, UpgradeCommand, RepairCommand, UninstallCommand, WhoamiCommand, InitCommand, NewCommand],
+  commands: [OnboardCommand, AuthCommand, ModelsCommand, UpgradeCommand, RepairCommand, UninstallCommand, WhoamiCommand, InitCommand, NewCommand, ContextCommand],
 }

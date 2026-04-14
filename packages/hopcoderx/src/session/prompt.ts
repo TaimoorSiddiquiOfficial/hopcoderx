@@ -32,6 +32,7 @@ import { ulid } from "ulid"
 import { spawn } from "child_process"
 import { Command } from "../command"
 import { $, fileURLToPath, pathToFileURL } from "bun"
+import { Config } from "../config/config"
 import { ConfigMarkdown } from "../config/markdown"
 import { SessionSummary } from "./summary"
 import { NamedError } from "@hopcoderx/util/error"
@@ -48,6 +49,7 @@ import { Shell } from "@/shell/shell"
 import { Truncate } from "@/tool/truncation"
 import { ContextTiering } from "./tiering"
 import { Telemetry } from "../telemetry/telemetry"
+import { Context } from "../context"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -673,6 +675,19 @@ export namespace SessionPrompt {
 
       // Build system prompt, adding structured output instruction if needed
       const system = [...(await SystemPrompt.environment(model)), ...(await InstructionPrompt.system())]
+
+      // Auto-load relevant context files based on user query
+      const config = await Config.get()
+      if (config.context?.autoLoad !== false) {
+        const userQuery = lastUser.parts.filter((p) => p.type === "text").map((p) => p.text).join(" ")
+        if (userQuery) {
+          const loaded = await Context.autoload(userQuery, Instance.directory)
+          if (loaded.length > 0 && config.context?.notifyOnLoad) {
+            log.info("context autoloaded", { files: loaded, query: userQuery.slice(0, 50) })
+          }
+        }
+      }
+
       const format = lastUser.format ?? { type: "text" }
       if (format.type === "json_schema") {
         system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
