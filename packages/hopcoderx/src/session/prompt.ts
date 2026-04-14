@@ -326,16 +326,16 @@ export namespace SessionPrompt {
         })(),
       )
 
-      let lastUser: MessageV2.User | undefined
-      let lastAssistant: MessageV2.Assistant | undefined
-      let lastFinished: MessageV2.Assistant | undefined
+      let lastUser: MessageV2.WithParts | undefined
+      let lastAssistant: MessageV2.WithParts | undefined
+      let lastFinished: MessageV2.WithParts | undefined
       let tasks: (MessageV2.CompactionPart | MessageV2.SubtaskPart)[] = []
       for (let i = msgs.length - 1; i >= 0; i--) {
         const msg = msgs[i]
-        if (!lastUser && msg.info.role === "user") lastUser = msg.info as MessageV2.User
-        if (!lastAssistant && msg.info.role === "assistant") lastAssistant = msg.info as MessageV2.Assistant
+        if (!lastUser && msg.info.role === "user") lastUser = msg
+        if (!lastAssistant && msg.info.role === "assistant") lastAssistant = msg
         if (!lastFinished && msg.info.role === "assistant" && msg.info.finish)
-          lastFinished = msg.info as MessageV2.Assistant
+          lastFinished = msg
         if (lastUser && lastFinished) break
         const task = msg.parts.filter((part) => part.type === "compaction" || part.type === "subtask")
         if (task && !lastFinished) {
@@ -345,9 +345,9 @@ export namespace SessionPrompt {
 
       if (!lastUser) throw new Error("No user message found in stream. This should never happen.")
       if (
-        lastAssistant?.finish &&
-        !["tool-calls", "unknown"].includes(lastAssistant.finish) &&
-        lastUser.id < lastAssistant.id
+        lastAssistant?.info.finish &&
+        !["tool-calls", "unknown"].includes(lastAssistant.info.finish) &&
+        lastUser.info.id < lastAssistant.info.id
       ) {
         log.info("exiting loop", { sessionID })
         break
@@ -359,12 +359,12 @@ export namespace SessionPrompt {
       if (step === 1)
         ensureTitle({
           session,
-          modelID: lastUser.model.modelID,
-          providerID: lastUser.model.providerID,
+          modelID: lastUser.info.model.modelID,
+          providerID: lastUser.info.model.providerID,
           history: msgs,
         })
 
-      const model = await Provider.getModel(lastUser.model.providerID, lastUser.model.modelID).catch((e) => {
+      const model = await Provider.getModel(lastUser.info.model.providerID, lastUser.info.model.modelID).catch((e) => {
         if (Provider.ModelNotFoundError.isInstance(e)) {
           const hint = e.data.suggestions?.length ? ` Did you mean: ${e.data.suggestions.join(", ")}?` : ""
           Bus.publish(Session.Event.Error, {
@@ -386,11 +386,11 @@ export namespace SessionPrompt {
         const assistantMessage = (await Session.updateMessage({
           id: Identifier.ascending("message"),
           role: "assistant",
-          parentID: lastUser.id,
+          parentID: lastUser.info.id,
           sessionID,
           mode: task.agent,
           agent: task.agent,
-          variant: lastUser.variant,
+          variant: lastUser.info.variant,
           path: {
             cwd: Instance.directory,
             root: Instance.worktree,
@@ -522,8 +522,8 @@ export namespace SessionPrompt {
             time: {
               created: Date.now(),
             },
-            agent: lastUser.agent,
-            model: lastUser.model,
+            agent: lastUser.info.agent,
+            model: lastUser.info.model,
           }
           await Session.updateMessage(summaryUserMsg)
           await Session.updatePart({
@@ -543,7 +543,7 @@ export namespace SessionPrompt {
       if (task?.type === "compaction") {
         const result = await SessionCompaction.process({
           messages: msgs,
-          parentID: lastUser.id,
+          parentID: lastUser.info.id,
           abort,
           sessionID,
           auto: task.auto,
@@ -555,8 +555,8 @@ export namespace SessionPrompt {
       // context overflow, needs compaction
       if (
         lastFinished &&
-        lastFinished.summary !== true &&
-        (await SessionCompaction.isOverflow({ tokens: lastFinished.tokens, model }))
+        lastFinished.info.summary !== true &&
+        (await SessionCompaction.isOverflow({ tokens: lastFinished.info.tokens, model }))
       ) {
         // Try pruning first to free up space before compaction
         await SessionCompaction.prune({ sessionID })
@@ -572,15 +572,15 @@ export namespace SessionPrompt {
         // Still need compaction after pruning
         await SessionCompaction.create({
           sessionID,
-          agent: lastUser.agent,
-          model: lastUser.model,
+          agent: lastUser.info.agent,
+          model: lastUser.info.model,
           auto: true,
         })
         continue
       }
 
       // normal processing
-      const agent = await Agent.get(lastUser.agent)
+      const agent = await Agent.get(lastUser.info.agent)
       const maxSteps = agent.steps ?? Infinity
       const isLastStep = step >= maxSteps
       msgs = await insertReminders({
@@ -592,11 +592,11 @@ export namespace SessionPrompt {
       const processor = SessionProcessor.create({
         assistantMessage: (await Session.updateMessage({
           id: Identifier.ascending("message"),
-          parentID: lastUser.id,
+          parentID: lastUser.info.id,
           role: "assistant",
           mode: agent.name,
           agent: agent.name,
-          variant: lastUser.variant,
+          variant: lastUser.info.variant,
           path: {
             cwd: Instance.directory,
             root: Instance.worktree,
@@ -629,16 +629,16 @@ export namespace SessionPrompt {
         agent,
         session,
         model,
-        tools: lastUser.tools,
+        tools: lastUser.info.tools,
         processor,
         bypassAgentCheck,
         messages: msgs,
       })
 
       // Inject StructuredOutput tool if JSON schema mode enabled
-      if (lastUser.format?.type === "json_schema") {
+      if (lastUser.info.format?.type === "json_schema") {
         tools["StructuredOutput"] = createStructuredOutputTool({
-          schema: lastUser.format.schema,
+          schema: lastUser.info.format.schema,
           onSuccess(output) {
             structuredOutput = output
           },
@@ -648,14 +648,14 @@ export namespace SessionPrompt {
       if (step === 1) {
         SessionSummary.summarize({
           sessionID: sessionID,
-          messageID: lastUser.id,
+          messageID: lastUser.info.id,
         })
       }
 
       // Ephemerally wrap queued user messages with a reminder to stay on track
       if (step > 1 && lastFinished) {
         for (const msg of msgs) {
-          if (msg.info.role !== "user" || msg.info.id <= lastFinished.id) continue
+          if (msg.info.role !== "user" || msg.info.id <= lastFinished.info.id) continue
           for (const part of msg.parts) {
             if (part.type !== "text" || part.ignored || part.synthetic) continue
             if (!part.text.trim()) continue
@@ -678,7 +678,7 @@ export namespace SessionPrompt {
 
       // Auto-load relevant context files based on user query
       const config = await Config.get()
-      if (config.context?.autoLoad !== false) {
+      if (config.context?.autoLoad !== false && lastUser) {
         const userQuery = lastUser.parts.filter((p) => p.type === "text").map((p) => p.text).join(" ")
         if (userQuery) {
           const loaded = await Context.autoload(userQuery, Instance.directory)
@@ -688,13 +688,13 @@ export namespace SessionPrompt {
         }
       }
 
-      const format = lastUser.format ?? { type: "text" }
+      const format = lastUser.info.format ?? { type: "text" }
       if (format.type === "json_schema") {
         system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
       }
 
       const result = await processor.process({
-        user: lastUser,
+        user: lastUser.info,
         agent,
         abort,
         sessionID,
@@ -745,8 +745,8 @@ export namespace SessionPrompt {
           sessionID,
           role: "user",
           time: { created: Date.now() },
-          agent: lastUser.agent,
-          model: lastUser.model,
+          agent: lastUser.info.agent,
+          model: lastUser.info.model,
         }
         await Session.updateMessage(fixMsg)
         await Session.updatePart({
@@ -786,8 +786,8 @@ export namespace SessionPrompt {
       if (result === "compact") {
         await SessionCompaction.create({
           sessionID,
-          agent: lastUser.agent,
-          model: lastUser.model,
+          agent: lastUser.info.agent,
+          model: lastUser.info.model,
           auto: true,
         })
       }
