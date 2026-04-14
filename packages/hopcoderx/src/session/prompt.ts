@@ -561,7 +561,7 @@ export namespace SessionPrompt {
 
         // Re-check if pruning was enough
         const updatedMsgs = await Session.messages({ sessionID })
-        const lastMsg = updatedMsgs.findLast((m) => m.info.role === "assistant" && m.info.summary !== true) as MessageV2.Assistant | undefined
+        const lastMsg = updatedMsgs.findLast((m) => m.info.role === "assistant" && m.info.summary !== true)
         if (lastMsg && !(await SessionCompaction.isOverflow({ tokens: lastMsg.info.tokens, model }))) {
           log.info("pruning resolved context overflow, skipping compaction")
           continue
