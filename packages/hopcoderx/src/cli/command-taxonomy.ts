@@ -8,15 +8,15 @@ type TaxonomyGroup = {
 export const sessionTaxonomy: TaxonomyGroup = {
   name: "session",
   title: "Session & TUI",
-  summary: ["[project]", "attach", "run", "session", "replay", "acp"],
-  completion: ["acp", "attach", "run", "session", "replay"],
+  summary: ["[project]", "attach", "run", "session", "replay", "acp", "repl"],
+  completion: ["acp", "attach", "run", "session", "replay", "repl"],
 }
 
 export const setupTaxonomy: TaxonomyGroup = {
   name: "setup",
   title: "Setup & install",
-  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init"],
-  completion: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init"],
+  summary: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init", "new"],
+  completion: ["onboard", "auth", "models", "upgrade", "repair", "uninstall", "whoami", "init", "new"],
 }
 
 export const servicesTaxonomy: TaxonomyGroup = {
@@ -29,8 +29,8 @@ export const servicesTaxonomy: TaxonomyGroup = {
 export const diagnosticsTaxonomy: TaxonomyGroup = {
   name: "diagnostics",
   title: "Diagnostics & maintenance",
-  summary: ["doctor", "status", "debug", "stats", "db", "completion", "config"],
-  completion: ["doctor", "status", "debug", "stats", "db", "completion", "config"],
+  summary: ["doctor", "status", "debug", "stats", "db", "completion", "config", "palette", "trace", "replay"],
+  completion: ["doctor", "status", "debug", "stats", "db", "completion", "config", "palette", "trace", "replay"],
 }
 
 export const integrationsTaxonomy: TaxonomyGroup = {
@@ -63,6 +63,7 @@ export const automationTaxonomy: TaxonomyGroup = {
     "feedback",
     "telemetry",
     "plugins",
+    "macro",
   ],
   completion: [
     "generate",
@@ -87,6 +88,7 @@ export const automationTaxonomy: TaxonomyGroup = {
     "telemetry",
     "plugins",
     "plug",
+    "macro",
   ],
 }
 

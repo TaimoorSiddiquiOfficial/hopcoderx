@@ -18,6 +18,7 @@ import { PermissionCommand } from "../cmd/permission"
 import { FeedbackCommand } from "../cmd/feedback"
 import { TelemetryCommand } from "../cmd/telemetry"
 import { PluginsCommand } from "../cmd/plugins"
+import { MacroCommand } from "../cmd/macro"
 import { automationTaxonomy } from "../command-taxonomy"
 
 export const automationCommandGroup = {
@@ -43,5 +44,6 @@ export const automationCommandGroup = {
     FeedbackCommand,
     TelemetryCommand,
     PluginsCommand,
+    MacroCommand,
   ],
 }

@@ -1,6 +1,6 @@
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
-import { AuditLog } from "../../audit/audit"
+import { auditLog } from "../../audit/audit"
 import { Global } from "../../global"
 import { Filesystem } from "../../util/filesystem"
 import path from "path"
@@ -29,14 +29,15 @@ export const AnalyticsCommand = cmd({
     const days = args.days ?? 7
     const jsonOut = args.json ?? false
     const top = args.top ?? 10
-    const sinceMs = days * 24 * 60 * 60 * 1000
+    const sinceMs = Date.now() - days * 24 * 60 * 60 * 1000
 
-    // Gather audit log stats
-    const logStats = AuditLog.stats(sinceMs)
-    const recentEntries = AuditLog.tail(1000)
+    // Initialize audit log and gather stats
+    await auditLog.init()
+    const logStats = await auditLog.getStats({ start: sinceMs, end: Date.now() })
+    const { events: recentEntries } = await auditLog.query({ startTime: sinceMs, limit: 1000 })
 
     // Count sessions (unique sessionIDs)
-    const sessionIds = new Set(recentEntries.map((e) => e.sessionID).filter(Boolean))
+    const sessionIds = new Set(recentEntries.map((e: any) => e.sessionId).filter(Boolean))
     const sessionCount = sessionIds.size
 
     // Count tool executions
@@ -47,18 +48,19 @@ export const AnalyticsCommand = cmd({
     let totalCostUsd = 0
 
     for (const entry of recentEntries) {
-      if (!entry.timestamp || entry.timestamp < new Date(Date.now() - sinceMs).toISOString()) continue
+      if (!entry.timestamp || entry.timestamp < sinceMs) continue
 
-      if (entry.tool) {
-        toolCounts[entry.tool] = (toolCounts[entry.tool] ?? 0) + 1
-        if (entry.result === "error") toolErrors[entry.tool] = (toolErrors[entry.tool] ?? 0) + 1
+      if (entry.type === "tool_call") {
+        const toolName = entry.action.replace("tool:", "")
+        toolCounts[toolName] = (toolCounts[toolName] ?? 0) + 1
+        if (entry.result === "failure") toolErrors[toolName] = (toolErrors[toolName] ?? 0) + 1
       }
-      if (entry.agent) {
-        agentCounts[entry.agent] = (agentCounts[entry.agent] ?? 0) + 1
+      if (entry.actor.type === "agent") {
+        agentCounts[entry.actor.name || entry.actor.id] = (agentCounts[entry.actor.name || entry.actor.id] ?? 0) + 1
       }
 
-      const tokens = (entry.args as any)?.tokens as number | undefined
-      const cost = (entry.args as any)?.cost as number | undefined
+      const tokens = (entry.details as any)?.tokens as number | undefined
+      const cost = (entry.details as any)?.cost as number | undefined
       if (tokens) totalTokens += tokens
       if (cost) totalCostUsd += cost
     }
@@ -132,7 +134,7 @@ export const AnalyticsCommand = cmd({
       const maxCount = data.tools.topByUsage[0]?.count ?? 1
       for (const { name, count } of data.tools.topByUsage) {
         const bar = "█".repeat(Math.round((count / maxCount) * 20))
-        const pct = ((count / logStats.total) * 100).toFixed(0)
+        const pct = ((count / logStats.totalEvents) * 100).toFixed(0)
         console.log(`   ${name.padEnd(20)} ${bar.padEnd(20)} ${count} (${pct}%)`)
       }
     }

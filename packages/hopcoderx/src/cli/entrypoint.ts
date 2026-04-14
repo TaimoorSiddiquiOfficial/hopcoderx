@@ -22,6 +22,7 @@ import path from "path"
 import { Global } from "../global"
 import { JsonMigration } from "../storage/json-migration"
 import { Database } from "../storage/db"
+import { recordCommand } from "./cmd/macro"
 
 type BootstrapOptions = {
   logLevel?: Log.Level
@@ -192,6 +193,14 @@ export async function createCli() {
       await initializeRuntime({
         logLevel: opts.logLevel as Log.Level | undefined,
       })
+    })
+    .middleware(async (opts) => {
+      // Record command for macro recording (skip macro commands themselves to avoid loops)
+      const args = hideBin(process.argv)
+      const command = args.join(" ")
+      if (command && !command.startsWith("macro ")) {
+        await recordCommand(command)
+      }
     })
     .usage("\n" + UI.logo())
     .fail((msg, err) => {

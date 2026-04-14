@@ -5,11 +5,13 @@ import { servicesCommandGroup } from "./services"
 import { sessionCommandGroup } from "./session"
 import { setupCommandGroup } from "./setup"
 
+import type { CommandModule } from "yargs"
+
 export type CommandGroup = {
   name: string
   title: string
   summary: string[]
-  commands: unknown[]
+  commands: CommandModule[]
 }
 
 export const CommandGroups = [
