@@ -29,6 +29,8 @@ export namespace NotificationManager {
   export const NotificationType = z.enum(["info", "success", "warning", "error"])
   export type NotificationType = z.infer<typeof NotificationType>
 
+  export { OSChannel, NtfyChannel, SlackChannel, VoiceChannel, NotificationChannel, Notification }
+
   export const OSChannel = z
     .object({
       type: z.literal("os"),
@@ -216,6 +218,7 @@ export namespace NotificationManager {
         message: `Session ${input.sessionID.slice(0, 8)}... has completed`,
         type: "info",
         channels: input.channels ?? [{ type: "os" }],
+        sound: true,
       }
       return send(notification)
     },
@@ -238,6 +241,7 @@ export namespace NotificationManager {
         message: `${input.taskName}${durationStr}${input.success ? " ✓" : " ✗"}`,
         type: input.success ? "success" : "error",
         channels: input.channels ?? [{ type: "os" }],
+        sound: true,
       }
       return send(notification)
     },

@@ -28,7 +28,7 @@ const log = Log.create({ service: "notification.voice" })
 
 export async function sendVoiceNotification(notification: Notification, channel: VoiceChannel): Promise<void> {
   const { title, message, type } = notification
-  const engine = channel.engine || "local"
+  const engine = channel.engine ?? "local"
 
   // Compose speech text
   const speechText = composeSpeechText(title, message, type)
@@ -121,8 +121,9 @@ $speak.Speak("${escapedText}")
       } catch (espeakError) {
         // Try festival as fallback
         try {
-          await execFileAsync("festival", ["--tts"], {
-            input: text,
+          const { exec } = await import("child_process")
+          const execAsync = promisify(exec)
+          await execAsync(`echo "${text.replace(/"/g, '\\"')}" | festival --tts`, {
             timeout: 30000,
           })
           log.info("linux TTS notification spoken (festival)", { text: text.slice(0, 50) })

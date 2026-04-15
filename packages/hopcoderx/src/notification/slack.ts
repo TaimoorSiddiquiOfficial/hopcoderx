@@ -204,11 +204,11 @@ export async function sendSlackThread(
 /**
  * Format a session summary for Slack
  */
-export function formatSessionSummary(sessionID: string, stats: { tokens: number; cost: number; duration: number }): string {
+export function formatSessionSummary(sessionID: string, stats: { tokens: number; cost: number; duration: number }) {
   const durationMin = Math.floor(stats.duration / 60000)
   const costCents = Math.round(stats.cost * 100)
 
-  return [
+  const blocks = [
     {
       type: "section",
       text: {
@@ -236,5 +236,7 @@ export function formatSessionSummary(sessionID: string, stats: { tokens: number;
         },
       ],
     },
-  ]
+  ] as const
+
+  return blocks
 }

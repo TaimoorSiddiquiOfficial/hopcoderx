@@ -50,12 +50,12 @@ export async function sendNtfyNotification(notification: Notification, channel: 
   }
 
   if (timeout) {
-    payload.click = timeout.toString()
+    payload.click = String(timeout)
   }
 
   // Add actions if present
   if (notification.actions && notification.actions.length > 0) {
-    const actions = notification.actions.map((a) => ({
+    const actions = notification.actions.map((a: { label: string; action: string }) => ({
       action: "view",
       label: a.label,
       url: a.action,
@@ -71,7 +71,7 @@ export async function sendNtfyNotification(notification: Notification, channel: 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Priority": payload.priority.toString(),
+        "X-Priority": String(priorityMap[type] || 3),
         "X-Tags": allTags.join(","),
         "X-Title": title,
       },
@@ -79,7 +79,7 @@ export async function sendNtfyNotification(notification: Notification, channel: 
         title,
         message,
         tags: allTags,
-        actions: notification.actions?.map((a) => ({
+        actions: notification.actions?.map((a: { label: string; action: string }) => ({
           action: "view",
           label: a.label,
           url: a.action,
