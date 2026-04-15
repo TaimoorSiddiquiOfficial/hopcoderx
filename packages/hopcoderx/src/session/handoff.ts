@@ -13,7 +13,7 @@ const log = Log.create({ service: "session.handoff" })
 export namespace SessionHandoff {
   export const HandoffPrompt = z
     .object({
-      id: Identifier.schema("handoff"),
+      id: Identifier.schema("session"),
       sessionID: Identifier.schema("session"),
       summary: z.string().describe("Brief summary of what was accomplished"),
       todos: z
@@ -64,7 +64,7 @@ export namespace SessionHandoff {
     }),
     async (input) => {
       const handoff: HandoffPrompt = {
-        id: Identifier.ascending("handoff"),
+        id: Identifier.ascending("session"),
         sessionID: input.sessionID,
         summary: input.summary,
         todos: input.todos,
@@ -233,7 +233,7 @@ export namespace SessionHandoff {
           : `Session ${session.id} - ${session.title}`
 
       const handoff: HandoffPrompt = {
-        id: Identifier.ascending("handoff"),
+        id: Identifier.ascending("session"),
         sessionID: input.sessionID,
         summary,
         todos: todos.map((t) => ({

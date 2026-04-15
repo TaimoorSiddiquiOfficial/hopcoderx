@@ -82,7 +82,7 @@ export namespace OrphanDetector {
 
         for (const row of inactiveSessions) {
           orphans.push({
-            id: Identifier.ascending("orphan"),
+            id: Identifier.ascending("session"),
             sessionID: row.id,
             title: row.title,
             directory: row.directory,
@@ -117,7 +117,7 @@ export namespace OrphanDetector {
 
             if (row) {
               orphans.push({
-                id: Identifier.ascending("orphan"),
+                id: Identifier.ascending("session"),
                 sessionID: row.id,
                 title: row.title,
                 directory: row.directory,
@@ -221,13 +221,15 @@ export namespace OrphanDetector {
     z
       .object({
         noActivityDays: z.number().optional().default(7),
+        checkParentExistence: z.boolean().optional().default(true),
+        checkWorktreeExistence: z.boolean().optional().default(false),
       })
       .optional(),
     async (input) => {
       const orphans = await detect({
-        noActivityDays: input?.noActivityDays,
-        checkParentExistence: true,
-        checkWorktreeExistence: false,
+        noActivityDays: input?.noActivityDays ?? 7,
+        checkParentExistence: input?.checkParentExistence ?? true,
+        checkWorktreeExistence: input?.checkWorktreeExistence ?? false,
       })
 
       const byReason = new Map<string, number>()

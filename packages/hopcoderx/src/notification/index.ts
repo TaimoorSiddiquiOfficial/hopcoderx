@@ -114,7 +114,7 @@ export namespace NotificationManager {
    */
   export const send = fn(Notification, async (input) => {
     const config = await Config.get()
-    const channels = input.channels.length > 0 ? input.channels : config.notification?.defaultChannels ?? [{ type: "os" } as OSChannel]
+    const channels = input.channels.length > 0 ? input.channels : config.notification?.defaultChannels ?? [{ type: "os" } as const]
 
     const results: { channel: string; success: boolean; error?: string }[] = []
 
