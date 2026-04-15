@@ -29,8 +29,6 @@ export namespace NotificationManager {
   export const NotificationType = z.enum(["info", "success", "warning", "error"])
   export type NotificationType = z.infer<typeof NotificationType>
 
-  export { OSChannel, NtfyChannel, SlackChannel, VoiceChannel, NotificationChannel, Notification }
-
   export const OSChannel = z
     .object({
       type: z.literal("os"),
@@ -59,7 +57,7 @@ export namespace NotificationManager {
   export const VoiceChannel = z
     .object({
       type: z.literal("voice"),
-      engine: z.enum(["azure", "google", "local"]).default("local"),
+      engine: z.enum(["azure", "google", "local"]),
       voice: z.string().optional(),
       rate: z.number().optional(),
     })

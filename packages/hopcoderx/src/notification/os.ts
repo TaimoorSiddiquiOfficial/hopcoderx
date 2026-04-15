@@ -7,7 +7,9 @@
  * - Linux: notify-send via freedesktop.org
  */
 
-import type { Notification, OSChannel } from "./index"
+import type { NotificationManager } from "./index"
+type Notification = NotificationManager.Notification
+type OSChannel = NotificationManager.OSChannel
 import { Log } from "@/util/log"
 import { execFile } from "child_process"
 import { promisify } from "util"

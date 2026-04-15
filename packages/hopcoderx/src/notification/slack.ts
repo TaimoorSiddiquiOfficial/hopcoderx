@@ -15,7 +15,9 @@
  *   })
  */
 
-import type { Notification, SlackChannel } from "./index"
+import type { NotificationManager } from "./index"
+type Notification = NotificationManager.Notification
+type SlackChannel = NotificationManager.SlackChannel
 import { Log } from "@/util/log"
 
 const log = Log.create({ service: "notification.slack" })
@@ -63,7 +65,7 @@ export async function sendSlackNotification(notification: Notification, channel:
   if (actions && actions.length > 0) {
     payload.attachments[0].blocks.push({
       type: "actions",
-      elements: actions.map((action) => ({
+      elements: actions.map((action: { label: string; action: string }) => ({
         type: "button",
         text: {
           type: "plain_text",

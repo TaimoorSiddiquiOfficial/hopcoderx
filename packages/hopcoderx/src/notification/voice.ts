@@ -17,7 +17,9 @@
  *   })
  */
 
-import type { Notification, VoiceChannel } from "./index"
+import type { NotificationManager } from "./index"
+type Notification = NotificationManager.Notification
+type VoiceChannel = NotificationManager.VoiceChannel
 import { Log } from "@/util/log"
 import { execFile } from "child_process"
 import { promisify } from "util"

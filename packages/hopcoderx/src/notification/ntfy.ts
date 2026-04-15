@@ -15,7 +15,9 @@
  *   })
  */
 
-import type { Notification, NtfyChannel } from "./index"
+import type { NotificationManager } from "./index"
+type Notification = NotificationManager.Notification
+type NtfyChannel = NotificationManager.NtfyChannel
 import { Log } from "@/util/log"
 
 const log = Log.create({ service: "notification.ntfy" })
@@ -124,7 +126,7 @@ export async function sendNtfyWithAttachment(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Priority": priorityMap[type] || 3,
+        "X-Priority": String(priorityMap[type] || 3),
         "X-Title": title,
         "X-Attach": attachmentUrl,
         "X-Filename": attachmentType || "attachment",
