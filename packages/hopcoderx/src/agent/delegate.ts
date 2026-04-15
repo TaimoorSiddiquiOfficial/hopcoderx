@@ -59,7 +59,7 @@ export namespace AgentDelegation {
    * Delegate a task to a subagent
    */
   export async function delegate(request: DelegationRequest): Promise<DelegationResult> {
-    const delegationID = Identifier.ascending("delegation")
+    const delegationID = Identifier.ascending("session")
 
     const delegationState: DelegationState = {
       request,
@@ -91,13 +91,7 @@ export namespace AgentDelegation {
         throw new Error(`Agent not found: ${request.targetAgent}`)
       }
 
-      // Create the user message with the prompt
-      await SessionPrompt.create({
-        sessionID: childSession.id,
-        parts: [{ type: "text", text: request.prompt }],
-      })
-
-      // Execute the session
+      // Execute the session with the prompt
       const result = await SessionPrompt.prompt({
         sessionID: childSession.id,
         parts: [{ type: "text", text: request.prompt }],
@@ -182,7 +176,7 @@ export namespace AgentDelegation {
     try {
       // Get messages from child session
       const messages: MessageV2.WithParts[] = []
-      for await (const msg of MessageV2.stream({ sessionID: childSessionID })) {
+      for await (const msg of MessageV2.stream(childSessionID)) {
         messages.push(msg)
       }
 

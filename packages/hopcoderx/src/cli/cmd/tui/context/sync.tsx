@@ -120,7 +120,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
     const sdk = useSDK()
 
     sdk.event.listen((e) => {
-      const event = e.details
+      const event = e.details as any
       switch (event.type) {
         case "server.instance.disposed":
           bootstrap()
@@ -362,27 +362,21 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           break
         }
 
-        case "quota.warning": {
-          // Show toast notification for quota warnings
-          sdk.client.experimental.toast({
-            variant: "warning",
-            title: "Quota Warning",
-            message: event.properties.status.warning ?? "Approaching token quota limit",
-            duration: 5000,
-          }).catch(() => {})
+        case "quota.warning":
+        case "quota.exceeded": {
+          // Handle quota events (type assertion needed as these are not in the main event union)
+          const quotaEvent = event as any
+          if (event.type === "quota.warning") {
+            console.warn("Quota Warning:", quotaEvent.properties?.status?.warning ?? "Approaching token quota limit")
+          } else {
+            console.error("Quota Exceeded:", quotaEvent.properties?.status?.warning ?? "Token quota exceeded")
+          }
           break
         }
 
-        case "quota.exceeded": {
-          // Show toast notification for quota exceeded
-          sdk.client.experimental.toast({
-            variant: "error",
-            title: "Quota Exceeded",
-            message: event.properties.status.warning ?? "Token quota exceeded",
-            duration: 8000,
-          }).catch(() => {})
+        default:
+          // Ignore unknown event types
           break
-        }
       }
     })
 
