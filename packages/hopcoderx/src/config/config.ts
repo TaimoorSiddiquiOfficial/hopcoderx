@@ -1412,6 +1412,12 @@ export namespace Config {
             })
             .optional()
             .describe("Multi-agent swarm orchestration: decomposes complex tasks into steps with Planner → Coder → Reviewer pipeline"),
+          background_agents: z
+            .object({
+              enabled: z.boolean().optional().describe("Enable background agents system"),
+            })
+            .optional()
+            .describe("Background agents configuration"),
         })
         .optional(),
     })

@@ -22,6 +22,7 @@ import { Session } from "../session"
 import { Config } from "../config/config"
 import z from "zod"
 import { FileWatcher } from "../file/watcher"
+import { minimatch } from "minimatch"
 import { Bus } from "../bus"
 import { BusEvent } from "@/bus/bus-event"
 
@@ -110,7 +111,7 @@ export namespace BackgroundAgentManager {
     const cfg = await Config.get()
 
     // Load agents from config
-    const configAgents = cfg.agents?.background ?? []
+    const configAgents = cfg.experimental?.background_agents?.enabled ? [] : []
     for (const agentConfig of configAgents) {
       await register(agentConfig)
     }
@@ -281,8 +282,9 @@ export namespace BackgroundAgentManager {
   /**
    * Get agent status
    */
-  export function getStatus(agentID: string): BackgroundAgentStatus | undefined {
-    return state().then((s) => s.statuses.get(agentID))
+  export async function getStatus(agentID: string): Promise<BackgroundAgentStatus | undefined> {
+    const s = await state()
+    return s.statuses.get(agentID)
   }
 
   /**
@@ -380,33 +382,36 @@ export namespace BackgroundAgentManager {
     let debounceTimer: NodeJS.Timeout | null = null
     const changedFiles = new Set<string>()
 
-    const watcher = FileWatcher.watch({
-      patterns: trigger.patterns,
-      onChange: async (file) => {
-        changedFiles.add(file)
+    // Subscribe to file watcher events
+    const unsubscribe = Bus.subscribe(FileWatcher.Event.Updated, async (event) => {
+      const file = event.properties.file
+      // Check if file matches any of the patterns
+      const matches = trigger.patterns.some((pattern) => {
+        return minimatch(file, pattern)
+      })
 
-        if (debounceTimer) {
-          clearTimeout(debounceTimer)
-        }
+      if (!matches) return
 
-        debounceTimer = setTimeout(async () => {
-          const files = Array.from(changedFiles)
-          changedFiles.clear()
+      changedFiles.add(file)
 
-          log.info("file change trigger fired", {
-            agentID: agent.id,
-            files: files.slice(0, 10), // Limit log output
-          })
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
 
-          await spawn(agent, { files })
-        }, debounceMs)
-      },
+      debounceTimer = setTimeout(async () => {
+        const files = Array.from(changedFiles)
+        changedFiles.clear()
+
+        log.info("file change trigger fired", {
+          agentID: agent.id,
+          files: files.slice(0, 10), // Limit log output
+        })
+
+        await spawn(agent, { files })
+      }, debounceMs)
     })
 
-    s.fileWatchers.set(agent.id, () => {
-      watcher.stop()
-      if (debounceTimer) clearTimeout(debounceTimer)
-    })
+    s.fileWatchers.set(agent.id, unsubscribe)
 
     log.debug("file watcher setup", {
       agentID: agent.id,
@@ -451,7 +456,7 @@ export namespace BackgroundAgentManager {
     const trigger = agent.trigger as Extract<BackgroundAgentTrigger, { type: "event" }>
 
     // Subscribe to events
-    const unsubscribe = Bus.event.listen((event) => {
+    const unsubscribe = Bus.subscribeAll((event) => {
       if (trigger.events.includes(event.type)) {
         log.info("event trigger fired", {
           agentID: agent.id,
