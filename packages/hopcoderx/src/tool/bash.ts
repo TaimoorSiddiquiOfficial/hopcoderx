@@ -17,6 +17,7 @@ import { Shell } from "@/shell/shell"
 import { BashArity } from "@/permission/arity"
 import { Truncate } from "./truncation"
 import { Plugin } from "@/plugin"
+import { SecurityGuard } from "../security/guard"
 
 const MAX_METADATA_LENGTH = 30_000
 const DEFAULT_TIMEOUT = Flag.HOPCODERX_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
@@ -154,11 +155,19 @@ export const BashTool = Tool.define("bash", async () => {
       }
 
       if (patterns.size > 0) {
+        // Security check: validate git/shell operations
+        const validation = SecurityGuard.validateToolCall("bash", { command: params.command })
+        if (validation.action === "block") {
+          throw new Error(validation.reason)
+        }
+
         await ctx.ask({
           permission: "bash",
           patterns: Array.from(patterns),
           always: Array.from(always),
           metadata: {},
+          requireConfirmation: validation.action === "require_confirmation",
+          warning: validation.action === "warn" ? validation.reason : undefined,
         })
       }
 

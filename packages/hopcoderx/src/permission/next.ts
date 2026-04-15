@@ -79,6 +79,8 @@ export namespace PermissionNext {
           callID: z.string(),
         })
         .optional(),
+      requireConfirmation: z.boolean().optional(),
+      warning: z.string().optional(),
     })
     .meta({
       ref: "PermissionRequest",
@@ -140,6 +142,24 @@ export namespace PermissionNext {
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
         if (rule.action === "deny")
           throw new DeniedError(ruleset.filter((r) => Wildcard.match(request.permission, r.permission)))
+
+        // requireConfirmation forces asking even if there's a matching allow rule
+        if (request.requireConfirmation) {
+          const id = input.id ?? Identifier.ascending("permission")
+          return new Promise<void>((resolve, reject) => {
+            const info: Request = {
+              id,
+              ...request,
+            }
+            s.pending[id] = {
+              info,
+              resolve,
+              reject,
+            }
+            Bus.publish(Event.Asked, info)
+          })
+        }
+
         if (rule.action === "ask") {
           const id = input.id ?? Identifier.ascending("permission")
           return new Promise<void>((resolve, reject) => {

@@ -28,6 +28,7 @@ import { join } from "path"
 import os from "os"
 import { SkillFramework, type SkillManifest } from "./framework"
 import { SkillRegistry, type Skill } from "./skills"
+import { SkillDiscovery } from "./discovery"
 
 const execFileAsync = promisify(execFile)
 
@@ -285,3 +286,20 @@ export class SkillsMarketplace {
 // ─── Singleton ────────────────────────────────────────────────────────────────
 
 export const marketplace = new SkillsMarketplace()
+
+// ─── Discovery Integration ────────────────────────────────────────────────────
+
+/**
+ * Scan current project and recommend skills
+ */
+export async function scanAndRecommend(root: string) {
+  return SkillDiscovery.getRecommendations(root)
+}
+
+/**
+ * Auto-install high-priority skills for detected project context
+ */
+export async function autoInstallSkills(root: string): Promise<string[]> {
+  const { discovered } = await SkillDiscovery.getRecommendations(root)
+  return SkillDiscovery.autoApply(discovered)
+}

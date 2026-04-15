@@ -15,6 +15,7 @@ import { Config } from "@/config/config"
 import { SessionCompaction } from "./compaction"
 import { PermissionNext } from "@/permission/next"
 import { Question } from "@/question"
+import { QuotaTracker } from "@/telemetry/quota"
 
 export namespace SessionProcessor {
   const DOOM_LOOP_THRESHOLD = 3
@@ -271,6 +272,17 @@ export namespace SessionProcessor {
                     cost: usage.cost,
                   })
                   await Session.updateMessage(input.assistantMessage)
+
+                  // Track token usage for quota management
+                  QuotaTracker.track({
+                    providerID: input.model.providerID,
+                    sessionID: input.sessionID,
+                    inputTokens: usage.tokens.input,
+                    outputTokens: usage.tokens.output,
+                    cacheHitTokens: usage.tokens.cache?.read,
+                    cacheMissTokens: usage.tokens.cache?.write,
+                    costUSD: usage.cost,
+                  })
                   if (snapshot) {
                     const patch = await Snapshot.patch(snapshot)
                     if (patch.files.length) {

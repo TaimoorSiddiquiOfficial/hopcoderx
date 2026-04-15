@@ -27,6 +27,8 @@ export type { RelevanceOptions, RelevanceScore, Recommendation } from "./relevan
 
 import { Config } from "../config/config"
 import { Log } from "../util/log"
+import { GlobalBus } from "../bus/global"
+import { Instance } from "../project/instance"
 import { ContextRegistry } from "./registry"
 import { ContextLoader } from "./loader"
 import { ContextRelevance } from "./relevance"
@@ -101,12 +103,39 @@ export namespace Context {
 
     state.set(options.projectDir, ctxState)
 
+    const stats = {
+      loadedFiles: loader.getLoadedPaths(),
+      loaderTotalTokens: loader.getTotalTokens(),
+      loaderMaxTokens: ctxConfig?.maxTotalTokens ?? 50000,
+      loaderUtilizationPercent: Math.round((loader.getTotalTokens() / (ctxConfig?.maxTotalTokens ?? 50000)) * 100),
+    }
+
     log.info("context system initialized", {
       projectDir: options.projectDir,
       contextDir: registry.getDirectory(),
       fileCount: registry.list().length,
-      totalTokens: registry.getTotalTokens(),
+      registryTotalTokens: registry.getTotalTokens(),
+      ...stats,
     })
+
+    // Emit initial state
+    try {
+      GlobalBus.emit("event", {
+        directory: Instance.directory,
+        payload: {
+          type: "context.updated",
+          properties: {
+            enabled: true,
+            loadedFiles: stats.loadedFiles,
+            totalTokens: stats.loaderTotalTokens,
+            maxTokens: stats.loaderMaxTokens,
+            utilizationPercent: stats.loaderUtilizationPercent,
+          },
+        },
+      })
+    } catch (err) {
+      log.warn("failed to emit context init event", { error: err instanceof Error ? err.message : String(err) })
+    }
 
     return ctxState
   }
@@ -134,7 +163,31 @@ export namespace Context {
     const ctx = get(projectDir)
     if (!ctx?.enabled) return []
 
-    return ctx.relevance.autoload(query)
+    const loaded = await ctx.relevance.autoload(query)
+
+    // Emit update event after loading
+    if (loaded.length > 0) {
+      try {
+        const stats = ctx.loader.getStats()
+        GlobalBus.emit("event", {
+          directory: Instance.directory,
+          payload: {
+            type: "context.updated",
+            properties: {
+              enabled: true,
+              loadedFiles: ctx.loader.getLoadedPaths(),
+              totalTokens: stats.totalTokens,
+              maxTokens: stats.maxTokens,
+              utilizationPercent: stats.utilizationPercent,
+            },
+          },
+        })
+      } catch (err) {
+        log.warn("failed to emit context autoload event", { error: err instanceof Error ? err.message : String(err) })
+      }
+    }
+
+    return loaded
   }
 
   /**

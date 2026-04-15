@@ -25,6 +25,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     diff: true,
     todo: true,
     lsp: true,
+    context: false,
   })
 
   // Sort MCP servers alphabetically for consistent display order
@@ -105,9 +106,32 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               </Show>
             </box>
             <box>
-              <text fg={theme.text}>
-                <b>Context</b>
-              </text>
+              <box
+                flexDirection="row"
+                gap={1}
+                onMouseDown={() => setExpanded("context", !expanded.context)}
+              >
+                <text fg={theme.text}>
+                  <b>Context</b>
+                </text>
+                <Show when={sync.data.context.enabled && sync.data.context.loadedFiles.length > 0}>
+                  <text fg={theme.textMuted}>{expanded.context ? "▼" : "▶"}</text>
+                </Show>
+              </box>
+              <Show when={sync.data.context.enabled}>
+                <text fg={theme.textMuted}>Lazy loaded: {sync.data.context.loadedFiles.length} file(s)</text>
+                <text fg={theme.textMuted}>Tokens: {sync.data.context.totalTokens.toLocaleString()} / {sync.data.context.maxTokens.toLocaleString()} ({sync.data.context.utilizationPercent}%)</text>
+              </Show>
+              <Show when={!sync.data.context.enabled}>
+                <text fg={theme.textMuted}>Disabled in config</text>
+              </Show>
+              <Show when={expanded.context && sync.data.context.loadedFiles.length > 0}>
+                <For each={sync.data.context.loadedFiles}>
+                  {(file) => (
+                    <text fg={theme.textMuted}>• {file}</text>
+                  )}
+                </For>
+              </Show>
               <text fg={theme.textMuted}>Response: {context()?.billed ?? 0} tokens</text>
               <text fg={theme.textMuted}>Context: {context()?.context ?? 0} tokens</text>
               <text fg={theme.textMuted}>Total: {context()?.total ?? 0} tokens ({context()?.percentage ?? 0}%)</text>

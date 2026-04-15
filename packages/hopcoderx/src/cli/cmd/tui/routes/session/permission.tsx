@@ -422,6 +422,12 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
                 </text>
                 <text fg={theme.text}>{current.title}</text>
               </box>
+              <Show when={props.request.warning}>
+                <box flexDirection="row" gap={1} paddingLeft={2} flexShrink={0}>
+                  <text fg={theme.warning}>⚠</text>
+                  <text fg={theme.warning}>{props.request.warning}</text>
+                </box>
+              </Show>
             </box>
           )
 

@@ -16,6 +16,8 @@
 import { readFile } from "fs/promises"
 import { Log } from "../util/log"
 import { Token } from "../util/token"
+import { GlobalBus } from "../bus/global"
+import { Instance } from "../project/instance"
 import type { ContextFile, ContextRegistry } from "./registry"
 
 const log = Log.create({ service: "context-loader" })
@@ -69,6 +71,28 @@ export class ContextLoader {
       maxFiles: options.maxFiles ?? 10,
       maxTotalTokens: options.maxTotalTokens ?? 50000,
       notifyOnLoad: options.notifyOnLoad ?? true,
+    }
+  }
+
+  /** Emit context state update event */
+  private emitEvent(): void {
+    try {
+      const stats = this.getStats()
+      GlobalBus.emit("event", {
+        directory: Instance.directory,
+        payload: {
+          type: "context.updated",
+          properties: {
+            enabled: true,
+            loadedFiles: this.getLoadedPaths(),
+            totalTokens: stats.totalTokens,
+            maxTokens: stats.maxTokens,
+            utilizationPercent: stats.utilizationPercent,
+          },
+        },
+      })
+    } catch (err) {
+      log.warn("failed to emit context event", { error: err instanceof Error ? err.message : String(err) })
     }
   }
 
@@ -146,6 +170,7 @@ export class ContextLoader {
         totalTokens: this.getTotalTokens(),
       })
 
+      this.emitEvent()
       return true
     } catch (err) {
       log.error("failed to load context file", {
@@ -190,6 +215,7 @@ export class ContextLoader {
 
     this.cache.delete(filePath)
     log.debug("unloaded context file", { path: filePath })
+    this.emitEvent()
     return true
   }
 
@@ -213,6 +239,7 @@ export class ContextLoader {
     const count = this.cache.size
     this.cache.clear()
     log.info("cleared all context files", { count })
+    this.emitEvent()
   }
 
   /** Get loaded content for a file */

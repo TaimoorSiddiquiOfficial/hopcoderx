@@ -1262,6 +1262,93 @@ export namespace Config {
         })
         .optional()
         .describe("Lazy context loading configuration, see https://hopcoder.dev/docs/context"),
+      security: z
+        .object({
+          enabled: z.boolean().optional().default(true).describe("Enable security guard (default: true)"),
+          protectedPatterns: z
+            .array(z.string())
+            .optional()
+            .describe("Custom file patterns to protect. Overrides default patterns if provided."),
+          gitSafetyRules: z
+            .array(
+              z.object({
+                pattern: z.string().describe("Command pattern to match"),
+                action: z.enum(["allow", "warn", "require_confirmation", "block"]).describe("Action to take"),
+                message: z.string().describe("Message to show to user"),
+              }),
+            )
+            .optional()
+            .describe("Custom git safety rules. Overrides default rules if provided."),
+        })
+        .optional()
+        .describe("Security guard configuration for protecting sensitive files and operations"),
+      telemetry: z
+        .object({
+          quota: z
+            .object({
+              warnPercent: z.number().min(0).max(100).optional().default(80).describe("Warn at this utilization percent"),
+              blockPercent: z.number().min(0).max(100).optional().default(100).describe("Block at this utilization percent"),
+              maxCostUSD: z.number().optional().describe("Maximum cost before warning"),
+            })
+            .optional()
+            .describe("Quota tracking configuration"),
+          openTelemetry: z
+            .object({
+              enabled: z.boolean().optional().default(false).describe("Enable OpenTelemetry export"),
+              endpoint: z.string().optional().describe("OTLP endpoint URL"),
+              protocol: z.enum(["http", "grpc"]).optional().default("http").describe("Export protocol"),
+              serviceName: z.string().optional().default("hopcoderx").describe("Service name for traces"),
+              apiKey: z.string().optional().describe("API key for authentication"),
+              exportIntervalMs: z.number().optional().default(30000).describe("Export interval in ms"),
+              tracing: z.boolean().optional().default(true).describe("Enable tracing"),
+              metrics: z.boolean().optional().default(true).describe("Enable metrics"),
+            })
+            .optional()
+            .describe("OpenTelemetry export configuration"),
+        })
+        .optional()
+        .describe("Telemetry configuration for quota tracking and OpenTelemetry export"),
+      notification: z
+        .object({
+          enabled: z.boolean().optional().default(true).describe("Enable notifications"),
+          defaultChannels: z
+            .array(
+              z.discriminatedUnion("type", [
+                z.object({ type: z.literal("os"), platform: z.enum(["windows", "macos", "linux"]).optional() }),
+                z.object({ type: z.literal("ntfy"), url: z.string().url(), topic: z.string() }),
+                z.object({ type: z.literal("slack"), webhook: z.string().url() }),
+                z.object({ type: z.literal("voice"), engine: z.enum(["azure", "google", "local"]).optional() }),
+              ]),
+            )
+            .optional()
+            .describe("Default notification channels"),
+          onSessionEnd: z.boolean().optional().default(false).describe("Send notification when session ends"),
+          onTaskComplete: z.boolean().optional().default(true).describe("Send notification when task completes"),
+          ntfy: z
+            .object({
+              url: z.string().url().optional().default("https://ntfy.sh").describe("ntfy.sh server URL"),
+              topic: z.string().optional().describe("Default ntfy.sh topic"),
+            })
+            .optional()
+            .describe("ntfy.sh configuration"),
+          slack: z
+            .object({
+              webhook: z.string().url().optional().describe("Slack incoming webhook URL"),
+              channel: z.string().optional().describe("Slack channel name"),
+            })
+            .optional()
+            .describe("Slack notification configuration"),
+          voice: z
+            .object({
+              engine: z.enum(["azure", "google", "local"]).optional().default("local").describe("TTS engine"),
+              voice: z.string().optional().describe("Voice name to use"),
+              rate: z.number().optional().default(1.0).describe("Speech rate multiplier"),
+            })
+            .optional()
+            .describe("Voice/TTS notification configuration"),
+        })
+        .optional()
+        .describe("Notification system configuration"),
       experimental: z
         .object({
           disable_paste_summary: z.boolean().optional(),

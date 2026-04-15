@@ -11,6 +11,10 @@
  */
 
 import { type Config } from "../config/config"
+import { fileURLToPath } from "url"
+
+// Path to the MCP servers directory
+const SERVERS_DIR = fileURLToPath(new URL("./servers", import.meta.url))
 
 export namespace McpBuiltins {
   export type LaunchMode = "always" | "on-demand" | "manual"
@@ -624,6 +628,47 @@ No manual credential setup needed — auth token stored locally.`,
 2. Create a new API token
 3. Set RAILWAY_API_TOKEN in your environment
 Auto-detected when railway.toml or RAILWAY_API_TOKEN is present.`,
+    },
+    // ── PRODUCTIVITY: always-on ────────────────────────────────────────────────
+    {
+      id: "builtin:context-notes",
+      name: "Context Notes",
+      description: "Project-specific notes, meeting summaries, and architecture decision records (ADRs)",
+      icon: "📝",
+      category: "productivity",
+      launchMode: "always",
+      autoDetect: [{ type: "file-glob", pattern: ".hopcoderx/notes" }],
+      requiresCredentials: false,
+      config: {
+        type: "local",
+        command: ["bun", "run", `${SERVERS_DIR}/context-notes-mcp.ts`],
+        enabled: true,
+      },
+      setupGuide: `Built-in server - automatically enabled when .hopcoderx/notes directory exists.
+Use commands like "create a meeting note" or "create an ADR" to get started.`,
+    },
+    // ── SEARCH: on-demand ──────────────────────────────────────────────────────
+    {
+      id: "builtin:web-search",
+      name: "Web Search",
+      description: "Search the web for current information, documentation, and news with multiple engine support",
+      icon: "🔍",
+      category: "search",
+      launchMode: "on-demand",
+      autoDetect: [
+        { type: "env-key", pattern: "BRAVE_API_KEY" },
+        { type: "env-key", pattern: "GOOGLE_API_KEY" },
+      ],
+      requiresCredentials: false,
+      optionalEnvVars: ["BRAVE_API_KEY", "GOOGLE_API_KEY", "GOOGLE_CSE_ID"],
+      config: {
+        type: "local",
+        command: ["bun", "run", `${SERVERS_DIR}/web-search-mcp.ts`],
+        enabled: true,
+      },
+      setupGuide: `Works out of the box with DuckDuckGo (no API key required).
+For better results, set BRAVE_API_KEY (get free key at https://brave.com/search/api/)
+or GOOGLE_API_KEY + GOOGLE_CSE_ID for Google Custom Search.`,
     },
   ]
 

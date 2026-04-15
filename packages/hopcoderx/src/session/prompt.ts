@@ -50,6 +50,8 @@ import { Truncate } from "@/tool/truncation"
 import { ContextTiering } from "./tiering"
 import { Telemetry } from "../telemetry/telemetry"
 import { Context } from "../context"
+import { VectorMemory } from "../memory/vector"
+import { MemoryPlugin } from "../memory/memory"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -304,6 +306,32 @@ export namespace SessionPrompt {
     const session = await Session.get(sessionID)
     await Plugin.trigger("session.start", { sessionID }, {})
     Telemetry.sessionStart(sessionID)
+
+    // Load relevant memories from vector store for session-to-session retention
+    if (VectorMemory.isInitialized()) {
+      try {
+        const userQuery = lastUser?.parts
+          .filter((p): p is MessageV2.TextPart => p.type === "text")
+          .map((p) => p.text)
+          .join(" ")
+        const memories = await VectorMemory.loadForSession({
+          query: userQuery || session.title,
+          projectScope: Instance.project.root,
+        })
+        if (memories.length > 0) {
+          log.info("loaded relevant memories for session", {
+            sessionID,
+            count: memories.length,
+          })
+        }
+      } catch (err) {
+        log.warn("failed to load memories for session", {
+          sessionID,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+
     while (true) {
       SessionStatus.set(sessionID, { type: "busy" })
       log.info("loop", { step, sessionID })
@@ -679,7 +707,10 @@ export namespace SessionPrompt {
       // Auto-load relevant context files based on user query
       const config = await Config.get()
       if (config.context?.autoLoad !== false && lastUser) {
-        const userQuery = lastUser.parts.filter((p) => p.type === "text").map((p) => p.text).join(" ")
+        const userQuery = lastUser.parts
+          .filter((p): p is MessageV2.TextPart => p.type === "text")
+          .map((p) => p.text)
+          .join(" ")
         if (userQuery) {
           const loaded = await Context.autoload(userQuery, Instance.directory)
           if (loaded.length > 0 && config.context?.notifyOnLoad) {

@@ -68,6 +68,17 @@ export type EventGlobalDisposed = {
   }
 }
 
+export type EventContextUpdated = {
+  type: "context.updated"
+  properties: {
+    enabled: boolean
+    loadedFiles: string[]
+    totalTokens: number
+    maxTokens: number
+    utilizationPercent: number
+  }
+}
+
 export type EventLspClientDiagnostics = {
   type: "lsp.client.diagnostics"
   properties: {
@@ -554,6 +565,8 @@ export type PermissionRequest = {
     messageID: string
     callID: string
   }
+  requireConfirmation?: boolean
+  warning?: string
 }
 
 export type EventPermissionAsked = {
@@ -985,6 +998,7 @@ export type Event =
   | EventWorktreeReady
   | EventWorktreeFailed
   | EventVcsBranchUpdated
+  | EventContextUpdated
 
 export type GlobalEvent = {
   directory: string

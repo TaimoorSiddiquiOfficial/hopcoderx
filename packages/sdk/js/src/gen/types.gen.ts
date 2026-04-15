@@ -701,6 +701,17 @@ export type EventServerConnected = {
   }
 }
 
+export type EventContextUpdated = {
+  type: "context.updated"
+  properties: {
+    enabled: boolean
+    loadedFiles: string[]
+    totalTokens: number
+    maxTokens: number
+    utilizationPercent: number
+  }
+}
+
 export type Event =
   | EventServerInstanceDisposed
   | EventInstallationUpdated
@@ -734,6 +745,7 @@ export type Event =
   | EventPtyExited
   | EventPtyDeleted
   | EventServerConnected
+  | EventContextUpdated
 
 export type GlobalEvent = {
   directory: string

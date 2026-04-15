@@ -10,6 +10,8 @@ import { SessionRevert } from "../../session/revert"
 import { SessionStatus } from "@/session/status"
 import { SessionSummary } from "@/session/summary"
 import { Todo } from "../../session/todo"
+import { SessionHandoff } from "../../session/handoff"
+import { OrphanDetector } from "../../session/orphan"
 import { Agent } from "../../agent/agent"
 import { Snapshot } from "@/snapshot"
 import { Log } from "../../util/log"
@@ -931,6 +933,193 @@ export const SessionRoutes = lazy(() =>
           reply: c.req.valid("json").response,
         })
         return c.json(true)
+      },
+    )
+    .post(
+      "/:sessionID/handoff",
+      describeRoute({
+        summary: "Create session handoff",
+        description: "Create a handoff prompt for session continuation, capturing summary and todos.",
+        operationId: "session.handoff.create",
+        responses: {
+          200: {
+            description: "Handoff created",
+            content: {
+              "application/json": {
+                schema: resolver(SessionHandoff.HandoffPrompt),
+              },
+            },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string(),
+        }),
+      ),
+      validator(
+        "json",
+        z.object({
+          summary: z.string(),
+          todos: z.array(
+            z.object({
+              content: z.string(),
+              status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
+              priority: z.enum(["high", "medium", "low"]),
+            }),
+          ),
+          context: z.array(z.string()).optional(),
+        }),
+      ),
+      async (c) => {
+        const sessionID = c.req.valid("param").sessionID
+        const body = c.req.valid("json")
+        const handoff = await SessionHandoff.create({ sessionID, ...body })
+        return c.json(handoff)
+      },
+    )
+    .post(
+      "/handoff/resume",
+      describeRoute({
+        summary: "Resume from handoff",
+        description: "Create a new child session from a handoff prompt, continuing the work.",
+        operationId: "session.handoff.resume",
+        responses: {
+          200: {
+            description: "Session resumed",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    session: Session.Info,
+                    handoffMessage: z.object({
+                      message: MessageV2.User,
+                      textPart: MessageV2.TextPart,
+                    }),
+                    pendingTodos: z.array(Todo.Info),
+                  }),
+                ),
+              },
+            },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          handoff: SessionHandoff.HandoffPrompt,
+          title: z.string().optional(),
+        }),
+      ),
+      async (c) => {
+        const body = c.req.valid("json")
+        const result = await SessionHandoff.resume(body)
+        return c.json(result)
+      },
+    )
+    .get(
+      "/orphan/detect",
+      describeRoute({
+        summary: "Detect orphaned sessions",
+        description: "Scan for orphaned sessions that have no recent activity or missing parents.",
+        operationId: "session.orphan.detect",
+        responses: {
+          200: {
+            description: "List of orphaned sessions",
+            content: {
+              "application/json": {
+                schema: resolver(OrphanDetector.OrphanedSession.array()),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "query",
+        z.object({
+          noActivityDays: z.coerce.number().optional().default(7),
+        }),
+      ),
+      async (c) => {
+        const query = c.req.valid("query")
+        const orphans = await OrphanDetector.detect({ noActivityDays: query.noActivityDays })
+        return c.json(orphans)
+      },
+    )
+    .post(
+      "/orphan/cleanup",
+      describeRoute({
+        summary: "Clean up orphaned sessions",
+        description: "Archive or delete orphaned sessions.",
+        operationId: "session.orphan.cleanup",
+        responses: {
+          200: {
+            description: "Cleanup result",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    removed: z.boolean(),
+                    action: z.enum(["deleted", "archived", "already_gone"]),
+                  }),
+                ),
+              },
+            },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          sessionID: z.string(),
+          delete: z.boolean().optional().default(false),
+          reason: z.string().optional(),
+        }),
+      ),
+      async (c) => {
+        const body = c.req.valid("json")
+        const result = await OrphanDetector.cleanup(body)
+        return c.json(result)
+      },
+    )
+    .get(
+      "/orphan/stats",
+      describeRoute({
+        summary: "Get orphan statistics",
+        description: "Get statistics about orphaned sessions.",
+        operationId: "session.orphan.stats",
+        responses: {
+          200: {
+            description: "Orphan statistics",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    total: z.number(),
+                    byReason: z.record(z.string(), z.number()),
+                    byAgeBucket: z.record(z.string(), z.number()),
+                    oldest: z.number(),
+                  }),
+                ),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "query",
+        z.object({
+          noActivityDays: z.coerce.number().optional().default(7),
+        }),
+      ),
+      async (c) => {
+        const query = c.req.valid("query")
+        const stats = await OrphanDetector.getStats({ noActivityDays: query.noActivityDays })
+        return c.json(stats)
       },
     ),
 )

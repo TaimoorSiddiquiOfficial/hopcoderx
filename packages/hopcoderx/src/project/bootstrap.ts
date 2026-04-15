@@ -13,6 +13,12 @@ import { ShareNext } from "@/share/share-next"
 import { Snapshot } from "../snapshot"
 import { Truncate } from "../tool/truncation"
 import { MCP } from "@/mcp"
+import { SecurityGuard } from "@/security/guard"
+import { QuotaTracker } from "@/telemetry/quota"
+import { VectorMemory } from "@/memory/vector"
+import { MemoryPlugin } from "@/memory/memory"
+import { OpenTelemetryExporter } from "@/telemetry/otel"
+import { NotificationManager } from "@/notification"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -25,6 +31,23 @@ export async function InstanceBootstrap() {
   Vcs.init()
   Snapshot.init()
   Truncate.init()
+
+  // Initialize security guard
+  await SecurityGuard.init()
+
+  // Initialize quota tracker
+  await QuotaTracker.init()
+
+  // Initialize vector memory if backend is available
+  if (MemoryPlugin.isActive()) {
+    await VectorMemory.init(MemoryPlugin.active)
+  }
+
+  // Initialize OpenTelemetry exporter
+  await OpenTelemetryExporter.init()
+
+  // Initialize notification manager
+  await NotificationManager.init()
 
   // Start built-in MCP servers (always-on + context-detected on-demand)
   MCP.initBuiltins(Instance.directory).catch((err) => {

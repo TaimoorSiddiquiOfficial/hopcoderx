@@ -17,6 +17,7 @@ import { Filesystem } from "../util/filesystem"
 import { Instance } from "../project/instance"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectory } from "./external-directory"
+import { SecurityGuard } from "../security/guard"
 
 const MAX_DIAGNOSTICS_PER_FILE = 20
 
@@ -45,6 +46,13 @@ export const EditTool = Tool.define("edit", {
     }
 
     const filePath = path.isAbsolute(params.filePath) ? params.filePath : path.join(Instance.directory, params.filePath)
+
+    // Security check: protect sensitive files
+    const protection = SecurityGuard.isProtected(filePath)
+    if (protection.isProtected) {
+      throw new Error(`Access denied: ${protection.reason}`)
+    }
+
     await assertExternalDirectory(ctx, filePath)
 
     let diff = ""

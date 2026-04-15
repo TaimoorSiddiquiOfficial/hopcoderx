@@ -17,6 +17,7 @@ import type {
   ProviderListResponse,
   ProviderAuthMethod,
   VcsInfo,
+  EventContextUpdated,
 } from "@hopcoderx/sdk/v2"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useSDK } from "@tui/context/sdk"
@@ -73,6 +74,13 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       formatter: FormatterStatus[]
       vcs: VcsInfo | undefined
       path: Path
+      context: {
+        enabled: boolean
+        loadedFiles: string[]
+        totalTokens: number
+        maxTokens: number
+        utilizationPercent: number
+      }
     }>({
       provider_next: {
         all: [],
@@ -100,6 +108,13 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       formatter: [],
       vcs: undefined,
       path: { state: "", config: "", worktree: "", directory: "" },
+      context: {
+        enabled: false,
+        loadedFiles: [],
+        totalTokens: 0,
+        maxTokens: 0,
+        utilizationPercent: 0,
+      },
     })
 
     const sdk = useSDK()
@@ -338,6 +353,34 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
         case "vcs.branch.updated": {
           setStore("vcs", { branch: event.properties.branch })
+          break
+        }
+
+        case "context.updated": {
+          const ctxEvent = event as EventContextUpdated
+          setStore("context", reconcile(ctxEvent.properties))
+          break
+        }
+
+        case "quota.warning": {
+          // Show toast notification for quota warnings
+          sdk.client.experimental.toast({
+            variant: "warning",
+            title: "Quota Warning",
+            message: event.properties.status.warning ?? "Approaching token quota limit",
+            duration: 5000,
+          }).catch(() => {})
+          break
+        }
+
+        case "quota.exceeded": {
+          // Show toast notification for quota exceeded
+          sdk.client.experimental.toast({
+            variant: "error",
+            title: "Quota Exceeded",
+            message: event.properties.status.warning ?? "Token quota exceeded",
+            duration: 8000,
+          }).catch(() => {})
           break
         }
       }

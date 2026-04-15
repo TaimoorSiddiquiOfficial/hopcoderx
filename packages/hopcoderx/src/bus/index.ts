@@ -15,6 +15,17 @@ export namespace Bus {
     }),
   )
 
+  export const ContextUpdated = BusEvent.define(
+    "context.updated",
+    z.object({
+      enabled: z.boolean(),
+      loadedFiles: z.array(z.string()),
+      totalTokens: z.number(),
+      maxTokens: z.number(),
+      utilizationPercent: z.number(),
+    }),
+  )
+
   const state = Instance.state(
     () => {
       const subscriptions = new Map<any, Subscription[]>()
