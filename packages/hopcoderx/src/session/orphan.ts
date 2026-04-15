@@ -59,8 +59,8 @@ export namespace OrphanDetector {
       })
       .optional(),
     async (input) => {
-      const cfg = input ?? {}
-      const noActivityMs = (cfg.noActivityDays ?? 7) * 24 * 60 * 60 * 1000
+      const cfg = input || {}
+      const noActivityMs = ((cfg.noActivityDays as number) ?? 7) * 24 * 60 * 60 * 1000
       const cutoffTime = Date.now() - noActivityMs
 
       const orphans: OrphanedSession[] = []
@@ -94,7 +94,7 @@ export namespace OrphanDetector {
       }
 
       // Find sessions with deleted parents
-      if (cfg.checkParentExistence !== false) {
+      if ((cfg.checkParentExistence as boolean) !== false) {
         const allSessions = Database.use((db) =>
           db
             .select({ id: SessionTable.id, parent_id: SessionTable.parent_id, title: SessionTable.title })
@@ -131,7 +131,7 @@ export namespace OrphanDetector {
       }
 
       // Find sessions from missing worktrees
-      if (cfg.checkWorktreeExistence !== false) {
+      if ((cfg.checkWorktreeExistence as boolean) !== false) {
         // This would require filesystem checks - simplified for now
         // In a full implementation, check if session.directory still exists
       }

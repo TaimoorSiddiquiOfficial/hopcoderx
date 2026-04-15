@@ -134,7 +134,7 @@ export namespace NotificationManager {
             results.push({ channel: "slack", success: true })
             break
           case "voice":
-            await sendVoice(input, channel)
+            await sendVoice(input, { ...channel, engine: channel.engine || "local" })
             results.push({ channel: "voice", success: true })
             break
         }
