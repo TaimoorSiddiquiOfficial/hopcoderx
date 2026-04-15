@@ -23,7 +23,7 @@ import { Log } from "@/util/log"
 const log = Log.create({ service: "notification.ntfy" })
 
 export async function sendNtfyNotification(notification: Notification, channel: NtfyChannel): Promise<void> {
-  const { title, message, type, tags, timeout } = notification
+  const { title, message, type, timeout } = notification
 
   // Map notification type to ntfy priority
   const priorityMap: Record<string, number> = {
@@ -41,7 +41,7 @@ export async function sendNtfyNotification(notification: Notification, channel: 
     error: ["x", "no_entry", "rotating_light"],
   }
 
-  const allTags = [...(typeTags[type] || []), ...(tags || [])]
+  const allTags = typeTags[type] || []
 
   const payload: Record<string, string | number | string[]> = {
     topic: channel.topic,

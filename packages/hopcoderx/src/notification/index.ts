@@ -57,7 +57,7 @@ export namespace NotificationManager {
   export const VoiceChannel = z
     .object({
       type: z.literal("voice"),
-      engine: z.enum(["azure", "google", "local"]),
+      engine: z.enum(["azure", "google", "local"]).default("local"),
       voice: z.string().optional(),
       rate: z.number().optional(),
     })
