@@ -25,6 +25,7 @@ import { FileWatcher } from "../file/watcher"
 import { minimatch } from "minimatch"
 import { Bus } from "../bus"
 import { BusEvent } from "@/bus/bus-event"
+import { Cron } from "croner"
 
 const log = Log.create({ service: "background-agent" })
 
@@ -360,10 +361,14 @@ export namespace BackgroundAgentManager {
       s.fileWatchers.delete(agentID)
     }
 
-    // Cleanup scheduled timer
+    // Cleanup scheduled timer (now a Cron task with stop method)
     const timer = s.scheduledTimers.get(agentID)
     if (timer) {
-      clearInterval(timer)
+      if (typeof (timer as any).stop === "function") {
+        ;(timer as any).stop()
+      } else {
+        clearInterval(timer)
+      }
       s.scheduledTimers.delete(agentID)
     }
   }
@@ -427,29 +432,44 @@ export namespace BackgroundAgentManager {
     const existingTimer = s.scheduledTimers.get(agent.id)
     if (existingTimer) {
       clearInterval(existingTimer)
+      s.scheduledTimers.delete(agent.id)
     }
 
-    // Parse cron expression (simplified - only supports */N pattern for now)
-    const intervalMs = parseCronToMs(trigger.cron)
+    try {
+      // Use croner for full cron expression support
+      // Supports: standard cron (* * * * *), with seconds (* * * * * *), presets (@hourly, @daily, etc.)
+      const cronOptions = trigger.timezone ? { timezone: trigger.timezone } : undefined
+      const scheduledTask = Cron(trigger.cron, cronOptions, async () => {
+        log.info("schedule trigger fired", { agentID: agent.id })
+        await spawn(agent)
+      })
 
-    const timer = setInterval(async () => {
-      log.info("schedule trigger fired", { agentID: agent.id })
-      await spawn(agent)
-    }, intervalMs)
+      // Store cleanup function
+      s.scheduledTimers.set(agent.id, {
+        stop: () => scheduledTask.stop(),
+      } as any)
 
-    s.scheduledTimers.set(agent.id, timer)
+      // Calculate next run time
+      const status = s.statuses.get(agent.id)
+      if (status && scheduledTask.nextRun()) {
+        status.nextRun = scheduledTask.nextRun()!.getTime()
+      }
 
-    // Calculate next run time
-    const status = s.statuses.get(agent.id)
-    if (status) {
-      status.nextRun = Date.now() + intervalMs
+      log.debug("schedule trigger setup", {
+        agentID: agent.id,
+        cron: trigger.cron,
+        timezone: trigger.timezone ?? "default",
+        nextRun: scheduledTask.nextRun()?.toISOString(),
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      log.error("schedule trigger setup failed", {
+        agentID: agent.id,
+        cron: trigger.cron,
+        error: message,
+      })
+      throw new Error(`Invalid cron expression "${trigger.cron}": ${message}`)
     }
-
-    log.debug("schedule trigger setup", {
-      agentID: agent.id,
-      cron: trigger.cron,
-      intervalMs,
-    })
   }
 
   async function setupEventTrigger(agent: BackgroundAgent): Promise<void> {
@@ -480,18 +500,6 @@ export namespace BackgroundAgentManager {
       agentID: agent.id,
       events: trigger.events,
     })
-  }
-
-  function parseCronToMs(cron: string): number {
-    // Simplified cron parser - supports: */N * * * * (every N minutes)
-    const match = cron.match(/^\*\/(\d+)\s+\*\s+\*\s+\*\s+\*$/)
-    if (match) {
-      const minutes = parseInt(match[1], 10)
-      return minutes * 60 * 1000
-    }
-
-    // Default to every 5 minutes
-    return 5 * 60 * 1000
   }
 }
 

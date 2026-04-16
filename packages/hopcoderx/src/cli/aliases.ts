@@ -2,6 +2,7 @@ import { Log } from "../util/log"
 import { Global } from "../global"
 import { Filesystem } from "../util/filesystem"
 import { parse as parseJsonc } from "jsonc-parser"
+import path from "path"
 
 export interface AliasConfig {
   [alias: string]: string | string[]
@@ -21,15 +22,14 @@ export interface AliasConfig {
  *   }
  * }
  */
-export async function loadAliases(): Promise<AliasConfig> {
+export async function loadAliases(configDir = Global.Path.config): Promise<AliasConfig> {
   try {
     // Read aliases directly from global config to avoid instance context dependency
     // Aliases are user-level shortcuts stored in ~/.config/hopcoderx/hopcoderx.json{,c}
-    const configDir = Global.Path.config
     const candidates = ["hopcoderx.jsonc", "hopcoderx.json", "config.json"]
 
     for (const file of candidates) {
-      const filepath = `${configDir}/${file}`
+      const filepath = path.join(configDir, file)
       const content = await Filesystem.readText(filepath).catch(() => undefined)
       if (content) {
         const data = parseJsonc(content) as any

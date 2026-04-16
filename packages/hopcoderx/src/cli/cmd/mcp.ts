@@ -20,6 +20,7 @@ import { McpBuiltins } from "../../mcp/builtins"
 import { getMcpSummary } from "../diagnostics"
 import { buildDisabledMcpEntry, buildEnabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
 import { findMissingMcpEnvVars } from "../../mcp/runtime-config"
+import { McpInspectCommand } from "./mcp-inspector"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -73,6 +74,7 @@ export const McpCommand = cmd({
       .command(McpBuiltinsCommand)
       .command(McpTestCommand)
       .command(McpReloadCommand)
+      .command(McpInspectCommand)
       .demandCommand(),
   async handler() {},
 })
