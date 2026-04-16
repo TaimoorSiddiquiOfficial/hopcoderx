@@ -188,6 +188,86 @@ export namespace HubPresets {
         },
       ],
     }),
+    HubManifest.Preset.parse({
+      id: "preset:data-analysis",
+      kind: "preset",
+      name: "Data Analysis",
+      description: "Setup for SQL-driven data exploration with database connections and analytical reasoning.",
+      source: "builtin",
+      category: "data",
+      tags: ["data", "sql", "analytics", "duckdb"],
+      author: "HopCoderX",
+      appliesTo: [{ kind: "bundle", id: "bundle:data-analysis", reason: "Core data analysis MCP stack" }],
+      onboarding: [
+        {
+          title: "Install the data-analysis bundle",
+          description: "Registers Postgres, SQLite, memory, and sequential-thinking MCPs.",
+        },
+        {
+          title: "Configure database connection",
+          description: "Postgres MCP needs a connection string; SQLite MCP needs a file path to your database.",
+          envKeys: ["DATABASE_URL"],
+        },
+        {
+          title: "Verify readiness",
+          description: "Run doctor to confirm database MCPs are reachable.",
+          command: "hopcoderx hub doctor",
+        },
+      ],
+    }),
+    HubManifest.Preset.parse({
+      id: "preset:security-audit",
+      kind: "preset",
+      name: "Security Audit",
+      description: "Guided setup for dependency scanning, secret detection, and vulnerability analysis workflows.",
+      source: "builtin",
+      category: "security",
+      tags: ["security", "audit", "cve", "secrets"],
+      author: "HopCoderX",
+      appliesTo: [{ kind: "bundle", id: "bundle:security-audit", reason: "Security audit MCP and skill stack" }],
+      onboarding: [
+        {
+          title: "Install the security-audit bundle",
+          description: "Registers GitHub, memory, and sequential-thinking MCPs for audit workflows.",
+        },
+        {
+          title: "Authenticate GitHub MCP",
+          description: "GitHub auth enables access to security advisories, code scanning alerts, and dependency graphs.",
+          command: "hopcoderx hub auth github",
+        },
+        {
+          title: "Start an audit session",
+          description: "Ask the reviewer agent to scan the codebase for vulnerabilities, secrets, or dependency CVEs.",
+        },
+      ],
+    }),
+    HubManifest.Preset.parse({
+      id: "preset:design-to-code",
+      kind: "preset",
+      name: "Design to Code",
+      description: "Figma handoff and browser verification setup for design-to-component implementation workflows.",
+      source: "builtin",
+      category: "design",
+      tags: ["design", "figma", "components", "ui"],
+      author: "HopCoderX",
+      appliesTo: [{ kind: "bundle", id: "bundle:design-to-code", reason: "Design-to-implementation MCP stack" }],
+      onboarding: [
+        {
+          title: "Install the design-to-code bundle",
+          description: "Registers Figma, Playwright, npm, and sequential-thinking MCPs.",
+        },
+        {
+          title: "Configure Figma access token",
+          description: "Figma MCP requires a personal access token to read design files and component specs.",
+          envKeys: ["FIGMA_API_KEY"],
+        },
+        {
+          title: "Verify browser and Figma readiness",
+          description: "Run doctor to confirm Figma auth and Playwright browsers are available.",
+          command: "hopcoderx hub doctor",
+        },
+      ],
+    }),
   ]
 
   export function get(id: string) {

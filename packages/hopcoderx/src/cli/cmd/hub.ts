@@ -31,6 +31,7 @@ import { HubEcosystem } from "../../hub/ecosystem"
 import { HubInstall } from "../../hub/install"
 import { HubPresets } from "../../hub/presets"
 import { HubStatus } from "../../hub/status"
+import { HubSuggest } from "../../hub/suggest"
 import { HubWorkflows } from "../../hub/workflows"
 import { McpRegistry } from "../../mcp/registry"
 import { MCP } from "../../mcp"
@@ -136,7 +137,7 @@ export const HubCommand = cmd({
       return yargs
         .positional("action", {
           type: "string",
-          choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor", "ecosystem", "workflow"] as const,
+          choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor", "ecosystem", "workflow", "suggest"] as const,
           describe: "Action to perform",
         })
       .positional("package", {
@@ -270,6 +271,32 @@ export const HubCommand = cmd({
               console.log(`  - ${step.title}: ${step.description}`)
               if (step.command) console.log(`    ${step.command}`)
             }
+          }
+          return
+        }
+
+        if (action === "suggest") {
+          const dir = Instance.directory
+          const suggestions = HubSuggest.suggest(dir)
+
+          if (args.json) {
+            console.log(JSON.stringify(suggestions, null, 2))
+            return
+          }
+
+          if (suggestions.length === 0) {
+            console.log("No project signals detected. Try `hopcoderx hub list` to browse all available workflows.")
+            return
+          }
+
+          console.log(`\nRecommended workflows for this project:\n`)
+          for (const s of suggestions) {
+            const workflow = HubWorkflows.getResolved(s.workflowID)
+            console.log(`  ${s.workflowName}`)
+            if (workflow) console.log(`  ${workflow.description}`)
+            console.log(`  Why: ${s.reasons.join("; ")}`)
+            console.log(`  Install: ${s.command}`)
+            console.log()
           }
           return
         }

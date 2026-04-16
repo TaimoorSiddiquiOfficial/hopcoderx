@@ -15,6 +15,7 @@ import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel, useConnected } from "@tui/component/dialog-model"
 import { DialogMcp } from "@tui/component/dialog-mcp"
 import { DialogMcpRegistry } from "@tui/component/dialog-mcp-registry"
+import { DialogHub } from "@tui/component/dialog-hub"
 import { DialogStatus } from "@tui/component/dialog-status"
 import { DialogThemeList } from "@tui/component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
@@ -478,6 +479,18 @@ function App() {
       },
       onSelect: () => {
         dialog.replace(() => <DialogMcpRegistry />)
+      },
+    },
+    {
+      title: "Hub workflows",
+      value: "HopCoderX.hub",
+      category: "Agent",
+      slash: {
+        name: "hub",
+        aliases: ["hub", "workflows"],
+      },
+      onSelect: () => {
+        dialog.replace(() => <DialogHub />)
       },
     },
     {

@@ -84,6 +84,33 @@ export namespace HubWorkflows {
       recommendedAgent: HubBundles.get("bundle:fullstack-dev")?.recommendedAgent,
       starterPrompt: HubBundles.get("bundle:fullstack-dev")?.starterPrompts[0],
     }),
+    Workflow.parse({
+      id: "workflow:data",
+      name: "data",
+      description: "Set up the data analysis stack for SQL-driven exploration and analytical reasoning workflows.",
+      presetID: "preset:data-analysis",
+      aliases: ["data-analysis", "analytics"],
+      recommendedAgent: HubBundles.get("bundle:data-analysis")?.recommendedAgent,
+      starterPrompt: HubBundles.get("bundle:data-analysis")?.starterPrompts[0],
+    }),
+    Workflow.parse({
+      id: "workflow:security",
+      name: "security",
+      description: "Enable the security audit stack for dependency scanning, secret detection, and vulnerability analysis.",
+      presetID: "preset:security-audit",
+      aliases: ["security-audit", "vuln-scan"],
+      recommendedAgent: HubBundles.get("bundle:security-audit")?.recommendedAgent,
+      starterPrompt: HubBundles.get("bundle:security-audit")?.starterPrompts[0],
+    }),
+    Workflow.parse({
+      id: "workflow:design",
+      name: "design",
+      description: "Install the design-to-code stack for Figma handoff and browser-verified component implementation.",
+      presetID: "preset:design-to-code",
+      aliases: ["design-to-code", "figma"],
+      recommendedAgent: HubBundles.get("bundle:design-to-code")?.recommendedAgent,
+      starterPrompt: HubBundles.get("bundle:design-to-code")?.starterPrompts[0],
+    }),
   ]
 
   export function list(query?: string) {

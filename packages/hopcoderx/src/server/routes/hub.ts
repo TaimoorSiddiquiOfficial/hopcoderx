@@ -9,6 +9,7 @@ import { HubInstall } from "../../hub/install"
 import { HubManifest } from "../../hub/manifest"
 import { HubPresets } from "../../hub/presets"
 import { HubStatus } from "../../hub/status"
+import { HubSuggest } from "../../hub/suggest"
 import { HubWorkflows } from "../../hub/workflows"
 import { McpRegistry } from "../../mcp/registry"
 import { MCP } from "../../mcp"
@@ -513,6 +514,39 @@ export const HubRoutes = lazy(() =>
         if (!entry) return c.json({ error: "MCP item not found" }, 404)
         await MCP.removeAuth(name)
         return c.json({ success: true as const })
+      },
+    )
+    .get(
+      "/suggest",
+      describeRoute({
+        summary: "Suggest workflows for current project",
+        description: "Detect project signals (package.json, Terraform files, .github/, etc.) and return ranked workflow recommendations.",
+        operationId: "hub.suggest",
+        responses: {
+          200: {
+            description: "Ranked workflow suggestions",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.array(
+                    z.object({
+                      workflowID: z.string(),
+                      workflowName: z.string(),
+                      score: z.number(),
+                      reasons: z.array(z.string()),
+                      command: z.string(),
+                    }),
+                  ),
+                ),
+              },
+            },
+          },
+        },
+      }),
+      validator("query", z.object({ limit: z.coerce.number().min(1).max(10).optional() })),
+      async (c) => {
+        const { limit } = c.req.valid("query")
+        return c.json(HubSuggest.suggest(Instance.directory, limit ?? 5))
       },
     )
     .get(
