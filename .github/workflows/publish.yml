@@ -253,7 +253,7 @@ jobs:
           hopcoderx-app-id: ${{ vars.HOPCODERX_APP_ID }}
           hopcoderx-app-secret: ${{ secrets.HOPCODERX_APP_SECRET }}
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: hopcoderx-cli
           path: packages/hopcoderx/dist
