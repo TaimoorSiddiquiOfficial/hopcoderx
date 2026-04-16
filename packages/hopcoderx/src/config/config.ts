@@ -929,6 +929,7 @@ export namespace Config {
       mcp_list: z.string().optional().default("<leader>o").describe("Open MCP server list"),
       mcp_registry: z.string().optional().default("<leader>i").describe("Open MCP registry"),
       mcp_toggle: z.string().optional().default("space").describe("Toggle MCP server in list"),
+      hub_browser: z.string().optional().default("<leader>H").describe("Open HopHub workflows browser"),
     })
     .strict()
     .meta({

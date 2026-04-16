@@ -485,6 +485,7 @@ function App() {
       title: "Hub workflows",
       value: "HopCoderX.hub",
       category: "Agent",
+      keybind: "hub_browser",
       slash: {
         name: "hub",
         aliases: ["hub", "workflows"],

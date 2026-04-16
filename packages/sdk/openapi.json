@@ -9038,6 +9038,26 @@
             "description": "Toggle thinking blocks visibility",
             "default": "none",
             "type": "string"
+          },
+          "mcp_list": {
+            "description": "Open MCP server list",
+            "default": "<leader>o",
+            "type": "string"
+          },
+          "mcp_registry": {
+            "description": "Open MCP registry",
+            "default": "<leader>i",
+            "type": "string"
+          },
+          "mcp_toggle": {
+            "description": "Toggle MCP server in list",
+            "default": "space",
+            "type": "string"
+          },
+          "hub_browser": {
+            "description": "Open HopHub workflows browser",
+            "default": "<leader>H",
+            "type": "string"
           }
         },
         "additionalProperties": false

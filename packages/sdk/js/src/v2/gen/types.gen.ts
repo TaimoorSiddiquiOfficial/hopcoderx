@@ -1401,6 +1401,10 @@ export type KeybindsConfig = {
    * Toggle MCP server in list
    */
   mcp_toggle?: string
+  /**
+   * Open HopHub workflows browser
+   */
+  hub_browser?: string
 }
 
 /**

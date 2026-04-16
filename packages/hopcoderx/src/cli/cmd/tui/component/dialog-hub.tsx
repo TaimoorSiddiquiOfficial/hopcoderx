@@ -11,10 +11,19 @@ import { HubWorkflows } from "@/hub/workflows"
 import { HubBundles } from "@/hub/bundles"
 import { HubSuggest } from "@/hub/suggest"
 import { HubStatus } from "@/hub/status"
+import { HubEcosystem } from "@/hub/ecosystem"
 import { McpRegistry } from "@/mcp/registry"
 import { Instance } from "@/project/instance"
 
-type HubView = "workflows" | "bundles" | "suggested"
+type HubView = "suggested" | "workflows" | "bundles" | "community"
+
+const VIEW_ORDER: HubView[] = ["suggested", "workflows", "bundles", "community"]
+const VIEW_LABELS: Record<HubView, string> = {
+  suggested: "HopHub \u2014 Suggested Workflows",
+  workflows: "HopHub \u2014 All Workflows",
+  bundles: "HopHub \u2014 Bundles",
+  community: "HopHub \u2014 Community Ecosystem",
+}
 
 export function DialogHub() {
   const sync = useSync()
@@ -60,31 +69,50 @@ export function DialogHub() {
     })
   })
 
-  const options = createMemo(() => view() === "bundles" ? bundleOptions() : workflowOptions())
+  const communityOptions = createMemo<DialogSelectOption<string>[]>(() => {
+    return HubEcosystem.list({ section: "community" }).map((entry) => ({
+      value: entry.id,
+      title: entry.name,
+      description: entry.description,
+      category: entry.kind.charAt(0).toUpperCase() + entry.kind.slice(1),
+      footer: entry.repository ?? entry.homepage ?? "",
+    }))
+  })
 
-  const viewLabel = createMemo(() => {
-    if (view() === "suggested") return "HopHub — Suggested Workflows"
-    if (view() === "workflows") return "HopHub — All Workflows"
-    return "HopHub — Bundles"
+  const options = createMemo<DialogSelectOption<string>[]>(() => {
+    const v = view()
+    if (v === "bundles") return bundleOptions()
+    if (v === "community") return communityOptions()
+    return workflowOptions()
+  })
+
+  const nextView = createMemo(() => {
+    const idx = VIEW_ORDER.indexOf(view())
+    return VIEW_ORDER[(idx + 1) % VIEW_ORDER.length]
   })
 
   const keybinds = createMemo(() => [
     {
       keybind: Keybind.parse("tab")[0],
-      title: view() === "suggested" ? "all workflows" : view() === "workflows" ? "bundles" : "suggested",
-      onTrigger: () => {
-        if (view() === "suggested") setView("workflows")
-        else if (view() === "workflows") setView("bundles")
-        else setView("suggested")
-      },
+      title: nextView(),
+      onTrigger: () => setView(nextView()),
     },
     {
       keybind: Keybind.parse("d")[0],
       title: "details",
       onTrigger: (option: DialogSelectOption<string>) => {
-        if (view() !== "bundles") {
+        if (view() === "workflows" || view() === "suggested") {
           const resolved = HubWorkflows.getResolved(option.value)
           if (resolved) { setSelectedWorkflow(resolved); setShowDetail(true) }
+        } else if (view() === "bundles") {
+          const workflow = HubWorkflows.registry.find((w) => {
+            const preset = HubWorkflows.presetFor(w)
+            return preset?.appliesTo.some((rel) => rel.id === option.value)
+          })
+          if (workflow) {
+            const resolved = HubWorkflows.getResolved(workflow.id)
+            if (resolved) { setSelectedWorkflow(resolved); setShowDetail(true) }
+          }
         }
       },
     },
@@ -97,7 +125,9 @@ export function DialogHub() {
       fallback={
         <>
           <box flexDirection="column" gap={1}>
-            <text fg={theme.textMuted}>Enter: Install | D: Details | Tab: Switch view | Escape: Close</text>
+            <text fg={theme.textMuted}>
+              Enter: {view() === "community" ? "Info" : "Install"} | D: Details | Tab: Switch view | Escape: Close
+            </text>
             <Show when={view() === "suggested" && suggestions().length > 0}>
               <text fg={theme.info}>
                 {`\u2726 ${suggestions().length} workflow${suggestions().length !== 1 ? "s" : ""} detected for this project`}
@@ -108,11 +138,27 @@ export function DialogHub() {
             </Show>
           </box>
           <DialogSelect
-            title={viewLabel()}
+            title={VIEW_LABELS[view()]}
             placeholder="Search..."
             options={options()}
             keybind={keybinds()}
             onSelect={async (option) => {
+              if (view() === "community") {
+                // Show ecosystem entry detail inline
+                const entry = HubEcosystem.get(option.value)
+                if (!entry) return
+                setSelectedWorkflow(null)
+                setShowDetail(false)
+                // Community entries open their linked workflow detail if available
+                if (entry.hubRefs.length > 0) {
+                  const workflowRef = entry.hubRefs.find((r) => r.startsWith("workflow:"))
+                  if (workflowRef) {
+                    const resolved = HubWorkflows.getResolved(workflowRef)
+                    if (resolved) { setSelectedWorkflow(resolved); setShowDetail(true) }
+                  }
+                }
+                return
+              }
               if (view() === "bundles") {
                 const bundle = HubBundles.get(option.value)
                 if (!bundle) return
