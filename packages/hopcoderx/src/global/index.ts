@@ -54,7 +54,10 @@ export namespace Global {
           ),
         )
       } catch (e) {
-        Log.Default.warn("global.init", "cache cleanup failed", { error: e instanceof Error ? e.message : String(e) })
+        Log.Default.warn("cache cleanup failed", {
+          service: "global.init",
+          error: e instanceof Error ? e.message : String(e),
+        })
       }
       await Filesystem.write(path.join(Global.Path.cache, "version"), CACHE_VERSION)
     }
@@ -63,5 +66,8 @@ export namespace Global {
 
 // Initialize on first import (lazy initialization pattern)
 Global.init().catch((err) => {
-  Log.Default.error("global.init", "initialization failed", { error: err instanceof Error ? err.message : String(err) })
+  Log.Default.error("initialization failed", {
+    service: "global.init",
+    error: err instanceof Error ? err.message : String(err),
+  })
 })

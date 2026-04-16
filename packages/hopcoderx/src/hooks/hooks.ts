@@ -74,7 +74,10 @@ export const Hooks = {
     const fns = _hooks.get(event) ?? []
     for (const fn of fns) {
       try { await fn(fullCtx) } catch (e) {
-        Log.Default.warn("hooks", `${event} hook error`, { error: e instanceof Error ? e.message : String(e) })
+        Log.Default.warn(`${event} hook error`, {
+          service: "hooks",
+          error: e instanceof Error ? e.message : String(e),
+        })
       }
     }
     return fullCtx
@@ -96,7 +99,11 @@ export const Hooks = {
           }
         }
       } catch (e) {
-        Log.Default.warn("hooks.load", `failed to load hook file`, { file, error: e instanceof Error ? e.message : String(e) })
+        Log.Default.warn("failed to load hook file", {
+          service: "hooks.load",
+          file,
+          error: e instanceof Error ? e.message : String(e),
+        })
       }
     }
     return loaded

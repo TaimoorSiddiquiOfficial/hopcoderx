@@ -164,10 +164,10 @@ export class TeamMemory {
       try {
         const result = await this.sync()
         if (result.pushed > 0 || result.pulled > 0) {
-          Log.Default.info("team.sync", "auto-sync completed", result)
+          Log.Default.info("auto-sync completed", { service: "team.sync", ...result })
         }
       } catch (err: any) {
-        Log.Default.error("team.sync", "auto-sync failed", { error: err.message })
+        Log.Default.error("auto-sync failed", { service: "team.sync", error: err.message })
       }
     }, intervalMs)
   }

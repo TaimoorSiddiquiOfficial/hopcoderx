@@ -190,7 +190,11 @@ export class WikiMemoryBackend implements MemoryBackend {
     try {
       await unlink(this.entryPath(id))
     } catch (e) {
-      Log.Default.warn("wiki.delete", "failed to delete wiki entry", { id, error: e instanceof Error ? e.message : String(e) })
+      Log.Default.warn("failed to delete wiki entry", {
+        service: "wiki.delete",
+        id,
+        error: e instanceof Error ? e.message : String(e),
+      })
     }
   }
 

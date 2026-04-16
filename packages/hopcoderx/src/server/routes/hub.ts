@@ -3,11 +3,19 @@ import { describeRoute, resolver, validator } from "hono-openapi"
 import z from "zod"
 import { Config } from "../../config/config"
 import { HubCatalog } from "../../hub/catalog"
+import { HubBundles } from "../../hub/bundles"
+import { HubInstall } from "../../hub/install"
 import { HubManifest } from "../../hub/manifest"
 import { HubStatus } from "../../hub/status"
 import { McpRegistry } from "../../mcp/registry"
 import { MCP } from "../../mcp"
-import { buildDisabledMcpEntry, buildEnabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
+import {
+  buildDisabledMcpEntry,
+  buildEnabledMcpEntry,
+  resolveMcpConfigPath,
+  updateMcpConfigEntry,
+  type PersistedMcpEntry,
+} from "../../mcp/config-file"
 import { SkillsMarketplace } from "../../skills/marketplace"
 import { Instance } from "../../project/instance"
 import { errors } from "../error"
@@ -139,26 +147,17 @@ export const HubRoutes = lazy(() =>
           const name = resolveMcpName(body.id)
           const entry = McpRegistry.getByName(name)
           if (!entry) return c.json({ error: "MCP item not found" }, 404)
-          const initialConfig = McpRegistry.formatConfig(entry)
-          const status = await HubStatus.resolveCurrentMcp(entry, {
-            config: {
-              ...initialConfig,
-              enabled: true,
-            },
+          const result = await HubInstall.installRegistryMcp(name, {
+            directory: Instance.directory,
+            configMcp: (await Config.get()).mcp,
           })
-          const config = {
-            ...initialConfig,
-            enabled: status.effectiveEnabled,
-          }
-          const result = await MCP.add(name, config)
-          const configPath = await resolveMcpConfigPath(Instance.directory)
-          await updateMcpConfigEntry(name, config, configPath)
           return c.json({
             kind: "mcp" as const,
             id: body.id,
-            name,
-            enabled: config.enabled,
-            status: result.status,
+            name: result.name,
+            enabled: result.enabled,
+            readiness: result.readiness,
+            reason: result.reason,
           })
         }
 
@@ -166,12 +165,34 @@ export const HubRoutes = lazy(() =>
           const packageName = body.packageName ?? body.id
           const marketplace = new SkillsMarketplace()
           const result = await marketplace.install(packageName, body.version)
+          const config = await Config.get()
+          const embedded = await HubInstall.installSkillEmbeddedMcp(result.manifest, {
+            directory: Instance.directory,
+            configMcp: config.mcp,
+          })
           return c.json({
             kind: "skill" as const,
             id: body.id,
             packageName: result.name,
             version: result.version,
             path: result.path,
+            embeddedMcp: embedded,
+          })
+        }
+
+        if (body.kind === "bundle") {
+          const bundle = HubBundles.get(body.id)
+          if (!bundle) return c.json({ error: "Bundle item not found" }, 404)
+          const config = await Config.get()
+          const installed = await HubInstall.installBundle(bundle, {
+            directory: Instance.directory,
+            configMcp: config.mcp,
+          })
+          return c.json({
+            kind: "bundle" as const,
+            id: bundle.id,
+            name: bundle.name,
+            items: installed,
           })
         }
 
@@ -205,10 +226,15 @@ export const HubRoutes = lazy(() =>
         if (!next) return c.json({ error: "MCP item not found" }, 404)
         const entry = McpRegistry.getByName(name)
         const resolved = entry ? await HubStatus.resolveCurrentMcp(entry, { config: next }) : undefined
-        const finalConfig = {
-          ...next,
-          enabled: resolved?.effectiveEnabled ?? next.enabled,
-        }
+        const finalConfig: PersistedMcpEntry =
+          "type" in next
+            ? {
+                ...next,
+                enabled: resolved?.effectiveEnabled ?? next.enabled,
+              }
+            : {
+                enabled: resolved?.effectiveEnabled ?? next.enabled,
+              }
         const configPath = await resolveMcpConfigPath(Instance.directory)
         await updateMcpConfigEntry(name, finalConfig, configPath)
         return c.json(finalConfig)

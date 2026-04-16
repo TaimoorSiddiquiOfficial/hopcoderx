@@ -11,7 +11,7 @@ export type CommandGroup = {
   name: string
   title: string
   summary: string[]
-  commands: CommandModule[]
+  commands: any[]
 }
 
 export const CommandGroups = [

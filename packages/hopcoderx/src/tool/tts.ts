@@ -53,7 +53,11 @@ async function ttsSystem(text: string): Promise<void> {
   } else if (platform === "linux") {
     try { await execFileAsync("espeak", ["-s", "150", safeText]) } catch (e) {
       try { await execFileAsync("festival", ["--tts", safeText]) } catch (e) {
-        Log.Default.warn("tts.system", "TTS failed", { platform, error: e instanceof Error ? e.message : String(e) })
+        Log.Default.warn("TTS failed", {
+          service: "tts.system",
+          platform,
+          error: e instanceof Error ? e.message : String(e),
+        })
       }
     }
   } else if (platform === "win32") {
@@ -71,7 +75,11 @@ async function playAudio(buffer: Buffer): Promise<void> {
   else if (platform === "linux") {
     try { await execFileAsync("mpv", [outPath]) } catch (e) {
       try { await execFileAsync("aplay", [outPath]) } catch (e) {
-        Log.Default.warn("tts.play", "audio playback failed", { platform, error: e instanceof Error ? e.message : String(e) })
+        Log.Default.warn("audio playback failed", {
+          service: "tts.play",
+          platform,
+          error: e instanceof Error ? e.message : String(e),
+        })
       }
     }
   } else if (platform === "win32") {

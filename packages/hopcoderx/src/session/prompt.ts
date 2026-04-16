@@ -66,6 +66,17 @@ IMPORTANT:
 
 const STRUCTURED_OUTPUT_SYSTEM_PROMPT = `IMPORTANT: The user has requested structured output. You MUST use the StructuredOutput tool to provide your final response. Do NOT respond with plain text - you MUST call the StructuredOutput tool with your answer formatted according to the schema.`
 
+type UserWithParts = Omit<MessageV2.WithParts, "info"> & { info: MessageV2.User }
+type AssistantWithParts = Omit<MessageV2.WithParts, "info"> & { info: MessageV2.Assistant }
+
+function isUserWithParts(message: MessageV2.WithParts): message is UserWithParts {
+  return message.info.role === "user"
+}
+
+function isAssistantWithParts(message: MessageV2.WithParts): message is AssistantWithParts {
+  return message.info.role === "assistant"
+}
+
 export namespace SessionPrompt {
   const log = Log.create({ service: "session.prompt" })
 
@@ -299,8 +310,9 @@ export namespace SessionPrompt {
     // Incremental message loading: cache raw messages (newest-first) between
     // loop iterations so we only query DB for messages added since last turn.
     // This avoids re-reading the full history on every step of the agent loop.
-    let msgCacheNewestFirst: MessageV2.WithParts[] = []
-    let lastSeenMsgID = ""
+    const initialMessages = await Session.messages({ sessionID })
+    let msgCacheNewestFirst: MessageV2.WithParts[] = [...initialMessages].reverse()
+    let lastSeenMsgID = msgCacheNewestFirst[0]?.info.id ?? ""
 
     let step = 0
     const session = await Session.get(sessionID)
@@ -310,13 +322,14 @@ export namespace SessionPrompt {
     // Load relevant memories from vector store for session-to-session retention
     if (VectorMemory.isInitialized()) {
       try {
-        const userQuery = lastUser?.parts
+        const initialLastUser = [...initialMessages].reverse().find(isUserWithParts)
+        const userQuery = initialLastUser?.parts
           .filter((p): p is MessageV2.TextPart => p.type === "text")
           .map((p) => p.text)
           .join(" ")
         const memories = await VectorMemory.loadForSession({
           query: userQuery || session.title,
-          projectScope: Instance.project.root,
+          projectScope: Instance.project.worktree,
         })
         if (memories.length > 0) {
           log.info("loaded relevant memories for session", {
@@ -354,15 +367,15 @@ export namespace SessionPrompt {
         })(),
       )
 
-      let lastUser: MessageV2.WithParts | undefined
-      let lastAssistant: MessageV2.WithParts | undefined
-      let lastFinished: MessageV2.WithParts | undefined
+      let lastUser: UserWithParts | undefined
+      let lastAssistant: AssistantWithParts | undefined
+      let lastFinished: AssistantWithParts | undefined
       let tasks: (MessageV2.CompactionPart | MessageV2.SubtaskPart)[] = []
       for (let i = msgs.length - 1; i >= 0; i--) {
         const msg = msgs[i]
-        if (!lastUser && msg.info.role === "user") lastUser = msg
-        if (!lastAssistant && msg.info.role === "assistant") lastAssistant = msg
-        if (!lastFinished && msg.info.role === "assistant" && msg.info.finish)
+        if (!lastUser && isUserWithParts(msg)) lastUser = msg
+        if (!lastAssistant && isAssistantWithParts(msg)) lastAssistant = msg
+        if (!lastFinished && isAssistantWithParts(msg) && msg.info.finish)
           lastFinished = msg
         if (lastUser && lastFinished) break
         const task = msg.parts.filter((part) => part.type === "compaction" || part.type === "subtask")
@@ -591,7 +604,9 @@ export namespace SessionPrompt {
 
         // Re-check if pruning was enough
         const updatedMsgs = await Session.messages({ sessionID })
-        const lastMsg = updatedMsgs.findLast((m) => m.info.role === "assistant" && m.info.summary !== true)
+        const lastMsg = updatedMsgs.findLast(
+          (m): m is AssistantWithParts => isAssistantWithParts(m) && m.info.summary !== true,
+        )
         if (lastMsg && !(await SessionCompaction.isOverflow({ tokens: lastMsg.info.tokens, model }))) {
           log.info("pruning resolved context overflow, skipping compaction")
           continue
@@ -1857,6 +1872,14 @@ NOTE: At any point in time through this workflow you should feel free to ask the
   export async function command(input: CommandInput) {
     log.info("command", input)
     const command = await Command.get(input.command)
+    if (!command) {
+      const error = new NamedError.Unknown({ message: `Command not found: "${input.command}"` })
+      Bus.publish(Session.Event.Error, {
+        sessionID: input.sessionID,
+        error: error.toObject(),
+      })
+      throw error
+    }
     const agentName = command.agent ?? input.agent ?? (await Agent.defaultAgent())
 
     const raw = input.arguments.match(argsRegex) ?? []

@@ -1045,7 +1045,11 @@ export const SessionRoutes = lazy(() =>
       ),
       async (c) => {
         const query = c.req.valid("query")
-        const orphans = await OrphanDetector.detect({ noActivityDays: query.noActivityDays })
+        const orphans = await OrphanDetector.detect({
+          noActivityDays: query.noActivityDays,
+          checkParentExistence: true,
+          checkWorktreeExistence: true,
+        })
         return c.json(orphans)
       },
     )
@@ -1118,7 +1122,11 @@ export const SessionRoutes = lazy(() =>
       ),
       async (c) => {
         const query = c.req.valid("query")
-        const stats = await OrphanDetector.getStats({ noActivityDays: query.noActivityDays })
+        const stats = await OrphanDetector.getStats({
+          noActivityDays: query.noActivityDays,
+          checkParentExistence: true,
+          checkWorktreeExistence: false,
+        })
         return c.json(stats)
       },
     ),

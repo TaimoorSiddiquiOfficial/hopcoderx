@@ -52,7 +52,7 @@ export interface Line {
  */
 export interface WrapOptions {
   /** Maximum width in characters */
-  maxWidth: number
+  maxWidth?: number
   /** Whether to preserve existing line breaks */
   preserveBreaks?: boolean
   /** Whether to break long words if they don't fit */

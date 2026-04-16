@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { HubBundles } from "./bundles"
 import { Config } from "../config/config"
 import { MCP } from "../mcp"
 import { HubManifest } from "./manifest"
@@ -132,6 +133,14 @@ export namespace HubCatalog {
         available: installed.manifest.requiredEnv.every((key) => Boolean(process.env[key]?.trim())),
         packageName: installed.name,
         location: installed.path,
+      })
+    }
+
+    for (const bundle of HubBundles.registry) {
+      items.push({
+        manifest: bundle,
+        installed: false,
+        available: true,
       })
     }
 

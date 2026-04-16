@@ -364,7 +364,7 @@ export namespace VectorMemory {
     return backend!
   }
 
-  function assertInitialized(): asserts backend is MemoryBackend {
+  function assertInitialized(): void {
     if (!initialized || !backend) {
       throw new Error("Vector memory not initialized. Call init() first.")
     }

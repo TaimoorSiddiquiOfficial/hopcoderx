@@ -1550,7 +1550,11 @@ export namespace Config {
           try {
             data.plugin[i] = import.meta.resolve!(plugin, options.path)
           } catch (err) {
-            Log.Default.warn("config.resolve", "plugin resolution failed", { plugin, error: err instanceof Error ? err.message : String(err) })
+            Log.Default.warn("plugin resolution failed", {
+              service: "config.resolve",
+              plugin,
+              error: err instanceof Error ? err.message : String(err),
+            })
           }
         }
       }

@@ -9,11 +9,9 @@
  * - OAuth debugging
  */
 
-import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { Log } from "../util/log"
 import { MCP } from "./index"
 import { Config } from "../config/config"
-import { Instance } from "../project/instance"
 import { UI } from "../cli/ui"
 import * as prompts from "@clack/prompts"
 import { TextLayout } from "../util/text-layout"
@@ -76,7 +74,7 @@ export namespace McpInspector {
     prompts.log.info(`Inspecting: ${serverName}`)
 
     // Get server status
-    const status = await MCP.status(serverName)
+    const status = (await MCP.status())[serverName] ?? { status: "disabled" as const }
 
     switch (status.status) {
       case "connected":
@@ -92,7 +90,7 @@ export namespace McpInspector {
           ],
         })
         if (authAction === "auth") {
-          await MCP.auth(serverName)
+          await MCP.authenticate(serverName)
         }
         break
       case "failed":
@@ -113,15 +111,21 @@ export namespace McpInspector {
    * Inspect a connected server
    */
   async function inspectConnectedServer(serverName: string, serverConfig: any): Promise<void> {
-    // List tools
-    const tools = await MCP.tools()
-    const serverTools = Object.entries(tools)
-      .filter(([key]) => key.startsWith(serverName + "_"))
-      .map(([key, tool]) => ({
-        name: key,
-        description: (tool as any).description ?? "",
-        inputSchema: (tool as any).inputSchema ?? {},
-      }))
+    const client = (await MCP.clients())[serverName]
+    if (!client) {
+      prompts.log.error("Connected MCP client not found")
+      return
+    }
+
+    const toolsResult = await client.listTools().catch((error) => {
+      log.error("failed to get inspector tools", { serverName, error })
+      return undefined
+    })
+    const serverTools = (toolsResult?.tools ?? []).map((tool) => ({
+      name: tool.name,
+      description: tool.description ?? "",
+      inputSchema: tool.inputSchema ?? {},
+    }))
 
     prompts.log.message(`Tools: ${serverTools.length}`)
 
@@ -181,7 +185,10 @@ export namespace McpInspector {
   /**
    * Test a tool interactively
    */
-  async function testTool(serverName: string, tools: Array<{ name: string; inputSchema: any }>): Promise<void> {
+  async function testTool(
+    serverName: string,
+    tools: Array<{ name: string; inputSchema: any }>,
+  ): Promise<void> {
     const selected = await prompts.select({
       message: "Select tool to test",
       options: tools.map((t) => ({
@@ -259,7 +266,15 @@ export namespace McpInspector {
     prompts.log.info(`Calling ${toolName} with: ${JSON.stringify(filteredArgs, null, 2)}`)
 
     try {
-      const result = await MCP.callTool(toolName, filteredArgs)
+      const client = (await MCP.clients())[serverName]
+      if (!client) {
+        prompts.log.error("Connected MCP client not found")
+        return
+      }
+      const result = await client.callTool({
+        name: toolName,
+        arguments: filteredArgs,
+      })
       prompts.log.info("Result:")
       prompts.log.message(JSON.stringify(result, null, 2))
     } catch (error) {
@@ -271,7 +286,9 @@ export namespace McpInspector {
   /**
    * Show detailed tool schema
    */
-  async function showToolDetails(tools: Array<{ name: string; inputSchema: any }>): Promise<void> {
+  async function showToolDetails(
+    tools: Array<{ name: string; description?: string; inputSchema: any }>,
+  ): Promise<void> {
     const selected = await prompts.select({
       message: "Select tool",
       options: tools.map((t) => ({
@@ -314,10 +331,28 @@ export namespace McpInspector {
    * List available resources
    */
   async function listResources(serverName: string): Promise<void> {
-    // This would require getting resources from the MCP client
-    // For now, show a placeholder
-    prompts.log.info("Resources feature coming soon!")
-    prompts.log.message("Resources allow MCP servers to expose data URIs")
+    const client = (await MCP.clients())[serverName]
+    if (!client) {
+      prompts.log.error("Connected MCP client not found")
+      return
+    }
+
+    const result = await client.listResources().catch((error) => {
+      log.error("failed to get inspector resources", { serverName, error })
+      return undefined
+    })
+    const resources = result?.resources ?? []
+
+    if (resources.length === 0) {
+      prompts.log.warn("No resources available")
+      return
+    }
+
+    prompts.log.message(
+      resources
+        .map((resource) => `${resource.name} (${resource.uri})${resource.description ? ` - ${resource.description}` : ""}`)
+        .join("\n"),
+    )
   }
 
   /**
@@ -335,8 +370,10 @@ export namespace McpInspector {
     console.log("\nMCP Server Status:")
     console.log("─".repeat(60))
 
-    for (const [name, serverConfig] of Object.entries(mcpConfig)) {
-      const status = await MCP.status(name)
+    const statuses = await MCP.status()
+
+    for (const [name] of Object.entries(mcpConfig)) {
+      const status = statuses[name] ?? { status: "disabled" as const }
       const icon =
         status.status === "connected"
           ? "✓"

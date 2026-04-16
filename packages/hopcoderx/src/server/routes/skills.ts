@@ -494,7 +494,11 @@ export const SkillsRoutes = lazy(() =>
       ),
       async (c) => {
         const body = c.req.valid("json")
-        await SnippetExpansion.saveCustom(body)
+        await SnippetExpansion.saveCustom({
+          ...body,
+          variables: body.variables ?? [],
+          tags: body.tags ?? [],
+        })
         return c.json(true)
       },
     )

@@ -64,7 +64,7 @@ export function completeCommands(query: string, limit = 20): CompletionItem[] {
       limit,
       threshold: -10000,
     })
-    return results.map((r) => ({ ...r.target, score: r.score }))
+    return results.map((r) => ({ ...r.obj, score: r.score }))
   }
 
   return items.slice(0, limit)
@@ -101,7 +101,7 @@ export function completeFlags(query: string): CompletionItem[] {
   if (query.startsWith("-")) {
     return fuzzysort
       .go(query, items, { key: "label", threshold: -10000 })
-      .map((r) => ({ ...r.target, score: r.score }))
+      .map((r) => ({ ...r.obj, score: r.score }))
   }
 
   return items
@@ -143,11 +143,11 @@ export async function completeFiles(
 
     // Fuzzy sort if query provided
     if (query && items.length > 0) {
-      const results = fuzzysort.go(query, items, {
-        key: "label",
-        threshold: -5000,
-      })
-      return results.map((r) => ({ ...r.target, score: r.score }))
+        const results = fuzzysort.go(query, items, {
+          key: "label",
+          threshold: -5000,
+        })
+        return results.map((r) => ({ ...r.obj, score: r.score }))
     }
 
     return items
@@ -160,7 +160,7 @@ export async function completeFiles(
 
 export async function completeSkills(query: string): Promise<CompletionItem[]> {
   try {
-    const skills = await Skill.list()
+    const skills = await Skill.all()
     const items: CompletionItem[] = skills.map((s) => ({
       label: s.name,
       value: s.name,
@@ -173,7 +173,7 @@ export async function completeSkills(query: string): Promise<CompletionItem[]> {
         key: "label",
         threshold: -10000,
       })
-      return results.map((r) => ({ ...r.target, score: r.score }))
+      return results.map((r) => ({ ...r.obj, score: r.score }))
     }
 
     return items
@@ -199,7 +199,7 @@ export async function completeAgents(query: string): Promise<CompletionItem[]> {
         key: "label",
         threshold: -10000,
       })
-      return results.map((r) => ({ ...r.target, score: r.score }))
+      return results.map((r) => ({ ...r.obj, score: r.score }))
     }
 
     return items
@@ -212,12 +212,12 @@ export async function completeAgents(query: string): Promise<CompletionItem[]> {
 
 export async function completeMcpServers(query: string): Promise<CompletionItem[]> {
   try {
-    const servers = McpRegistry.all()
+    const servers = McpRegistry.registry
     const items: CompletionItem[] = servers.map((s) => ({
       label: s.name,
       value: s.name,
       type: "mcp",
-      description: s.description || `${s.type} server`,
+      description: s.description || "MCP server",
     }))
 
     if (query) {
@@ -225,7 +225,7 @@ export async function completeMcpServers(query: string): Promise<CompletionItem[
         key: "label",
         threshold: -10000,
       })
-      return results.map((r) => ({ ...r.target, score: r.score }))
+      return results.map((r) => ({ ...r.obj, score: r.score }))
     }
 
     return items

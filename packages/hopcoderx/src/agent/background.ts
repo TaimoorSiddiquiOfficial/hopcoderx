@@ -439,7 +439,7 @@ export namespace BackgroundAgentManager {
       // Use croner for full cron expression support
       // Supports: standard cron (* * * * *), with seconds (* * * * * *), presets (@hourly, @daily, etc.)
       const cronOptions = trigger.timezone ? { timezone: trigger.timezone } : undefined
-      const scheduledTask = Cron(trigger.cron, cronOptions, async () => {
+      const scheduledTask = new Cron(trigger.cron, cronOptions, async () => {
         log.info("schedule trigger fired", { agentID: agent.id })
         await spawn(agent)
       })

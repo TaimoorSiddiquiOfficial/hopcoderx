@@ -1,7 +1,7 @@
 import { fn } from "@/util/fn"
 import z from "zod"
 import { Session } from "."
-import { Database, eq, gt, isNull, and, like } from "@/storage/db"
+import { Database, eq, isNull, and, like, lt } from "@/storage/db"
 import { SessionTable } from "./session.sql"
 import { Log } from "@/util/log"
 import { Identifier } from "@/id/id"
@@ -51,16 +51,14 @@ export namespace OrphanDetector {
    * 3. Belong to a worktree that no longer exists
    */
   export const detect = fn(
-    z
-      .object({
-        noActivityDays: z.number().optional().default(7),
-        checkParentExistence: z.boolean().optional().default(true),
-        checkWorktreeExistence: z.boolean().optional().default(true),
-      })
-      .optional(),
+    z.object({
+      noActivityDays: z.number().optional().default(7),
+      checkParentExistence: z.boolean().optional().default(true),
+      checkWorktreeExistence: z.boolean().optional().default(true),
+    }),
     async (input) => {
-      const cfg = input || {}
-      const noActivityMs = ((cfg.noActivityDays as number) ?? 7) * 24 * 60 * 60 * 1000
+      const cfg = input
+      const noActivityMs = cfg.noActivityDays * 24 * 60 * 60 * 1000
       const cutoffTime = Date.now() - noActivityMs
 
       const orphans: OrphanedSession[] = []
@@ -74,7 +72,7 @@ export namespace OrphanDetector {
             .where(
               and(
                 eq(SessionTable.project_id, Instance.project.id),
-                gt(cutoffTime, SessionTable.time_updated), // time_updated < cutoffTime
+                lt(SessionTable.time_updated, cutoffTime),
               ),
             )
             .all(),
@@ -94,7 +92,7 @@ export namespace OrphanDetector {
       }
 
       // Find sessions with deleted parents
-      if ((cfg.checkParentExistence as boolean) !== false) {
+      if (cfg.checkParentExistence !== false) {
         const allSessions = Database.use((db) =>
           db
             .select({ id: SessionTable.id, parent_id: SessionTable.parent_id, title: SessionTable.title })
@@ -131,7 +129,7 @@ export namespace OrphanDetector {
       }
 
       // Find sessions from missing worktrees
-      if ((cfg.checkWorktreeExistence as boolean) !== false) {
+      if (cfg.checkWorktreeExistence !== false) {
         // This would require filesystem checks - simplified for now
         // In a full implementation, check if session.directory still exists
       }
@@ -218,18 +216,16 @@ export namespace OrphanDetector {
    * Get statistics about orphaned sessions
    */
   export const getStats = fn(
-    z
-      .object({
-        noActivityDays: z.number().optional().default(7),
-        checkParentExistence: z.boolean().optional().default(true),
-        checkWorktreeExistence: z.boolean().optional().default(false),
-      })
-      .optional(),
+    z.object({
+      noActivityDays: z.number().optional().default(7),
+      checkParentExistence: z.boolean().optional().default(true),
+      checkWorktreeExistence: z.boolean().optional().default(false),
+    }),
     async (input) => {
       const orphans = await detect({
-        noActivityDays: input?.noActivityDays ?? 7,
-        checkParentExistence: input?.checkParentExistence ?? true,
-        checkWorktreeExistence: input?.checkWorktreeExistence ?? false,
+        noActivityDays: input.noActivityDays,
+        checkParentExistence: input.checkParentExistence,
+        checkWorktreeExistence: input.checkWorktreeExistence,
       })
 
       const byReason = new Map<string, number>()

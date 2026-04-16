@@ -26,7 +26,9 @@ import { cmd } from "./cmd"
 import { Global } from "../../global"
 import { Config } from "../../config/config"
 import { HubCatalog } from "../../hub/catalog"
+import { HubBundles } from "../../hub/bundles"
 import { HubStatus } from "../../hub/status"
+import { HubInstall } from "../../hub/install"
 import { McpRegistry } from "../../mcp/registry"
 import { MCP } from "../../mcp"
 import { buildDisabledMcpEntry, buildEnabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
@@ -265,21 +267,31 @@ export const HubCommand = cmd({
               console.error(`Unknown MCP item '${target}'`)
               process.exit(1)
             }
-            const initialConfig = McpRegistry.formatConfig(entry)
-            const status = await HubStatus.resolveCurrentMcp(entry, {
-              config: {
-                ...initialConfig,
-                enabled: true,
-              },
+            const result = await HubInstall.installRegistryMcp(entry.name, {
+              directory: Instance.directory,
+              configMcp: config.mcp,
             })
-            const next = {
-              ...initialConfig,
-              enabled: status.effectiveEnabled,
+            console.log(`✓ Installed MCP ${result.name}${result.enabled ? "" : " (disabled until configured)"}`)
+            if (result.reason) console.log(`  ${result.reason}`)
+            return
+          }
+
+          const bundle = HubBundles.get(target)
+          if (bundle || args.type === "bundle") {
+            if (!bundle) {
+              console.error(`Unknown bundle item '${target}'`)
+              process.exit(1)
             }
-            await MCP.add(entry.name, next)
-            const configPath = await resolveMcpConfigPath(Instance.directory)
-            await updateMcpConfigEntry(entry.name, next, configPath)
-            console.log(`✓ Installed MCP ${entry.name}${next.enabled ? "" : " (disabled until configured)"}`)
+            const installed = await HubInstall.installBundle(bundle, {
+              directory: Instance.directory,
+              configMcp: config.mcp,
+            })
+            console.log(`✓ Installed bundle ${bundle.name}`)
+            for (const item of installed) {
+              console.log(
+                `  - ${item.name}: ${item.enabled ? "enabled" : "registered disabled"}${item.reason ? ` — ${item.reason}` : ""}`,
+              )
+            }
             return
           }
 
@@ -287,7 +299,23 @@ export const HubCommand = cmd({
           try {
             const marketplace = new SkillsMarketplace(args.global ? process.cwd() : undefined)
             const result = await marketplace.install(target)
+            const embedded = await HubInstall.installSkillEmbeddedMcp(result.manifest, {
+              directory: Instance.directory,
+              configMcp: config.mcp,
+            })
             console.log(`✓ Installed ${result.name}@${result.version}`)
+            if (embedded.length > 0) {
+              console.log("  Embedded MCPs:")
+              for (const item of embedded) {
+                if (!item.registered) {
+                  console.log(`  - ${item.name}: not registered (${item.reason ?? "registry entry not found"})`)
+                  continue
+                }
+                console.log(
+                  `  - ${item.name}: ${item.enabled ? "enabled" : "registered disabled"}${item.reason ? ` — ${item.reason}` : ""}`,
+                )
+              }
+            }
           } catch (err: any) {
             console.error(`Failed to install '${target}': ${err.message}`)
             process.exit(1)

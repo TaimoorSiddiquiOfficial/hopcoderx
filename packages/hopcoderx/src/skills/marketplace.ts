@@ -166,7 +166,11 @@ export class SkillsMarketplace {
     const skill = await this._loadSkillModule(pkgDir, manifest)
     this.framework.loadBuiltin(manifest, skill)
 
-    Log.Default.info("skills.marketplace", "skill installed", { packageName, version: manifest.version })
+    Log.Default.info("skill installed", {
+      service: "skills.marketplace",
+      packageName,
+      version: manifest.version,
+    })
     return result
   }
 
@@ -177,7 +181,7 @@ export class SkillsMarketplace {
     const pm = await this._detectPackageManager()
     const removeArgs = pm === "bun" ? ["remove", packageName] : ["uninstall", packageName]
     await execFileAsync(pm, removeArgs, { cwd: this.installDir })
-    Log.Default.info("skills.marketplace", "skill uninstalled", { packageName })
+    Log.Default.info("skill uninstalled", { service: "skills.marketplace", packageName })
   }
 
   /**
@@ -217,7 +221,11 @@ export class SkillsMarketplace {
         this.framework.loadBuiltin(s.manifest, skill)
         count++
       } catch (err) {
-        Log.Default.warn("skills.marketplace", "failed to load skill", { name: s.name, error: err instanceof Error ? err.message : String(err) })
+        Log.Default.warn("failed to load skill", {
+          service: "skills.marketplace",
+          name: s.name,
+          error: err instanceof Error ? err.message : String(err),
+        })
       }
     }
     return count

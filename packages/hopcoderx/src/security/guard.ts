@@ -62,7 +62,13 @@ export const DEFAULT_PROTECTED_PATTERNS = [
 /**
  * Git safety rules - dangerous operations that require confirmation
  */
-export const GIT_SAFETY_RULES = [
+export interface GitSafetyRule {
+  pattern: string
+  action: "allow" | "warn" | "require_confirmation" | "block"
+  message: string
+}
+
+export const GIT_SAFETY_RULES: GitSafetyRule[] = [
   {
     pattern: "git push --force",
     action: "block" as const,
@@ -137,7 +143,7 @@ export interface GitSafetyResult {
   /** Warning/error message */
   message: string
   /** Rule that matched */
-  matchedRule?: typeof GIT_SAFETY_RULES[0]
+  matchedRule?: GitSafetyRule
 }
 
 export interface ToolValidationResult {
@@ -151,7 +157,7 @@ export interface ToolValidationResult {
 
 export namespace SecurityGuard {
   let protectedPatterns: string[] = []
-  let gitSafetyRules: typeof GIT_SAFETY_RULES = []
+  let gitSafetyRules: GitSafetyRule[] = []
   let initialized = false
 
   /**
@@ -310,7 +316,7 @@ export namespace SecurityGuard {
   /**
    * Get list of git safety rules
    */
-  export function getGitSafetyRules(): typeof gitSafetyRules {
+  export function getGitSafetyRules(): GitSafetyRule[] {
     return [...gitSafetyRules]
   }
 

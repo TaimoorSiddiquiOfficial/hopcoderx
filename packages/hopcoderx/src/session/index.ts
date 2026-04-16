@@ -663,7 +663,7 @@ export namespace Session {
         )
       })
     } catch (e) {
-      log.error(e)
+      log.error("failed to remove session", { error: e instanceof Error ? e.message : String(e) })
     }
   })
 
