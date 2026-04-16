@@ -4,7 +4,6 @@ import { $ } from "bun"
 import z from "zod"
 import { NamedError } from "@hopcoderx/util/error"
 import { Log } from "../util/log"
-import { iife } from "@/util/iife"
 import { Flag } from "../flag/flag"
 import os from "os"
 import { existsSync, readFileSync, rmSync } from "fs"
@@ -45,6 +44,15 @@ export namespace Installation {
 
   export function launcherPath() {
     return process.env.HOPCODERX_LAUNCHER_PATH || process.execPath
+  }
+
+  function normalizeRegistry(value?: string) {
+    const registry = (value || "https://registry.npmjs.org").trim()
+    return registry.endsWith("/") ? registry.slice(0, -1) : registry
+  }
+
+  function resolvePackageRegistry() {
+    return normalizeRegistry(process.env.npm_config_registry || process.env.NPM_CONFIG_REGISTRY)
   }
 
   export async function displayMethod(): Promise<DisplayMethod> {
@@ -553,11 +561,7 @@ export namespace Installation {
     }
 
     if (detectedMethod === "npm" || detectedMethod === "bun" || detectedMethod === "pnpm") {
-      const registry = await iife(async () => {
-        const r = (await $`npm config get registry`.quiet().nothrow().text()).trim()
-        const reg = r || "https://registry.npmjs.org"
-        return reg.endsWith("/") ? reg.slice(0, -1) : reg
-      })
+      const registry = resolvePackageRegistry()
       const channel = CHANNEL
       return fetch(`${registry}/hopcoderx-ai/${channel}`)
         .then((res) => {
