@@ -12,13 +12,23 @@ import { Log } from "@/util/log"
 import { ShareNext } from "@/share/share-next"
 import { Snapshot } from "../snapshot"
 import { Truncate } from "../tool/truncation"
-import { MCP } from "@/mcp"
 import { SecurityGuard } from "@/security/guard"
 import { QuotaTracker } from "@/telemetry/quota"
 import { VectorMemory } from "@/memory/vector"
 import { MemoryPlugin } from "@/memory/memory"
 import { OpenTelemetryExporter } from "@/telemetry/otel"
 import { NotificationManager } from "@/notification"
+
+function runDeferredBootstrapTask(task: string, init: () => Promise<void>, delayMs = 0) {
+  setTimeout(() => {
+    init().catch((error) => {
+      Log.Default.error("deferred bootstrap task failed", {
+        task,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    })
+  }, delayMs)
+}
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -32,27 +42,18 @@ export async function InstanceBootstrap() {
   Snapshot.init()
   Truncate.init()
 
-  // Initialize security guard
+  // Keep launch-critical initialization minimal so the TUI can render promptly.
+  // Optional services continue starting in the background.
   await SecurityGuard.init()
 
-  // Initialize quota tracker
-  await QuotaTracker.init()
+  runDeferredBootstrapTask("quota-tracker", () => QuotaTracker.init())
 
-  // Initialize vector memory if backend is available
   if (MemoryPlugin.isActive()) {
-    await VectorMemory.init(MemoryPlugin.active)
+    runDeferredBootstrapTask("vector-memory", () => VectorMemory.init(MemoryPlugin.active))
   }
 
-  // Initialize OpenTelemetry exporter
-  await OpenTelemetryExporter.init()
-
-  // Initialize notification manager
-  await NotificationManager.init()
-
-  // Start built-in MCP servers (always-on + context-detected on-demand)
-  MCP.initBuiltins(Instance.directory).catch((err) => {
-    Log.Default.error("failed to init builtin MCP servers", { error: err })
-  })
+  runDeferredBootstrapTask("open-telemetry", () => OpenTelemetryExporter.init())
+  runDeferredBootstrapTask("notification-manager", () => NotificationManager.init())
 
   Bus.subscribe(Command.Event.Executed, async (payload) => {
     if (payload.properties.name === Command.Default.INIT) {

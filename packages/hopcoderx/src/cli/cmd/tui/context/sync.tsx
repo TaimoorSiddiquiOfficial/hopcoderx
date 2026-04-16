@@ -441,12 +441,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             ...(args.continue ? [] : [sessionListPromise.then((sessions) => setStore("session", reconcile(sessions)))]),
             sdk.client.command.list().then((x) => setStore("command", reconcile(x.data ?? []))),
             sdk.client.lsp.status().then((x) => setStore("lsp", reconcile(x.data!))).catch(() => {}),
-            // MCP status with timeout - don't block UI if MCP servers are slow/failed
-            Promise.race([
-              sdk.client.mcp.status().then((x) => setStore("mcp", reconcile(x.data!))),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("MCP status timeout")), 3000)),
-            ]).catch(() => {}),
-            sdk.client.experimental.resource.list().then((x) => setStore("mcp_resource", reconcile(x.data ?? {}))).catch(() => {}),
             sdk.client.formatter.status().then((x) => setStore("formatter", reconcile(x.data!))).catch(() => {}),
             sdk.client.session.status().then((x) => {
               setStore("session_status", reconcile(x.data!))

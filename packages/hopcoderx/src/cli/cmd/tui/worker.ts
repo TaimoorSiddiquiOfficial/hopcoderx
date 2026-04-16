@@ -94,7 +94,11 @@ const startEventStream = (directory: string) => {
   })
 }
 
-startEventStream(process.cwd())
+// Defer the initial event stream subscription so the TUI can paint before the
+// worker pays the cost of constructing the server app and long-lived streams.
+setTimeout(() => {
+  startEventStream(process.cwd())
+}, 1500)
 
 export const rpc = {
   async fetch(input: { url: string; method: string; headers: Record<string, string>; body?: string }) {

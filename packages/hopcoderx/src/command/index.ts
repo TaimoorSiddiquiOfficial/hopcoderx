@@ -56,6 +56,34 @@ export namespace Command {
     REVIEW: "review",
   } as const
 
+  function buildMcpPromptCommand(
+    name: string,
+    prompt: Awaited<ReturnType<typeof MCP.prompts>>[string],
+  ): Info {
+    return {
+      name,
+      source: "mcp",
+      description: prompt.description,
+      get template() {
+        return new Promise<string>(async (resolve, reject) => {
+          const template = await MCP.getPrompt(
+            prompt.client,
+            prompt.name,
+            prompt.arguments
+              ? Object.fromEntries(prompt.arguments.map((argument, i) => [argument.name, `$${i + 1}`]))
+              : {},
+          ).catch(reject)
+          resolve(
+            template?.messages
+              .map((message) => (message.content.type === "text" ? message.content.text : ""))
+              .join("\n") || "",
+          )
+        })
+      },
+      hints: prompt.arguments?.map((_, i) => `$${i + 1}`) ?? [],
+    }
+  }
+
   const state = Instance.state(async () => {
     const cfg = await Config.get()
 
@@ -95,32 +123,6 @@ export namespace Command {
         hints: hints(command.template),
       }
     }
-    for (const [name, prompt] of Object.entries(await MCP.prompts())) {
-      result[name] = {
-        name,
-        source: "mcp",
-        description: prompt.description,
-        get template() {
-          // since a getter can't be async we need to manually return a promise here
-          return new Promise<string>(async (resolve, reject) => {
-            const template = await MCP.getPrompt(
-              prompt.client,
-              prompt.name,
-              prompt.arguments
-                ? // substitute each argument with $1, $2, etc.
-                  Object.fromEntries(prompt.arguments?.map((argument, i) => [argument.name, `$${i + 1}`]))
-                : {},
-            ).catch(reject)
-            resolve(
-              template?.messages
-                .map((message) => (message.content.type === "text" ? message.content.text : ""))
-                .join("\n") || "",
-            )
-          })
-        },
-        hints: prompt.arguments?.map((_, i) => `$${i + 1}`) ?? [],
-      }
-    }
 
     // Add skills as invokable commands
     for (const skill of await Skill.all()) {
@@ -141,7 +143,13 @@ export namespace Command {
   })
 
   export async function get(name: string) {
-    return state().then((x) => x[name])
+    const commands = await state()
+    if (commands[name]) return commands[name]
+
+    const prompt = (await MCP.prompts())[name]
+    if (prompt) return buildMcpPromptCommand(name, prompt)
+
+    return undefined
   }
 
   export async function list() {
