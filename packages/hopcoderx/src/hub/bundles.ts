@@ -113,9 +113,102 @@ export namespace HubBundles {
         { kind: "mcp", id: "mcp:github", reason: "Pull issue and PR context into planning workflows when needed" },
       ],
     }),
+    HubManifest.Bundle.parse({
+      id: "bundle:code-review",
+      kind: "bundle",
+      name: "Code Review",
+      description: "Static analysis, linting diagnostics, and structured review workflows for code quality work.",
+      source: "builtin",
+      category: "code-quality",
+      tags: ["code-review", "linting", "static-analysis", "quality"],
+      author: "HopCoderX",
+      recommendedAgent: "reviewer",
+      aliases: ["review-code", "lint-review"],
+      starterPrompts: [
+        "Review this pull request for correctness, clarity, and potential regressions.",
+        "Run a full lint and static analysis pass and summarize the actionable findings.",
+      ],
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: false,
+        requiresSetup: false,
+      },
+      items: [
+        { kind: "skill", id: "skill:builtin:github", reason: "GitHub diff and PR context" },
+        { kind: "mcp", id: "mcp:github", reason: "Read PR diffs, review comments, and check run results" },
+        { kind: "mcp", id: "mcp:sequential-thinking", reason: "Step-by-step reasoning through complex review findings" },
+        { kind: "mcp", id: "mcp:memory", reason: "Track findings and reviewer notes across a review session" },
+      ],
+    }),
+    HubManifest.Bundle.parse({
+      id: "bundle:cloud-infra",
+      kind: "bundle",
+      name: "Cloud Infra",
+      description: "Infrastructure-as-code, cloud CLI operations, and deployment orchestration stack.",
+      source: "builtin",
+      category: "infrastructure",
+      tags: ["cloud", "terraform", "kubernetes", "deployment", "infra"],
+      author: "HopCoderX",
+      recommendedAgent: "build",
+      aliases: ["infra", "cloud-deploy"],
+      starterPrompts: [
+        "Inspect the current infrastructure state and surface any configuration drift or security issues.",
+        "Propose a safe deployment plan for this change and outline rollback steps.",
+      ],
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: false,
+        requiresSetup: true,
+      },
+      items: [
+        { kind: "mcp", id: "mcp:kubernetes", reason: "Cluster state, pod logs, and deployment management" },
+        { kind: "mcp", id: "mcp:terraform", reason: "Infra-as-code planning, apply, and drift detection" },
+        { kind: "mcp", id: "mcp:sequential-thinking", reason: "Structured deployment and rollback planning" },
+        { kind: "mcp", id: "mcp:memory", reason: "Persist deployment context and decisions across operations" },
+      ],
+    }),
+    HubManifest.Bundle.parse({
+      id: "bundle:fullstack-dev",
+      kind: "bundle",
+      name: "Full-Stack Dev",
+      description: "Database access, API tooling, and frontend utilities for full-stack development workflows.",
+      source: "builtin",
+      category: "development",
+      tags: ["fullstack", "database", "api", "frontend", "development"],
+      author: "HopCoderX",
+      recommendedAgent: "build",
+      aliases: ["fullstack", "web-dev"],
+      starterPrompts: [
+        "Audit the database schema and API contracts for inconsistencies or missing validations.",
+        "Scaffold a new feature end-to-end: database migration, API handler, and frontend component.",
+      ],
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: false,
+        requiresSetup: false,
+      },
+      items: [
+        { kind: "skill", id: "skill:builtin:tmux", reason: "Run servers, dev tools, and watch processes in parallel" },
+        { kind: "mcp", id: "mcp:postgres", reason: "Query and inspect database schemas and records" },
+        { kind: "mcp", id: "mcp:npm-mcp", reason: "Manage and inspect frontend and API dependencies" },
+        { kind: "mcp", id: "mcp:playwright", reason: "Test and verify UI flows end-to-end" },
+        { kind: "mcp", id: "mcp:sequential-thinking", reason: "Step-by-step reasoning for cross-layer feature design" },
+      ],
+    }),
   ]
 
   export function get(id: string) {
     return registry.find((bundle) => bundle.id === id || bundle.name === id)
+  }
+
+  /** Return the bundle that contains a specific MCP or skill id. */
+  export function findByItem(itemId: string): HubManifest.Bundle | undefined {
+    return registry.find((bundle) => bundle.items.some((rel) => rel.id === itemId))
+  }
+
+  /** Return all bundles that contain any of the given MCP or skill ids. */
+  export function findAllByItems(itemIds: string[]): HubManifest.Bundle[] {
+    const ids = new Set(itemIds)
+    return registry.filter((bundle) => bundle.items.some((rel) => ids.has(rel.id)))
   }
 }

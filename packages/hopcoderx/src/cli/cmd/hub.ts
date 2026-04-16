@@ -219,7 +219,7 @@ export const HubCommand = cmd({
         if (action === "workflow") {
           const query = args.package?.toLowerCase()
           if (!query) {
-            const items = HubWorkflows.list()
+            const items = HubWorkflows.listResolved()
             if (args.json) {
               console.log(JSON.stringify(items, null, 2))
               return
@@ -230,17 +230,18 @@ export const HubCommand = cmd({
               console.log(`  ${item.description}`)
               if (item.aliases.length > 0) console.log(`  Aliases: ${item.aliases.join(", ")}`)
               if (item.recommendedAgent) console.log(`  Agent: ${item.recommendedAgent}`)
+              if (item.preset) console.log(`  Preset: ${item.preset.id}`)
               console.log()
             }
             return
           }
 
-          const workflow = HubWorkflows.get(query)
+          const workflow = HubWorkflows.getResolved(query)
           if (!workflow) {
             console.error(`Unknown workflow '${args.package}'`)
             process.exit(1)
           }
-          const preset = HubWorkflows.presetFor(workflow)
+          const preset = workflow.preset
           if (!preset) {
             console.error(`Workflow preset not found for '${workflow.name}'`)
             process.exit(1)
@@ -275,6 +276,8 @@ export const HubCommand = cmd({
 
         if (action === "search" || action === "list") {
           const query = action === "search" ? args.package?.toLowerCase() : undefined
+          const includeWorkflows = args.view !== "servers" && (!args.type || args.type === "workflow")
+          const workflows = includeWorkflows ? HubWorkflows.listResolved(query) : []
           let items = await HubCatalog.list({
             configMcp: config.mcp,
             view: args.view as "all" | "servers" | "tools",
@@ -292,23 +295,39 @@ export const HubCommand = cmd({
           }
 
           if (args.json) {
-            console.log(JSON.stringify(items, null, 2))
+            if (args.type === "workflow") {
+              console.log(JSON.stringify(workflows, null, 2))
+              return
+            }
+            console.log(JSON.stringify({ items, workflows }, null, 2))
             return
           }
 
-          if (items.length === 0) {
+          if (items.length === 0 && workflows.length === 0) {
             console.log(action === "search" ? `No hub items found for '${args.package}'.` : "No hub items found.")
             return
           }
 
-          console.log(`\n${action === "search" ? "Matching" : "Available"} hub items (${items.length}):\n`)
-          for (const item of items) {
-            const status = item.status ? ` [${item.status.readiness}]` : ""
-            const installed = item.installed ? " [installed]" : ""
-            console.log(`  ${item.manifest.id}${installed}${status}`)
-            console.log(`  ${item.manifest.description}`)
-            if (item.packageName) console.log(`  Package: ${item.packageName}`)
-            console.log()
+          if (items.length > 0) {
+            console.log(`\n${action === "search" ? "Matching" : "Available"} hub items (${items.length}):\n`)
+            for (const item of items) {
+              const status = item.status ? ` [${item.status.readiness}]` : ""
+              const installed = item.installed ? " [installed]" : ""
+              console.log(`  ${item.manifest.id}${installed}${status}`)
+              console.log(`  ${item.manifest.description}`)
+              if (item.packageName) console.log(`  Package: ${item.packageName}`)
+              console.log()
+            }
+          }
+          if (workflows.length > 0) {
+            console.log(`\n${action === "search" ? "Matching" : "Available"} workflows (${workflows.length}):\n`)
+            for (const workflow of workflows) {
+              console.log(`  ${workflow.id}`)
+              console.log(`  ${workflow.description}`)
+              if (workflow.aliases.length > 0) console.log(`  Aliases: ${workflow.aliases.join(", ")}`)
+              if (workflow.recommendedAgent) console.log(`  Agent: ${workflow.recommendedAgent}`)
+              console.log()
+            }
           }
           return
         }
@@ -402,16 +421,31 @@ export const HubCommand = cmd({
 
           const workflow = HubWorkflows.get(target)
           if (workflow) {
+            const resolved = HubWorkflows.getResolved(target)
+            if (!resolved) {
+              console.error(`Unknown workflow '${target}'`)
+              process.exit(1)
+            }
             if (args.json) {
-              console.log(JSON.stringify(workflow, null, 2))
+              console.log(JSON.stringify(resolved, null, 2))
               return
             }
-            console.log(`\nWorkflow: ${workflow.id}`)
-            console.log(`Name: ${workflow.name}`)
-            console.log(`Description: ${workflow.description}`)
-            if (workflow.aliases.length > 0) console.log(`Aliases: ${workflow.aliases.join(", ")}`)
-            if (workflow.recommendedAgent) console.log(`Recommended agent: ${workflow.recommendedAgent}`)
-            if (workflow.starterPrompt) console.log(`Starter prompt: ${workflow.starterPrompt}`)
+            console.log(`\nWorkflow: ${resolved.id}`)
+            console.log(`Name: ${resolved.name}`)
+            console.log(`Description: ${resolved.description}`)
+            if (resolved.aliases.length > 0) console.log(`Aliases: ${resolved.aliases.join(", ")}`)
+            if (resolved.recommendedAgent) console.log(`Recommended agent: ${resolved.recommendedAgent}`)
+            if (resolved.starterPrompt) console.log(`Starter prompt: ${resolved.starterPrompt}`)
+            if (resolved.preset) {
+              console.log(`Preset: ${resolved.preset.id}`)
+              if (resolved.preset.onboarding.length > 0) {
+                console.log("Onboarding:")
+                for (const step of resolved.preset.onboarding) {
+                  console.log(`  - ${step.title}: ${step.description}`)
+                  if (step.command) console.log(`    Command: ${step.command}`)
+                }
+              }
+            }
             return
           }
 
@@ -622,7 +656,22 @@ export const HubCommand = cmd({
           const issues = states.filter((state) => state.readiness !== "connected")
 
           if (args.json) {
-            console.log(JSON.stringify(issues, null, 2))
+            // Enrich JSON output with bundle/workflow suggestions
+            const issueIds = issues.map((i) => `mcp:${i.name}`)
+            const suggestedBundles = HubBundles.findAllByItems(issueIds)
+            const suggestions = suggestedBundles.map((bundle) => {
+              const workflow = HubWorkflows.registry.find((w) => {
+                const preset = HubPresets.get(w.presetID)
+                return preset?.appliesTo.some((rel) => rel.id === bundle.id)
+              })
+              return {
+                bundle: bundle.id,
+                bundleName: bundle.name,
+                workflow: workflow?.id,
+                command: workflow ? `hopcoderx hub workflow ${workflow.name}` : `hopcoderx hub install ${bundle.id}`,
+              }
+            })
+            console.log(JSON.stringify({ issues, suggestions }, null, 2))
             return
           }
 
@@ -639,6 +688,27 @@ export const HubCommand = cmd({
             }
             if (issue.reason) {
               console.log(`    ${issue.reason}`)
+            }
+          }
+
+          // Suggest relevant bundles/workflows for unconfigured MCPs
+          const issueIds = issues.map((i) => `mcp:${i.name}`)
+          const suggestedBundles = HubBundles.findAllByItems(issueIds)
+          if (suggestedBundles.length > 0) {
+            console.log("\nSuggested workflows to resolve these issues:\n")
+            for (const bundle of suggestedBundles) {
+              const workflow = HubWorkflows.registry.find((w) => {
+                const preset = HubPresets.get(w.presetID)
+                return preset?.appliesTo.some((rel) => rel.id === bundle.id)
+              })
+              if (workflow) {
+                console.log(`  hopcoderx hub workflow ${workflow.name}`)
+                console.log(`  → ${bundle.name}: ${bundle.description}`)
+              } else {
+                console.log(`  hopcoderx hub install ${bundle.id}`)
+                console.log(`  → ${bundle.name}: ${bundle.description}`)
+              }
+              console.log()
             }
           }
           return

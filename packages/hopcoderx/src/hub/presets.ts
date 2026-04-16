@@ -107,6 +107,87 @@ export namespace HubPresets {
         },
       ],
     }),
+    HubManifest.Preset.parse({
+      id: "preset:code-review",
+      kind: "preset",
+      name: "Code Review",
+      description: "Opinionated setup for structured pull request review and static analysis workflows.",
+      source: "builtin",
+      category: "code-quality",
+      tags: ["code-review", "pull-request", "static-analysis"],
+      author: "HopCoderX",
+      appliesTo: [{ kind: "bundle", id: "bundle:code-review", reason: "Core review MCP and skill stack" }],
+      onboarding: [
+        {
+          title: "Install the code-review bundle",
+          description: "Registers GitHub, memory, and sequential-thinking MCPs for review workflows.",
+        },
+        {
+          title: "Authenticate GitHub MCP",
+          description: "OAuth is required to read PR diffs, comments, and check runs.",
+          command: "hopcoderx hub auth github",
+        },
+        {
+          title: "Verify readiness",
+          description: "Confirm all review MCPs are connected and GitHub auth is active.",
+          command: "hopcoderx hub doctor",
+        },
+      ],
+    }),
+    HubManifest.Preset.parse({
+      id: "preset:cloud-infra",
+      kind: "preset",
+      name: "Cloud Infra",
+      description: "Guided onboarding for cloud operations, Kubernetes cluster management, and Terraform workflows.",
+      source: "builtin",
+      category: "infrastructure",
+      tags: ["cloud", "kubernetes", "terraform", "deployment"],
+      author: "HopCoderX",
+      appliesTo: [{ kind: "bundle", id: "bundle:cloud-infra", reason: "Infrastructure MCP stack" }],
+      onboarding: [
+        {
+          title: "Install the cloud-infra bundle",
+          description: "Registers Kubernetes, Terraform, memory, and sequential-thinking MCPs.",
+        },
+        {
+          title: "Set cluster credentials",
+          description: "Ensure your kubeconfig and cloud provider credentials are exported before connecting.",
+          envKeys: ["KUBECONFIG"],
+        },
+        {
+          title: "Check infra MCP readiness",
+          description: "Doctor will identify missing env vars or auth for cloud provider MCPs.",
+          command: "hopcoderx hub doctor",
+        },
+      ],
+    }),
+    HubManifest.Preset.parse({
+      id: "preset:fullstack-dev",
+      kind: "preset",
+      name: "Full-Stack Dev",
+      description: "Database, API, and frontend tooling preset for end-to-end development workflows.",
+      source: "builtin",
+      category: "development",
+      tags: ["fullstack", "database", "api", "playwright"],
+      author: "HopCoderX",
+      appliesTo: [{ kind: "bundle", id: "bundle:fullstack-dev", reason: "Full-stack development MCP stack" }],
+      onboarding: [
+        {
+          title: "Install the fullstack-dev bundle",
+          description: "Registers Postgres, npm, Playwright, and sequential-thinking MCPs.",
+        },
+        {
+          title: "Configure database connection",
+          description: "Postgres MCP requires a connection string env var to access your database.",
+          envKeys: ["DATABASE_URL"],
+        },
+        {
+          title: "Verify readiness",
+          description: "Run doctor to confirm database and browser MCPs are connected.",
+          command: "hopcoderx hub doctor",
+        },
+      ],
+    }),
   ]
 
   export function get(id: string) {

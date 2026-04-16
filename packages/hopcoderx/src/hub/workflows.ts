@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { HubManifest } from "./manifest"
 import { HubBundles } from "./bundles"
 import { HubPresets } from "./presets"
 
@@ -13,6 +14,11 @@ export namespace HubWorkflows {
     starterPrompt: z.string().optional(),
   })
   export type Workflow = z.infer<typeof Workflow>
+
+  export const ResolvedWorkflow = Workflow.extend({
+    preset: HubManifest.Preset.optional(),
+  })
+  export type ResolvedWorkflow = z.infer<typeof ResolvedWorkflow>
 
   export const registry: Workflow[] = [
     Workflow.parse({
@@ -51,6 +57,33 @@ export namespace HubWorkflows {
       recommendedAgent: HubBundles.get("bundle:planning-orchestrator")?.recommendedAgent,
       starterPrompt: HubBundles.get("bundle:planning-orchestrator")?.starterPrompts[0],
     }),
+    Workflow.parse({
+      id: "workflow:code-review",
+      name: "code-review",
+      description: "Install the code-review stack and start structured PR analysis and static analysis workflows.",
+      presetID: "preset:code-review",
+      aliases: ["review", "pr-review"],
+      recommendedAgent: HubBundles.get("bundle:code-review")?.recommendedAgent,
+      starterPrompt: HubBundles.get("bundle:code-review")?.starterPrompts[0],
+    }),
+    Workflow.parse({
+      id: "workflow:cloud-infra",
+      name: "cloud-infra",
+      description: "Set up the cloud infrastructure stack for Kubernetes management and Terraform workflows.",
+      presetID: "preset:cloud-infra",
+      aliases: ["infra", "deploy"],
+      recommendedAgent: HubBundles.get("bundle:cloud-infra")?.recommendedAgent,
+      starterPrompt: HubBundles.get("bundle:cloud-infra")?.starterPrompts[0],
+    }),
+    Workflow.parse({
+      id: "workflow:fullstack",
+      name: "fullstack",
+      description: "Configure the full-stack development environment for database, API, and UI workflows.",
+      presetID: "preset:fullstack-dev",
+      aliases: ["fullstack-dev", "web-dev"],
+      recommendedAgent: HubBundles.get("bundle:fullstack-dev")?.recommendedAgent,
+      starterPrompt: HubBundles.get("bundle:fullstack-dev")?.starterPrompts[0],
+    }),
   ]
 
   export function list(query?: string) {
@@ -71,5 +104,22 @@ export namespace HubWorkflows {
 
   export function presetFor(workflow: Workflow) {
     return HubPresets.get(workflow.presetID)
+  }
+
+  export function resolve(workflow: Workflow): ResolvedWorkflow {
+    return {
+      ...workflow,
+      preset: presetFor(workflow),
+    }
+  }
+
+  export function listResolved(query?: string): ResolvedWorkflow[] {
+    return list(query).map(resolve)
+  }
+
+  export function getResolved(id: string): ResolvedWorkflow | undefined {
+    const workflow = get(id)
+    if (!workflow) return undefined
+    return resolve(workflow)
   }
 }

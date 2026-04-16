@@ -41,7 +41,7 @@ export const HubRoutes = lazy(() =>
             description: "Workflow entries",
             content: {
               "application/json": {
-                schema: resolver(z.array(HubWorkflows.Workflow)),
+                schema: resolver(z.array(HubWorkflows.ResolvedWorkflow)),
               },
             },
           },
@@ -50,7 +50,7 @@ export const HubRoutes = lazy(() =>
       validator("query", z.object({ query: z.string().optional() })),
       async (c) => {
         const query = c.req.valid("query")
-        return c.json(HubWorkflows.list(query.query))
+        return c.json(HubWorkflows.listResolved(query.query))
       },
     )
     .get(
@@ -64,7 +64,7 @@ export const HubRoutes = lazy(() =>
             description: "Workflow entry",
             content: {
               "application/json": {
-                schema: resolver(HubWorkflows.Workflow),
+                schema: resolver(HubWorkflows.ResolvedWorkflow),
               },
             },
           },
@@ -74,7 +74,7 @@ export const HubRoutes = lazy(() =>
       validator("param", z.object({ id: z.string() })),
       async (c) => {
         const { id } = c.req.valid("param")
-        const workflow = HubWorkflows.get(id)
+        const workflow = HubWorkflows.getResolved(id)
         if (!workflow) return c.json({ error: "Workflow not found" }, 404)
         return c.json(workflow)
       },
@@ -157,7 +157,7 @@ export const HubRoutes = lazy(() =>
             description: "Hub catalog items",
             content: {
               "application/json": {
-                schema: resolver(z.array(HubCatalog.Item)),
+                schema: resolver(z.array(z.union([HubCatalog.Item, HubWorkflows.ResolvedWorkflow]))),
               },
             },
           },
@@ -166,18 +166,38 @@ export const HubRoutes = lazy(() =>
       validator(
         "query",
         z.object({
-          kind: HubManifest.Kind.optional(),
+          kind: z.union([HubManifest.Kind, z.literal("workflow")]).optional(),
           view: HubCatalog.View.optional(),
+          query: z.string().optional(),
+          includeWorkflows: z.coerce.boolean().optional(),
         }),
       ),
       async (c) => {
         const query = c.req.valid("query")
+        if (query.kind === "workflow") {
+          return c.json(HubWorkflows.listResolved(query.query))
+        }
         const config = await Config.get()
-        const items = await HubCatalog.list({
+        let items = await HubCatalog.list({
           configMcp: config.mcp,
           view: query.view,
         })
-        return c.json(query.kind ? items.filter((item) => item.manifest.kind === query.kind) : items)
+        if (query.kind) {
+          items = items.filter((item) => item.manifest.kind === query.kind)
+        }
+        if (query.query) {
+          const needle = query.query.toLowerCase()
+          items = items.filter(
+            (item) =>
+              item.manifest.name.toLowerCase().includes(needle) ||
+              item.manifest.description.toLowerCase().includes(needle) ||
+              item.manifest.tags.some((tag) => tag.toLowerCase().includes(needle)),
+          )
+        }
+        if (query.includeWorkflows && query.view !== "servers" && !query.kind) {
+          return c.json([...items, ...HubWorkflows.listResolved(query.query)])
+        }
+        return c.json(items)
       },
     )
     .get(
@@ -191,7 +211,7 @@ export const HubRoutes = lazy(() =>
             description: "Hub catalog item",
             content: {
               "application/json": {
-                schema: resolver(HubCatalog.Item),
+                schema: resolver(z.union([HubCatalog.Item, HubWorkflows.ResolvedWorkflow])),
               },
             },
           },
@@ -206,8 +226,10 @@ export const HubRoutes = lazy(() =>
           configMcp: config.mcp,
           view: "all",
         })
-        if (!item) return c.json({ error: "Hub item not found" }, 404)
-        return c.json(item)
+        if (item) return c.json(item)
+        const workflow = HubWorkflows.getResolved(id)
+        if (!workflow) return c.json({ error: "Hub item not found" }, 404)
+        return c.json(workflow)
       },
     )
     .get(
@@ -491,6 +513,57 @@ export const HubRoutes = lazy(() =>
         if (!entry) return c.json({ error: "MCP item not found" }, 404)
         await MCP.removeAuth(name)
         return c.json({ success: true as const })
+      },
+    )
+    .get(
+      "/doctor",
+      describeRoute({
+        summary: "Hub doctor: MCP readiness report",
+        description: "Return readiness issues for tracked MCPs with bundle/workflow suggestions for unconfigured items.",
+        operationId: "hub.doctor",
+        responses: {
+          200: {
+            description: "Doctor report",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    issues: z.array(HubStatus.MCPState),
+                    suggestions: z.array(
+                      z.object({
+                        bundle: z.string(),
+                        bundleName: z.string(),
+                        workflow: z.string().optional(),
+                        command: z.string(),
+                      }),
+                    ),
+                  }),
+                ),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        const config = await Config.get()
+        const runtime = await MCP.status().catch(() => ({}))
+        const states = await HubStatus.resolveAllMcp({ configMcp: config.mcp, runtime })
+        const issues = states.filter((s) => s.readiness !== "connected")
+        const issueIds = issues.map((i) => `mcp:${i.name}`)
+        const suggestedBundles = HubBundles.findAllByItems(issueIds)
+        const suggestions = suggestedBundles.map((bundle) => {
+          const workflow = HubWorkflows.registry.find((w) => {
+            const preset = HubPresets.get(w.presetID)
+            return preset?.appliesTo.some((rel) => rel.id === bundle.id)
+          })
+          return {
+            bundle: bundle.id,
+            bundleName: bundle.name,
+            workflow: workflow?.id,
+            command: workflow ? `hopcoderx hub workflow ${workflow.name}` : `hopcoderx hub install ${bundle.id}`,
+          }
+        })
+        return c.json({ issues, suggestions })
       },
     ),
 )
