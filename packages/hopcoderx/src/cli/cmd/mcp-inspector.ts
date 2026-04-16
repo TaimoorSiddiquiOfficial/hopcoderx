@@ -8,6 +8,7 @@
 
 import { cmd } from "./cmd"
 import { McpInspector } from "../../mcp/inspector"
+import { Instance } from "../../project/instance"
 import type { Argv } from "yargs"
 
 export const McpInspectCommand = cmd({
@@ -31,19 +32,24 @@ export const McpInspectCommand = cmd({
       })
   },
   async handler(args) {
-    if (args.quick) {
-      await McpInspector.quickStatus()
-      return
-    }
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        if (args.quick) {
+          await McpInspector.quickStatus()
+          return
+        }
 
-    if (args.server) {
-      // Direct server inspection - to be implemented
-      console.log(`Inspecting server: ${args.server}`)
-      console.log("Full server inspection coming soon!")
-      return
-    }
+        if (args.server) {
+          // Direct server inspection - to be implemented
+          console.log(`Inspecting server: ${args.server}`)
+          console.log("Full server inspection coming soon!")
+          return
+        }
 
-    // Interactive inspector
-    await McpInspector.run()
+        // Interactive inspector
+        await McpInspector.run()
+      },
+    })
   },
 })
