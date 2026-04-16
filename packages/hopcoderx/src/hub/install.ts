@@ -1,10 +1,13 @@
 import { Config } from "../config/config"
 import { HubManifest } from "./manifest"
+import { HubBundles } from "./bundles"
 import { HubStatus } from "./status"
 import { McpRegistry } from "../mcp/registry"
 import { MCP } from "../mcp"
 import { resolveMcpConfigPath, updateMcpConfigEntry } from "../mcp/config-file"
+import { Skill } from "../skill/skill"
 import type { SkillManifest } from "../skills/framework"
+import { SkillsMarketplace } from "../skills/marketplace"
 
 export namespace HubInstall {
   export type McpInstallResult = {
@@ -23,6 +26,16 @@ export namespace HubInstall {
     enabled: boolean
     readiness?: string
     reason?: string
+  }
+
+  export type BundleInstallResult = {
+    items: Array<
+      | ({ kind: "mcp" } & McpInstallResult)
+      | { kind: HubManifest.Kind; id: string; name: string; enabled: boolean; reason?: string }
+    >
+    recommendedAgent?: string
+    aliases: string[]
+    starterPrompts: string[]
   }
 
   function resolveEmbeddedEntry(embedded: NonNullable<SkillManifest["embeddedMcp"]>[number]) {
@@ -132,23 +145,62 @@ export namespace HubInstall {
       directory: string
       configMcp?: NonNullable<Config.Info["mcp"]>
     },
-  ) {
-    const results: Array<
-      | ({ kind: "mcp" } & McpInstallResult)
-      | { kind: HubManifest.Kind; id: string; name: string; enabled: false; reason: string }
-    > = []
+  ): Promise<BundleInstallResult> {
+    const results: BundleInstallResult["items"] = []
     const currentConfig = {
       ...(input.configMcp ?? (await Config.get()).mcp),
     }
+    const builtinSkills = await Skill.all()
+    const marketplaceSkills = await new SkillsMarketplace().list()
 
     for (const item of bundle.items) {
+      if (item.kind === "skill") {
+        const localSkill = builtinSkills.find(
+          (skill) =>
+            item.id === `skill:${skill.source.kind}:${skill.name.trim().toLowerCase()}` ||
+            item.id === skill.name ||
+            item.id.endsWith(`:${skill.name.trim().toLowerCase()}`),
+        )
+        if (localSkill) {
+          results.push({
+            kind: "skill",
+            id: item.id,
+            name: localSkill.name,
+            enabled: true,
+            reason: item.reason ?? "Skill is bundled and already available locally.",
+          })
+          continue
+        }
+
+        const installedSkill = marketplaceSkills.find((skill) => skill.name === item.id || skill.manifest.id === item.id)
+        if (installedSkill) {
+          results.push({
+            kind: "skill",
+            id: item.id,
+            name: installedSkill.manifest.name,
+            enabled: true,
+            reason: item.reason ?? "Marketplace skill is already installed.",
+          })
+          continue
+        }
+
+        results.push({
+          kind: item.kind,
+          id: item.id,
+          name: item.id,
+          enabled: false,
+          reason: "Skill relation is not installed yet. Add marketplace install orchestration for this bundle item next.",
+        })
+        continue
+      }
+
       if (item.kind !== "mcp") {
         results.push({
           kind: item.kind,
           id: item.id,
           name: item.id,
           enabled: false,
-          reason: "Bundle installation currently supports MCP items only.",
+          reason: "Bundle installation currently supports MCP and skill relations only.",
         })
         continue
       }
@@ -167,6 +219,88 @@ export namespace HubInstall {
       })
     }
 
-    return results
+    return {
+      items: results,
+      recommendedAgent: bundle.recommendedAgent,
+      aliases: bundle.aliases,
+      starterPrompts: bundle.starterPrompts,
+    }
+  }
+
+  export async function installPreset(
+    preset: HubManifest.Preset,
+    input: {
+      directory: string
+      configMcp?: NonNullable<Config.Info["mcp"]>
+    },
+  ) {
+    const results: Array<{
+      kind: HubManifest.Kind
+      id: string
+      name: string
+      enabled: boolean
+      reason?: string
+    }> = []
+    const currentConfig = {
+      ...(input.configMcp ?? (await Config.get()).mcp),
+    }
+
+    for (const relation of preset.appliesTo) {
+      if (relation.kind === "bundle") {
+        const bundle = HubBundles.get(relation.id)
+        if (!bundle) {
+          results.push({
+            kind: relation.kind,
+            id: relation.id,
+            name: relation.id,
+            enabled: false,
+            reason: "Referenced bundle was not found.",
+          })
+          continue
+        }
+        const installed = await installBundle(bundle, {
+          directory: input.directory,
+          configMcp: currentConfig,
+        })
+        for (const item of installed.items) {
+          results.push({
+            kind: item.kind,
+            id: item.id,
+            name: item.name,
+            enabled: item.enabled,
+            reason: item.reason,
+          })
+        }
+        continue
+      }
+
+      if (relation.kind === "mcp") {
+        const installed = await installRegistryMcp(relation.id.replace(/^mcp:/, ""), {
+          directory: input.directory,
+          configMcp: currentConfig,
+        })
+        results.push({
+          kind: "mcp",
+          id: installed.id,
+          name: installed.name,
+          enabled: installed.enabled,
+          reason: installed.reason,
+        })
+        continue
+      }
+
+      results.push({
+        kind: relation.kind,
+        id: relation.id,
+        name: relation.id,
+        enabled: false,
+        reason: "Preset installation currently supports bundle and MCP relations only.",
+      })
+    }
+
+    return {
+      items: results,
+      onboarding: preset.onboarding,
+    }
   }
 }

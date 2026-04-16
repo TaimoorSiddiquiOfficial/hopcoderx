@@ -82,6 +82,15 @@ export namespace HubManifest {
   })
   export type Relation = z.infer<typeof Relation>
 
+  export const OnboardingStep = z.object({
+    title: z.string(),
+    description: z.string(),
+    command: z.string().optional(),
+    envKeys: z.array(z.string()).default([]),
+    url: z.string().optional(),
+  })
+  export type OnboardingStep = z.infer<typeof OnboardingStep>
+
   export const EmbeddedMcp = z.object({
     id: z.string(),
     name: z.string(),
@@ -147,12 +156,16 @@ export namespace HubManifest {
   export const Bundle = Base.extend({
     kind: z.literal("bundle"),
     items: z.array(Relation).default([]),
+    recommendedAgent: z.string().optional(),
+    aliases: z.array(z.string()).default([]),
+    starterPrompts: z.array(z.string()).default([]),
   })
   export type Bundle = z.infer<typeof Bundle>
 
   export const Preset = Base.extend({
     kind: z.literal("preset"),
     appliesTo: z.array(Relation).default([]),
+    onboarding: z.array(OnboardingStep).default([]),
   })
   export type Preset = z.infer<typeof Preset>
 

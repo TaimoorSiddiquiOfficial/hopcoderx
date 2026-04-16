@@ -27,8 +27,11 @@ import { Global } from "../../global"
 import { Config } from "../../config/config"
 import { HubCatalog } from "../../hub/catalog"
 import { HubBundles } from "../../hub/bundles"
-import { HubStatus } from "../../hub/status"
+import { HubEcosystem } from "../../hub/ecosystem"
 import { HubInstall } from "../../hub/install"
+import { HubPresets } from "../../hub/presets"
+import { HubStatus } from "../../hub/status"
+import { HubWorkflows } from "../../hub/workflows"
 import { McpRegistry } from "../../mcp/registry"
 import { MCP } from "../../mcp"
 import { buildDisabledMcpEntry, buildEnabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
@@ -130,12 +133,12 @@ export const HubCommand = cmd({
   command: "hub <action> [package]",
   describe: "HopHub — skills & plugins marketplace (search, install, publish)",
   builder(yargs: Argv) {
-    return yargs
-      .positional("action", {
-        type: "string",
-        choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor"] as const,
-        describe: "Action to perform",
-      })
+      return yargs
+        .positional("action", {
+          type: "string",
+          choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor", "ecosystem", "workflow"] as const,
+          describe: "Action to perform",
+        })
       .positional("package", {
         type: "string",
         describe: "Package name (NPM identifier)",
@@ -144,11 +147,22 @@ export const HubCommand = cmd({
         type: "string",
         describe: "Filter search results by tag",
       })
-      .option("type", {
-        type: "string",
-        choices: ["mcp", "skill", "bundle", "preset", "plugin", "provider", "channel", "theme"],
-        describe: "Filter by package type",
-      })
+        .option("type", {
+          type: "string",
+          choices: ["mcp", "skill", "bundle", "preset", "workflow", "plugin", "provider", "channel", "theme", "agent", "resource", "project", "sdk"],
+          describe: "Filter by package type",
+        })
+        .option("section", {
+          type: "string",
+          choices: ["official", "community"],
+          describe: "Filter ecosystem entries by section",
+        })
+        .option("view", {
+          type: "string",
+          choices: ["all", "servers", "tools"],
+          describe: "Filter hub catalog into servers vs tools/skills views",
+          default: "all",
+        })
       .option("json", {
         type: "boolean",
         describe: "Output as JSON",
@@ -169,10 +183,101 @@ export const HubCommand = cmd({
       fn: async () => {
         const config = await Config.get()
 
+        if (action === "ecosystem") {
+          const query = args.package?.toLowerCase()
+          const items = await HubEcosystem.listResolved({
+            section: args.section as "official" | "community" | undefined,
+            kind: args.type as any,
+            query,
+            configMcp: config.mcp,
+          })
+          if (args.json) {
+            console.log(JSON.stringify(items, null, 2))
+            return
+          }
+          if (items.length === 0) {
+            console.log("No ecosystem entries found.")
+            return
+          }
+          console.log(`\nEcosystem entries (${items.length}):\n`)
+          for (const item of items) {
+            console.log(`  ${item.id} [${item.section}/${item.kind}]`)
+            console.log(`  ${item.description}`)
+            if (item.repository) console.log(`  Repo: ${item.repository}`)
+            if (item.homepage && item.homepage !== item.repository) console.log(`  Homepage: ${item.homepage}`)
+            if (item.links.length > 0) {
+              console.log("  Linked Hub items:")
+              for (const link of item.links) {
+                console.log(`    - ${link.id} [${link.kind}] — ${link.name}`)
+              }
+            }
+            console.log()
+          }
+          return
+        }
+
+        if (action === "workflow") {
+          const query = args.package?.toLowerCase()
+          if (!query) {
+            const items = HubWorkflows.list()
+            if (args.json) {
+              console.log(JSON.stringify(items, null, 2))
+              return
+            }
+            console.log(`\nWorkflows (${items.length}):\n`)
+            for (const item of items) {
+              console.log(`  ${item.name}`)
+              console.log(`  ${item.description}`)
+              if (item.aliases.length > 0) console.log(`  Aliases: ${item.aliases.join(", ")}`)
+              if (item.recommendedAgent) console.log(`  Agent: ${item.recommendedAgent}`)
+              console.log()
+            }
+            return
+          }
+
+          const workflow = HubWorkflows.get(query)
+          if (!workflow) {
+            console.error(`Unknown workflow '${args.package}'`)
+            process.exit(1)
+          }
+          const preset = HubWorkflows.presetFor(workflow)
+          if (!preset) {
+            console.error(`Workflow preset not found for '${workflow.name}'`)
+            process.exit(1)
+          }
+          const installed = await HubInstall.installPreset(preset, {
+            directory: Instance.directory,
+            configMcp: config.mcp,
+          })
+
+          if (args.json) {
+            console.log(JSON.stringify({ workflow, preset, installed }, null, 2))
+            return
+          }
+
+          console.log(`✓ Applied workflow ${workflow.name}`)
+          for (const item of installed.items) {
+            console.log(
+              `  - ${item.name}: ${item.enabled ? "enabled" : "registered disabled"}${item.reason ? ` — ${item.reason}` : ""}`,
+            )
+          }
+          if (workflow.recommendedAgent) console.log(`  Recommended agent: ${workflow.recommendedAgent}`)
+          if (workflow.starterPrompt) console.log(`  Starter prompt: ${workflow.starterPrompt}`)
+          if (preset.onboarding.length > 0) {
+            console.log("  Next steps:")
+            for (const step of preset.onboarding) {
+              console.log(`  - ${step.title}: ${step.description}`)
+              if (step.command) console.log(`    ${step.command}`)
+            }
+          }
+          return
+        }
+
         if (action === "search" || action === "list") {
           const query = action === "search" ? args.package?.toLowerCase() : undefined
           let items = await HubCatalog.list({
             configMcp: config.mcp,
+            view: args.view as "all" | "servers" | "tools",
           })
           if (args.type && ["mcp", "skill", "bundle", "preset"].includes(args.type)) {
             items = items.filter((item) => item.manifest.kind === args.type)
@@ -237,6 +342,76 @@ export const HubCommand = cmd({
             }
             if (item.manifest.homepage) console.log(`Homepage: ${item.manifest.homepage}`)
             if (item.manifest.repository) console.log(`Repository: ${item.manifest.repository}`)
+            if (item.manifest.kind === "bundle" && item.manifest.items.length > 0) {
+              console.log("Items:")
+              for (const relation of item.manifest.items) {
+                console.log(`  - ${relation.id}${relation.reason ? ` — ${relation.reason}` : ""}`)
+              }
+              if (item.manifest.recommendedAgent) console.log(`Recommended agent: ${item.manifest.recommendedAgent}`)
+              if (item.manifest.aliases.length > 0) console.log(`Aliases: ${item.manifest.aliases.join(", ")}`)
+              if (item.manifest.starterPrompts.length > 0) {
+                console.log("Starter prompts:")
+                for (const prompt of item.manifest.starterPrompts) {
+                  console.log(`  - ${prompt}`)
+                }
+              }
+            }
+            if (item.manifest.kind === "preset") {
+              if (item.manifest.appliesTo.length > 0) {
+                console.log("Applies to:")
+                for (const relation of item.manifest.appliesTo) {
+                  console.log(`  - ${relation.id}${relation.reason ? ` — ${relation.reason}` : ""}`)
+                }
+              }
+              if (item.manifest.onboarding.length > 0) {
+                console.log("Onboarding:")
+                for (const step of item.manifest.onboarding) {
+                  console.log(`  - ${step.title}: ${step.description}`)
+                  if (step.command) console.log(`    Command: ${step.command}`)
+                  if (step.envKeys.length > 0) console.log(`    Env: ${step.envKeys.join(", ")}`)
+                }
+              }
+            }
+            return
+          }
+
+          const ecosystem = await HubEcosystem.getResolved(target, {
+            configMcp: config.mcp,
+          })
+          if (ecosystem) {
+            if (args.json) {
+              console.log(JSON.stringify(ecosystem, null, 2))
+              return
+            }
+            console.log(`\nEcosystem: ${ecosystem.id}`)
+            console.log(`Name: ${ecosystem.name}`)
+            console.log(`Section: ${ecosystem.section}`)
+            console.log(`Kind: ${ecosystem.kind}`)
+            console.log(`Description: ${ecosystem.description}`)
+            if (ecosystem.repository) console.log(`Repository: ${ecosystem.repository}`)
+            if (ecosystem.homepage) console.log(`Homepage: ${ecosystem.homepage}`)
+            if (ecosystem.links.length > 0) {
+              console.log("Linked Hub items:")
+              for (const link of ecosystem.links) {
+                console.log(`  - ${link.id} [${link.kind}] — ${link.name}`)
+                console.log(`    ${link.description}`)
+              }
+            }
+            return
+          }
+
+          const workflow = HubWorkflows.get(target)
+          if (workflow) {
+            if (args.json) {
+              console.log(JSON.stringify(workflow, null, 2))
+              return
+            }
+            console.log(`\nWorkflow: ${workflow.id}`)
+            console.log(`Name: ${workflow.name}`)
+            console.log(`Description: ${workflow.description}`)
+            if (workflow.aliases.length > 0) console.log(`Aliases: ${workflow.aliases.join(", ")}`)
+            if (workflow.recommendedAgent) console.log(`Recommended agent: ${workflow.recommendedAgent}`)
+            if (workflow.starterPrompt) console.log(`Starter prompt: ${workflow.starterPrompt}`)
             return
           }
 
@@ -287,10 +462,77 @@ export const HubCommand = cmd({
               configMcp: config.mcp,
             })
             console.log(`✓ Installed bundle ${bundle.name}`)
-            for (const item of installed) {
+            for (const item of installed.items) {
               console.log(
                 `  - ${item.name}: ${item.enabled ? "enabled" : "registered disabled"}${item.reason ? ` — ${item.reason}` : ""}`,
               )
+            }
+            if (installed.recommendedAgent) console.log(`  Recommended agent: ${installed.recommendedAgent}`)
+            if (installed.aliases.length > 0) console.log(`  Aliases: ${installed.aliases.join(", ")}`)
+            if (installed.starterPrompts.length > 0) {
+              console.log("  Starter prompts:")
+              for (const prompt of installed.starterPrompts) {
+                console.log(`  - ${prompt}`)
+              }
+            }
+            return
+          }
+
+          const preset = HubPresets.get(target)
+          if (preset || args.type === "preset") {
+            if (!preset) {
+              console.error(`Unknown preset item '${target}'`)
+              process.exit(1)
+            }
+            const installed = await HubInstall.installPreset(preset, {
+              directory: Instance.directory,
+              configMcp: config.mcp,
+            })
+            console.log(`✓ Applied preset ${preset.name}`)
+            for (const item of installed.items) {
+              console.log(
+                `  - ${item.name}: ${item.enabled ? "enabled" : "registered disabled"}${item.reason ? ` — ${item.reason}` : ""}`,
+              )
+            }
+            if (installed.onboarding.length > 0) {
+              console.log("  Next steps:")
+              for (const step of installed.onboarding) {
+                console.log(`  - ${step.title}: ${step.description}`)
+                if (step.command) console.log(`    ${step.command}`)
+              }
+            }
+            return
+          }
+
+          const workflow = HubWorkflows.get(target)
+          if (workflow || args.type === "workflow") {
+            if (!workflow) {
+              console.error(`Unknown workflow item '${target}'`)
+              process.exit(1)
+            }
+            const preset = HubWorkflows.presetFor(workflow)
+            if (!preset) {
+              console.error(`Workflow preset not found for '${workflow.name}'`)
+              process.exit(1)
+            }
+            const installed = await HubInstall.installPreset(preset, {
+              directory: Instance.directory,
+              configMcp: config.mcp,
+            })
+            console.log(`✓ Applied workflow ${workflow.name}`)
+            for (const item of installed.items) {
+              console.log(
+                `  - ${item.name}: ${item.enabled ? "enabled" : "registered disabled"}${item.reason ? ` — ${item.reason}` : ""}`,
+              )
+            }
+            if (workflow.recommendedAgent) console.log(`  Recommended agent: ${workflow.recommendedAgent}`)
+            if (workflow.starterPrompt) console.log(`  Starter prompt: ${workflow.starterPrompt}`)
+            if (installed.onboarding.length > 0) {
+              console.log("  Next steps:")
+              for (const step of installed.onboarding) {
+                console.log(`  - ${step.title}: ${step.description}`)
+                if (step.command) console.log(`    ${step.command}`)
+              }
             }
             return
           }

@@ -4,9 +4,12 @@ import z from "zod"
 import { Config } from "../../config/config"
 import { HubCatalog } from "../../hub/catalog"
 import { HubBundles } from "../../hub/bundles"
+import { HubEcosystem } from "../../hub/ecosystem"
 import { HubInstall } from "../../hub/install"
 import { HubManifest } from "../../hub/manifest"
+import { HubPresets } from "../../hub/presets"
 import { HubStatus } from "../../hub/status"
+import { HubWorkflows } from "../../hub/workflows"
 import { McpRegistry } from "../../mcp/registry"
 import { MCP } from "../../mcp"
 import {
@@ -28,6 +31,122 @@ function resolveMcpName(id: string) {
 export const HubRoutes = lazy(() =>
   new Hono()
     .get(
+      "/workflows",
+      describeRoute({
+        summary: "List workflow entries",
+        description: "Return opinionated workflow aliases built on top of Hub presets and bundles.",
+        operationId: "hub.workflows.list",
+        responses: {
+          200: {
+            description: "Workflow entries",
+            content: {
+              "application/json": {
+                schema: resolver(z.array(HubWorkflows.Workflow)),
+              },
+            },
+          },
+        },
+      }),
+      validator("query", z.object({ query: z.string().optional() })),
+      async (c) => {
+        const query = c.req.valid("query")
+        return c.json(HubWorkflows.list(query.query))
+      },
+    )
+    .get(
+      "/workflows/:id",
+      describeRoute({
+        summary: "Get workflow entry",
+        description: "Return an opinionated workflow alias by id, name, or alias.",
+        operationId: "hub.workflows.get",
+        responses: {
+          200: {
+            description: "Workflow entry",
+            content: {
+              "application/json": {
+                schema: resolver(HubWorkflows.Workflow),
+              },
+            },
+          },
+          ...errors(404),
+        },
+      }),
+      validator("param", z.object({ id: z.string() })),
+      async (c) => {
+        const { id } = c.req.valid("param")
+        const workflow = HubWorkflows.get(id)
+        if (!workflow) return c.json({ error: "Workflow not found" }, 404)
+        return c.json(workflow)
+      },
+    )
+    .get(
+      "/ecosystem",
+      describeRoute({
+        summary: "List ecosystem entries",
+        description: "Return curated official and community ecosystem references for Hub-adjacent resources.",
+        operationId: "hub.ecosystem.list",
+        responses: {
+          200: {
+            description: "Ecosystem entries",
+            content: {
+              "application/json": {
+                schema: resolver(z.array(HubEcosystem.ResolvedEntry)),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "query",
+        z.object({
+          section: HubEcosystem.Section.optional(),
+          kind: HubEcosystem.Kind.optional(),
+          query: z.string().optional(),
+        }),
+      ),
+      async (c) => {
+        const query = c.req.valid("query")
+        const config = await Config.get()
+        return c.json(
+          await HubEcosystem.listResolved({
+            section: query.section,
+            kind: query.kind,
+            query: query.query,
+            configMcp: config.mcp,
+          }),
+        )
+      },
+    )
+    .get(
+      "/ecosystem/:id",
+      describeRoute({
+        summary: "Get ecosystem entry",
+        description: "Return one curated ecosystem reference by id or name.",
+        operationId: "hub.ecosystem.get",
+        responses: {
+          200: {
+            description: "Ecosystem entry",
+            content: {
+              "application/json": {
+                schema: resolver(HubEcosystem.ResolvedEntry),
+              },
+            },
+          },
+          ...errors(404),
+        },
+      }),
+      validator("param", z.object({ id: z.string() })),
+      async (c) => {
+        const { id } = c.req.valid("param")
+        const config = await Config.get()
+        const item = await HubEcosystem.getResolved(id, {
+          configMcp: config.mcp,
+        })
+        if (!item) return c.json({ error: "Ecosystem item not found" }, 404)
+        return c.json(item)
+      },
+    )
+    .get(
       "/catalog",
       describeRoute({
         summary: "List hub catalog items",
@@ -48,6 +167,7 @@ export const HubRoutes = lazy(() =>
         "query",
         z.object({
           kind: HubManifest.Kind.optional(),
+          view: HubCatalog.View.optional(),
         }),
       ),
       async (c) => {
@@ -55,6 +175,7 @@ export const HubRoutes = lazy(() =>
         const config = await Config.get()
         const items = await HubCatalog.list({
           configMcp: config.mcp,
+          view: query.view,
         })
         return c.json(query.kind ? items.filter((item) => item.manifest.kind === query.kind) : items)
       },
@@ -83,6 +204,7 @@ export const HubRoutes = lazy(() =>
         const config = await Config.get()
         const item = await HubCatalog.get(id, {
           configMcp: config.mcp,
+          view: "all",
         })
         if (!item) return c.json({ error: "Hub item not found" }, 404)
         return c.json(item)
@@ -134,7 +256,7 @@ export const HubRoutes = lazy(() =>
       validator(
         "json",
         z.object({
-          kind: HubManifest.Kind,
+          kind: z.union([HubManifest.Kind, z.literal("workflow")]),
           id: z.string(),
           packageName: z.string().optional(),
           version: z.string().optional(),
@@ -192,7 +314,49 @@ export const HubRoutes = lazy(() =>
             kind: "bundle" as const,
             id: bundle.id,
             name: bundle.name,
-            items: installed,
+            items: installed.items,
+            recommendedAgent: installed.recommendedAgent,
+            aliases: installed.aliases,
+            starterPrompts: installed.starterPrompts,
+          })
+        }
+
+        if (body.kind === "preset") {
+          const preset = HubPresets.get(body.id)
+          if (!preset) return c.json({ error: "Preset item not found" }, 404)
+          const config = await Config.get()
+          const installed = await HubInstall.installPreset(preset, {
+            directory: Instance.directory,
+            configMcp: config.mcp,
+          })
+          return c.json({
+            kind: "preset" as const,
+            id: preset.id,
+            name: preset.name,
+            items: installed.items,
+            onboarding: installed.onboarding,
+          })
+        }
+
+        if (body.kind === "workflow") {
+          const workflow = HubWorkflows.get(body.id)
+          if (!workflow) return c.json({ error: "Workflow item not found" }, 404)
+          const preset = HubWorkflows.presetFor(workflow)
+          if (!preset) return c.json({ error: "Workflow preset not found" }, 404)
+          const config = await Config.get()
+          const installed = await HubInstall.installPreset(preset, {
+            directory: Instance.directory,
+            configMcp: config.mcp,
+          })
+          return c.json({
+            kind: "workflow" as const,
+            id: workflow.id,
+            name: workflow.name,
+            presetID: workflow.presetID,
+            recommendedAgent: workflow.recommendedAgent,
+            starterPrompt: workflow.starterPrompt,
+            items: installed.items,
+            onboarding: installed.onboarding,
           })
         }
 

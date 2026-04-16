@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { HubBundles } from "./bundles"
+import { HubPresets } from "./presets"
 import { Config } from "../config/config"
 import { MCP } from "../mcp"
 import { HubManifest } from "./manifest"
@@ -9,6 +10,9 @@ import { Skill } from "../skill/skill"
 import { SkillsMarketplace } from "../skills/marketplace"
 
 export namespace HubCatalog {
+  export const View = z.enum(["all", "servers", "tools"])
+  export type View = z.infer<typeof View>
+
   export const Item = z.object({
     manifest: HubManifest.Any,
     installed: z.boolean(),
@@ -44,9 +48,16 @@ export namespace HubCatalog {
     return `skill:marketplace:${packageName.trim().toLowerCase() || manifest.id.trim().toLowerCase()}`
   }
 
+  function matchesView(item: Item, view: View) {
+    if (view === "all") return true
+    if (view === "servers") return item.manifest.kind === "mcp"
+    return item.manifest.kind === "skill" || item.manifest.kind === "bundle" || item.manifest.kind === "preset"
+  }
+
   export async function list(input: {
     configMcp?: NonNullable<Config.Info["mcp"]>
     mcpRuntime?: Record<string, MCP.Status>
+    view?: View
   } = {}): Promise<Item[]> {
     const items: Item[] = []
 
@@ -144,7 +155,15 @@ export namespace HubCatalog {
       })
     }
 
-    return items
+    for (const preset of HubPresets.registry) {
+      items.push({
+        manifest: preset,
+        installed: false,
+        available: true,
+      })
+    }
+
+    return items.filter((item) => matchesView(item, input.view ?? "all"))
   }
 
   export async function get(
@@ -152,6 +171,7 @@ export namespace HubCatalog {
     input: {
       configMcp?: NonNullable<Config.Info["mcp"]>
       mcpRuntime?: Record<string, MCP.Status>
+      view?: View
     } = {},
   ) {
     const items = await list(input)
