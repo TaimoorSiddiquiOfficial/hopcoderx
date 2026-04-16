@@ -1,6 +1,7 @@
 import z from "zod"
 import path from "path"
 import os from "os"
+import { readFile } from "fs/promises"
 import { Config } from "../config/config"
 import { Instance } from "../project/instance"
 import { NamedError } from "@hopcoderx/util/error"
@@ -13,6 +14,7 @@ import { Bus } from "@/bus"
 import { Session } from "@/session"
 import { Discovery } from "./discovery"
 import { Glob } from "../util/glob"
+import { HubManifest } from "../hub/manifest"
 
 export namespace Skill {
   const log = Log.create({ service: "skill" })
@@ -38,8 +40,24 @@ export namespace Skill {
     location: z.string(),
     content: z.string(),
     source: Source,
+    category: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    homepage: z.string().optional(),
+    auth: HubManifest.Auth.optional(),
+    embeddedMcp: z.array(HubManifest.EmbeddedMcp).optional(),
+    presets: z.array(z.string()).optional(),
   })
   export type Info = z.infer<typeof Info>
+
+  const CompanionManifest = z.object({
+    category: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    homepage: z.string().optional(),
+    auth: HubManifest.Auth.optional(),
+    embeddedMcp: z.array(HubManifest.EmbeddedMcp).optional(),
+    presets: z.array(z.string()).optional(),
+  })
+  type CompanionManifest = z.infer<typeof CompanionManifest>
 
   export const Conflict = z.object({
     name: z.string(),
@@ -93,6 +111,19 @@ export namespace Skill {
     const conflicts: Conflict[] = []
     let order = 0
 
+    const loadCompanionManifest = async (match: string): Promise<CompanionManifest | undefined> => {
+      const companionPath = path.join(path.dirname(match), "hub.manifest.json")
+      if (!(await Filesystem.exists(companionPath))) return undefined
+      try {
+        return CompanionManifest.parse(JSON.parse(await readFile(companionPath, "utf8")))
+      } catch (err) {
+        const message = `Failed to parse hub manifest ${companionPath}`
+        Bus.publish(Session.Event.Error, { error: new NamedError.Unknown({ message }).toObject() })
+        log.error("failed to load skill companion manifest", { path: companionPath, err })
+        return undefined
+      }
+    }
+
     const addSkill = async (match: string, source: Source) => {
       const md = await ConfigMarkdown.parse(match).catch((err) => {
         const message = ConfigMarkdown.FrontmatterError.isInstance(err)
@@ -107,6 +138,7 @@ export namespace Skill {
 
       const parsed = Info.pick({ name: true, description: true }).safeParse(md.data)
       if (!parsed.success) return
+      const companion = await loadCompanionManifest(match)
 
       const next = {
         name: parsed.data.name,
@@ -114,6 +146,12 @@ export namespace Skill {
         location: match,
         content: md.content,
         source,
+        category: companion?.category,
+        tags: companion?.tags,
+        homepage: companion?.homepage,
+        auth: companion?.auth,
+        embeddedMcp: companion?.embeddedMcp,
+        presets: companion?.presets,
         order: order++,
       }
 

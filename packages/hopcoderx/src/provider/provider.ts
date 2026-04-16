@@ -1187,6 +1187,19 @@ export namespace Provider {
       }
     }
 
+    // models.dev currently does not publish a hopcoderx provider entry for this fork,
+    // but local loader/default-model logic still references it.
+    if (!database["hopcoderx"]) {
+      database["hopcoderx"] = {
+        id: "hopcoderx",
+        name: "HopCoderX",
+        source: "custom",
+        env: ["HOPCODERX_API_KEY"],
+        options: {},
+        models: {},
+      }
+    }
+
     // Built-in local Ollama provider (no API key required — auto-discovers from localhost)
     if (!database["ollama"]) {
       database["ollama"] = {

@@ -5,6 +5,8 @@ import { ChannelRegistry } from "../../channels/channel"
 import path from "path"
 import { execSync } from "child_process"
 import { Instance } from "../../project/instance"
+import { Config } from "../../config/config"
+import { HubStatus } from "../../hub/status"
 import { getInstallationSummary, getRuntimeSummary } from "../diagnostics"
 
 type Status = "ok" | "warn" | "fail" | "skip"
@@ -157,6 +159,11 @@ async function checkProviders(): Promise<Check[]> {
 async function checkMCP(): Promise<Check[]> {
   const checks: Check[] = []
   const summary = await getRuntimeSummary()
+  const config = await Config.get()
+  const hubStates = await HubStatus.resolveAllMcp({
+    configMcp: config.mcp,
+  })
+  const hubByName = Object.fromEntries(hubStates.map((state) => [state.name, state]))
   const count = summary.mcp.count
 
   if (count === 0) {
@@ -174,12 +181,35 @@ async function checkMCP(): Promise<Check[]> {
   })
 
   for (const server of summary.mcp.servers) {
+    const hub = hubByName[server.name]
     if (!server.valid) {
       checks.push({ label: `MCP: ${server.name}`, status: "warn", detail: "Invalid config format" })
       continue
     }
     if (server.status === "connected") {
       checks.push({ label: `MCP: ${server.name} (${server.type})`, status: "ok" })
+      continue
+    }
+
+    if (hub?.readiness === "disabled-missing-auth" || hub?.readiness === "auth-required" || hub?.readiness === "auth-expired") {
+      checks.push({
+        label: `MCP: ${server.name} (${server.type})`,
+        status: "warn",
+        detail: hub.reason ?? "Authentication or environment setup is required.",
+        fix:
+          hub.missingEnvKeys.length > 0
+            ? `Set: ${hub.missingEnvKeys.join(", ")}`
+            : `Run: hopcoderx hub auth ${server.name}`,
+      })
+      continue
+    }
+
+    if (hub?.readiness === "disabled-missing-config") {
+      checks.push({
+        label: `MCP: ${server.name} (${server.type})`,
+        status: "warn",
+        detail: hub.reason ?? "This MCP server needs setup before it can run.",
+      })
       continue
     }
 

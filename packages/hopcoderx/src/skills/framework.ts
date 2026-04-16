@@ -17,7 +17,9 @@
 import { readFile, writeFile, mkdir } from "fs/promises"
 import { existsSync } from "fs"
 import { join } from "path"
+import { z } from "zod"
 import { Global } from "../global"
+import { HubManifest } from "../hub/manifest"
 import { SkillRegistry, type Skill, type SkillTool } from "./skills"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,6 +49,18 @@ export interface SkillManifest {
   docs?: string
   /** Author/publisher info */
   author?: string
+  /** Registry/category grouping for hub surfaces */
+  category?: string
+  /** Optional discovery tags */
+  tags?: string[]
+  /** Homepage or marketing page */
+  homepage?: string
+  /** Auth metadata for hub surfaces */
+  auth?: HubManifest.Auth
+  /** MCP servers bundled or referenced by this skill */
+  embeddedMcp?: HubManifest.EmbeddedMcp[]
+  /** Named presets/workflows exposed by the skill */
+  presets?: string[]
 }
 
 export interface SkillLoadResult {
@@ -71,6 +85,18 @@ function validateManifest(raw: unknown): SkillManifest {
     if (!validPerms.includes(perm as PermissionScope)) {
       throw new Error(`Invalid permission scope: '${perm}'. Valid: ${validPerms.join(", ")}`)
     }
+  }
+  if (m.auth !== undefined) {
+    HubManifest.Auth.parse(m.auth)
+  }
+  if (m.embeddedMcp !== undefined) {
+    z.array(HubManifest.EmbeddedMcp).parse(m.embeddedMcp)
+  }
+  if (m.tags !== undefined && !Array.isArray(m.tags)) {
+    throw new Error("manifest.tags must be an array")
+  }
+  if (m.presets !== undefined && !Array.isArray(m.presets)) {
+    throw new Error("manifest.presets must be an array")
   }
   return m as unknown as SkillManifest
 }

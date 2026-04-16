@@ -24,6 +24,15 @@ import { promisify } from "util"
 import type { Argv } from "yargs"
 import { cmd } from "./cmd"
 import { Global } from "../../global"
+import { Config } from "../../config/config"
+import { HubCatalog } from "../../hub/catalog"
+import { HubStatus } from "../../hub/status"
+import { McpRegistry } from "../../mcp/registry"
+import { MCP } from "../../mcp"
+import { buildDisabledMcpEntry, buildEnabledMcpEntry, resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
+import { SkillsMarketplace } from "../../skills/marketplace"
+import { Instance } from "../../project/instance"
+import { InstanceBootstrap } from "../../project/bootstrap"
 
 const execAsync = promisify(execFile)
 
@@ -54,6 +63,10 @@ interface RegistryIndex {
 
 interface InstalledIndex {
   packages: Record<string, { version: string; installedAt: string; type: string }>
+}
+
+function resolveMcpName(id: string) {
+  return id.startsWith("mcp:") ? id.slice(4) : id
 }
 
 async function loadRegistry(): Promise<RegistryIndex> {
@@ -118,7 +131,7 @@ export const HubCommand = cmd({
     return yargs
       .positional("action", {
         type: "string",
-        choices: ["search", "install", "publish", "list", "update", "uninstall", "info"] as const,
+        choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor"] as const,
         describe: "Action to perform",
       })
       .positional("package", {
@@ -131,7 +144,7 @@ export const HubCommand = cmd({
       })
       .option("type", {
         type: "string",
-        choices: ["skill", "plugin", "provider", "channel", "theme"],
+        choices: ["mcp", "skill", "bundle", "preset", "plugin", "provider", "channel", "theme"],
         describe: "Filter by package type",
       })
       .option("json", {
@@ -148,104 +161,220 @@ export const HubCommand = cmd({
   async handler(args) {
     const action = args.action ?? "list"
 
-    if (action === "search") {
-      const query = args.package
-      let registry: RegistryIndex
-      try {
-        process.stdout.write("Fetching registry… ")
-        registry = await loadRegistry()
-        console.log("done")
-      } catch (err: any) {
-        console.error(`\nFailed to fetch registry: ${err.message}`)
-        process.exit(1)
-      }
+    await Instance.provide({
+      directory: process.cwd(),
+      init: InstanceBootstrap,
+      fn: async () => {
+        const config = await Config.get()
 
-      let results = registry.packages
-      if (query) results = results.filter((p) => p.name.includes(query) || p.description.toLowerCase().includes(query.toLowerCase()))
-      if (args.type) results = results.filter((p) => p.type === args.type)
-      if (args.tag) results = results.filter((p) => p.tags?.includes(args.tag as string))
+        if (action === "search" || action === "list") {
+          const query = action === "search" ? args.package?.toLowerCase() : undefined
+          let items = await HubCatalog.list({
+            configMcp: config.mcp,
+          })
+          if (args.type && ["mcp", "skill", "bundle", "preset"].includes(args.type)) {
+            items = items.filter((item) => item.manifest.kind === args.type)
+          }
+          if (query) {
+            items = items.filter(
+              (item) =>
+                item.manifest.name.toLowerCase().includes(query) ||
+                item.manifest.description.toLowerCase().includes(query) ||
+                item.manifest.tags.some((tag) => tag.toLowerCase().includes(query)),
+            )
+          }
 
-      if (args.json) {
-        console.log(JSON.stringify(results, null, 2))
-        return
-      }
+          if (args.json) {
+            console.log(JSON.stringify(items, null, 2))
+            return
+          }
 
-      if (results.length === 0) {
-        console.log(`No packages found${query ? ` for '${query}'` : ""}.`)
-        return
-      }
+          if (items.length === 0) {
+            console.log(action === "search" ? `No hub items found for '${args.package}'.` : "No hub items found.")
+            return
+          }
 
-      console.log(`\nFound ${results.length} package${results.length !== 1 ? "s" : ""}:\n`)
-      for (const p of results) {
-        const installed = (await loadInstalled()).packages[p.name]
-        const badge = installed ? ` [installed ${installed.version}]` : ""
-        console.log(`  ${p.name}@${p.version} (${p.type})${badge}`)
-        console.log(`  ${p.description}`)
-        if (p.author) console.log(`  Author: ${p.author}`)
-        console.log()
-      }
-      return
-    }
-
-    if (action === "info") {
-      const pkgName = args.package
-      if (!pkgName) { console.error("Usage: hopcoderx hub info <package>"); process.exit(1) }
-
-      let info: any
-      try {
-        const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName)}/latest`)
-        if (!res.ok) throw new Error(`${res.status}`)
-        info = await res.json()
-      } catch (err: any) {
-        console.error(`Failed to fetch info for '${pkgName}': ${err.message}`)
-        process.exit(1)
-      }
-
-      if (args.json) { console.log(JSON.stringify(info, null, 2)); return }
-
-      console.log(`\nPackage: ${info.name}@${info.version}`)
-      console.log(`Description: ${info.description ?? "(none)"}`)
-      console.log(`License: ${info.license ?? "unknown"}`)
-      if (info.homepage) console.log(`Homepage: ${info.homepage}`)
-      if (info.author?.name) console.log(`Author: ${info.author.name}`)
-      if (info.keywords?.length) console.log(`Keywords: ${info.keywords.join(", ")}`)
-      return
-    }
-
-    if (action === "install") {
-      const pkgName = args.package
-      if (!pkgName) { console.error("Usage: hopcoderx hub install <package>"); process.exit(1) }
-
-      console.log(`Installing ${pkgName}…`)
-      try {
-        const installArgs = ["add", pkgName]
-        if (args.global) installArgs.push("--global")
-        await execAsync("bun", installArgs, { cwd: process.cwd() })
-
-        const installed = await loadInstalled()
-        // Try to get version from npm
-        let version = "latest"
-        try {
-          const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName)}/latest`)
-          if (res.ok) { const d = await res.json() as { version?: string }; version = d.version ?? "latest" }
-        } catch { /* ignore */ }
-
-        installed.packages[pkgName] = {
-          version,
-          installedAt: new Date().toISOString(),
-          type: "unknown",
+          console.log(`\n${action === "search" ? "Matching" : "Available"} hub items (${items.length}):\n`)
+          for (const item of items) {
+            const status = item.status ? ` [${item.status.readiness}]` : ""
+            const installed = item.installed ? " [installed]" : ""
+            console.log(`  ${item.manifest.id}${installed}${status}`)
+            console.log(`  ${item.manifest.description}`)
+            if (item.packageName) console.log(`  Package: ${item.packageName}`)
+            console.log()
+          }
+          return
         }
-        await saveInstalled(installed)
-        console.log(`✓ Installed ${pkgName}@${version}`)
-        console.log(`  Run 'hopcoderx hub list' to see installed packages.`)
-      } catch (err: any) {
-        console.error(`Failed to install '${pkgName}': ${err.message}`)
-        process.exit(1)
-      }
-      return
-    }
 
-    if (action === "uninstall") {
+        if (action === "info") {
+          const target = args.package
+          if (!target) { console.error("Usage: hopcoderx hub info <item>"); process.exit(1) }
+
+          const item = await HubCatalog.get(target, {
+            configMcp: config.mcp,
+          })
+
+          if (item) {
+            if (args.json) {
+              console.log(JSON.stringify(item, null, 2))
+              return
+            }
+
+            console.log(`\nItem: ${item.manifest.id}`)
+            console.log(`Name: ${item.manifest.name}`)
+            console.log(`Kind: ${item.manifest.kind}`)
+            console.log(`Description: ${item.manifest.description}`)
+            console.log(`Installed: ${item.installed ? "yes" : "no"}`)
+            if (item.packageName) console.log(`Package: ${item.packageName}`)
+            if (item.status) {
+              console.log(`Readiness: ${item.status.readiness}`)
+              if (item.status.missingEnvKeys.length) {
+                console.log(`Missing env: ${item.status.missingEnvKeys.join(", ")}`)
+              }
+              if (item.status.reason) console.log(`Reason: ${item.status.reason}`)
+            }
+            if (item.manifest.homepage) console.log(`Homepage: ${item.manifest.homepage}`)
+            if (item.manifest.repository) console.log(`Repository: ${item.manifest.repository}`)
+            return
+          }
+
+          let info: any
+          try {
+            const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(target)}/latest`)
+            if (!res.ok) throw new Error(`${res.status}`)
+            info = await res.json()
+          } catch (err: any) {
+            console.error(`Failed to fetch info for '${target}': ${err.message}`)
+            process.exit(1)
+          }
+
+          if (args.json) { console.log(JSON.stringify(info, null, 2)); return }
+          console.log(`\nPackage: ${info.name}@${info.version}`)
+          console.log(`Description: ${info.description ?? "(none)"}`)
+          return
+        }
+
+        if (action === "install") {
+          const target = args.package
+          if (!target) { console.error("Usage: hopcoderx hub install <item>"); process.exit(1) }
+
+          const mcpName = resolveMcpName(target)
+          const entry = McpRegistry.getByName(mcpName)
+          if (entry || args.type === "mcp") {
+            if (!entry) {
+              console.error(`Unknown MCP item '${target}'`)
+              process.exit(1)
+            }
+            const initialConfig = McpRegistry.formatConfig(entry)
+            const status = await HubStatus.resolveCurrentMcp(entry, {
+              config: {
+                ...initialConfig,
+                enabled: true,
+              },
+            })
+            const next = {
+              ...initialConfig,
+              enabled: status.effectiveEnabled,
+            }
+            await MCP.add(entry.name, next)
+            const configPath = await resolveMcpConfigPath(Instance.directory)
+            await updateMcpConfigEntry(entry.name, next, configPath)
+            console.log(`✓ Installed MCP ${entry.name}${next.enabled ? "" : " (disabled until configured)"}`)
+            return
+          }
+
+          console.log(`Installing ${target}…`)
+          try {
+            const marketplace = new SkillsMarketplace(args.global ? process.cwd() : undefined)
+            const result = await marketplace.install(target)
+            console.log(`✓ Installed ${result.name}@${result.version}`)
+          } catch (err: any) {
+            console.error(`Failed to install '${target}': ${err.message}`)
+            process.exit(1)
+          }
+          return
+        }
+
+        if (action === "enable" || action === "disable") {
+          const target = args.package
+          if (!target) { console.error(`Usage: hopcoderx hub ${action} <mcp>`); process.exit(1) }
+          const name = resolveMcpName(target)
+          const next =
+            action === "enable"
+              ? buildEnabledMcpEntry(name, config.mcp)
+              : buildDisabledMcpEntry(name, config.mcp)
+          if (!next) {
+            console.error(`Unknown MCP item '${target}'`)
+            process.exit(1)
+          }
+          const entry = McpRegistry.getByName(name)
+          const finalConfig =
+            action === "enable" && entry
+              ? {
+                  ...next,
+                  enabled: (await HubStatus.resolveCurrentMcp(entry, { config: next })).effectiveEnabled,
+                }
+              : next
+          const configPath = await resolveMcpConfigPath(Instance.directory)
+          await updateMcpConfigEntry(name, finalConfig, configPath)
+          console.log(`✓ ${action === "enable" ? "Enabled" : "Disabled"} ${name}`)
+          if (action === "enable" && typeof finalConfig === "object" && "enabled" in finalConfig && finalConfig.enabled === false) {
+            console.log("  Auth/setup is still missing, so the MCP remains disabled until configured.")
+          }
+          return
+        }
+
+        if (action === "auth") {
+          const target = args.package
+          if (!target) { console.error("Usage: hopcoderx hub auth <mcp>"); process.exit(1) }
+          const name = resolveMcpName(target)
+          const entry = McpRegistry.getByName(name)
+          if (!entry) {
+            console.error(`Unknown MCP item '${target}'`)
+            process.exit(1)
+          }
+          const auth = McpRegistry.getAuth(entry)
+          if (auth.mode !== "oauth") {
+            console.error(`${name} does not expose an OAuth auth flow.`)
+            process.exit(1)
+          }
+          await MCP.authenticate(name)
+          console.log(`✓ Authenticated ${name}`)
+          return
+        }
+
+        if (action === "doctor") {
+          const runtime = await MCP.status().catch(() => ({}))
+          const states = await HubStatus.resolveAllMcp({
+            configMcp: config.mcp,
+            runtime,
+          })
+          const issues = states.filter((state) => state.readiness !== "connected")
+
+          if (args.json) {
+            console.log(JSON.stringify(issues, null, 2))
+            return
+          }
+
+          if (issues.length === 0) {
+            console.log("All tracked MCP items are connected.")
+            return
+          }
+
+          console.log(`Hub doctor found ${issues.length} MCP item(s) that need attention:\n`)
+          for (const issue of issues) {
+            console.log(`  ${issue.name}: ${issue.readiness}`)
+            if (issue.missingEnvKeys.length) {
+              console.log(`    Missing env: ${issue.missingEnvKeys.join(", ")}`)
+            }
+            if (issue.reason) {
+              console.log(`    ${issue.reason}`)
+            }
+          }
+          return
+        }
+
+        if (action === "uninstall") {
       const pkgName = args.package
       if (!pkgName) { console.error("Usage: hopcoderx hub uninstall <package>"); process.exit(1) }
 
@@ -260,10 +389,10 @@ export const HubCommand = cmd({
         console.error(`Failed to uninstall '${pkgName}': ${err.message}`)
         process.exit(1)
       }
-      return
-    }
+          return
+        }
 
-    if (action === "update") {
+        if (action === "update") {
       const pkgName = args.package
       const installed = await loadInstalled()
       const toUpdate = pkgName ? [pkgName] : Object.keys(installed.packages)
@@ -282,27 +411,10 @@ export const HubCommand = cmd({
           console.error(`Failed to update '${pkg}': ${err.message}`)
         }
       }
-      return
-    }
+          return
+        }
 
-    if (action === "list") {
-      const installed = await loadInstalled()
-      const pkgs = Object.entries(installed.packages)
-      if (pkgs.length === 0) {
-        console.log("No HopHub packages installed.")
-        console.log("Run 'hopcoderx hub search' to discover packages.")
-        return
-      }
-      if (args.json) { console.log(JSON.stringify(installed.packages, null, 2)); return }
-      console.log(`Installed HopHub packages (${pkgs.length}):\n`)
-      for (const [name, info] of pkgs) {
-        console.log(`  ${name}@${info.version} (${info.type})`)
-        console.log(`  Installed: ${new Date(info.installedAt).toLocaleDateString()}`)
-      }
-      return
-    }
-
-    if (action === "publish") {
+        if (action === "publish") {
       console.log("Publishing to HopHub…")
       console.log("")
       console.log("Requirements:")
@@ -321,7 +433,9 @@ export const HubCommand = cmd({
         console.error("Make sure you're logged in: bun login")
         process.exit(1)
       }
-      return
-    }
+          return
+        }
+      },
+    })
   },
 })

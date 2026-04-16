@@ -7,6 +7,7 @@ import { Keybind } from "@/util/keybind"
 import { TextAttributes } from "@opentui/core"
 import { useDialog } from "@tui/ui/dialog"
 import { McpRegistry } from "@/mcp/registry"
+import { HubStatus } from "@/hub/status"
 import { useKeyboard } from "@opentui/solid"
 
 // Helper component for category badges — must render <text> so it can be a child of <box>
@@ -67,6 +68,21 @@ function RequirementsList(props: { requirements: McpRegistry.Requirement[] }) {
   )
 }
 
+function AuthBadge(props: { entry: McpRegistry.RegistryEntry; status: HubStatus.MCPState }) {
+  const { theme } = useTheme()
+  const auth = McpRegistry.getAuth(props.entry)
+
+  if (!auth.required) {
+    return <text fg={theme.success}>NO AUTH</text>
+  }
+
+  if (props.status.authConfigured) {
+    return <text fg={theme.success}>AUTH CONFIGURED</text>
+  }
+
+  return <text fg={theme.warning}>AUTH REQUIRED</text>
+}
+
 export function DialogMcpRegistry() {
   const sync = useSync()
   const sdk = useSDK()
@@ -114,6 +130,10 @@ export function DialogMcpRegistry() {
       const isInstalled = installed.has(entry.name)
       const isCompatible = McpRegistry.isCompatible(entry)
       const isLoading = loadingName === entry.name
+      const status = HubStatus.resolveMcp(entry, {
+        config: sync.data.config.mcp?.[entry.name] as any,
+        runtime: sync.data.mcp?.[entry.name] as any,
+      })
 
       return {
         value: entry.name,
@@ -125,6 +145,9 @@ export function DialogMcpRegistry() {
             <span style={{ fg: theme.info, attributes: TextAttributes.DIM }}>
               {McpRegistry.categories[entry.category]?.icon ?? ""}{" "}
               {McpRegistry.categories[entry.category]?.label ?? entry.category}
+            </span>
+            <span style={{ fg: status.authConfigured ? theme.success : McpRegistry.getAuth(entry).required ? theme.warning : theme.success }}>
+              {" "}{status.authConfigured ? "auth" : McpRegistry.getAuth(entry).required ? "auth!" : "open"}
             </span>
             <span style={{ fg: isInstalled ? theme.success : theme.textMuted }}>
               {" "}{isLoading ? "⋯" : isInstalled ? "✓" : isCompatible ? "○" : "✗"}
@@ -234,7 +257,14 @@ export function DialogMcpRegistry() {
 
               setLoading(entry.name)
               try {
-                const config = { ...McpRegistry.formatConfig(entry), enabled: true }
+                const resolved = HubStatus.resolveMcp(entry, {
+                  config: sync.data.config.mcp?.[entry.name] as any,
+                  runtime: sync.data.mcp?.[entry.name] as any,
+                })
+                const config = {
+                  ...McpRegistry.formatConfig(entry),
+                  enabled: resolved.effectiveEnabled,
+                }
                 await sdk.client.mcp.add({ name: entry.name, config })
 
                 const status = await sdk.client.mcp.status()
@@ -256,6 +286,11 @@ export function DialogMcpRegistry() {
     >
       {(entry) => {
         const isInstalled = installedMcpNames().has(entry.name)
+        const resolved = () =>
+          HubStatus.resolveMcp(entry, {
+            config: sync.data.config.mcp?.[entry.name] as any,
+            runtime: sync.data.mcp?.[entry.name] as any,
+          })
 
         useKeyboard(async (evt) => {
           if (evt.name === "return") {
@@ -263,7 +298,10 @@ export function DialogMcpRegistry() {
             evt.stopPropagation()
             setLoading(entry.name)
             try {
-              const config = { ...McpRegistry.formatConfig(entry), enabled: true }
+              const config = {
+                ...McpRegistry.formatConfig(entry),
+                enabled: resolved().effectiveEnabled,
+              }
               await sdk.client.mcp.add({ name: entry.name, config })
               const status = await sdk.client.mcp.status()
               if (status.data) {
@@ -287,6 +325,7 @@ export function DialogMcpRegistry() {
             <box flexDirection="row" gap={1}>
               <text fg={theme.accent} attributes={TextAttributes.BOLD}>{entry.name}</text>
               {entry.featured && <text fg={theme.warning}>⭐ Featured</text>}
+              <AuthBadge entry={entry} status={resolved()} />
             </box>
             <text fg={theme.text}>{entry.description}</text>
 
@@ -303,6 +342,30 @@ export function DialogMcpRegistry() {
                 Requirements:
               </text>
               <RequirementsList requirements={entry.requirements} />
+            </box>
+
+            <box marginTop={1}>
+              <text fg={theme.textMuted} attributes={TextAttributes.UNDERLINE}>
+                Status:
+              </text>
+              <box flexDirection="column">
+                <text fg={resolved().authConfigured ? theme.success : theme.warning}>
+                  Readiness: {resolved().readiness}
+                </text>
+                <Show when={resolved().missingEnvKeys.length > 0}>
+                  <text fg={theme.warning}>
+                    Missing env: {resolved().missingEnvKeys.join(", ")}
+                  </text>
+                </Show>
+                <Show when={resolved().reason}>
+                  <text fg={theme.textMuted}>{resolved().reason}</text>
+                </Show>
+                <Show when={!resolved().effectiveEnabled}>
+                  <text fg={theme.info}>
+                    New installs stay disabled until the required auth/config is available.
+                  </text>
+                </Show>
+              </box>
             </box>
 
             <box marginTop={1}>
@@ -329,7 +392,9 @@ export function DialogMcpRegistry() {
 
             <box marginTop={1}>
               <text fg={theme.textMuted}>
-                Press Enter to {isInstalled ? "reinstall" : "install"} | Escape to go back
+                Press Enter to {isInstalled ? "reinstall" : "install"}
+                {!resolved().effectiveEnabled ? " (disabled until configured)" : ""}
+                {" "} | Escape to go back
               </text>
             </box>
           </box>

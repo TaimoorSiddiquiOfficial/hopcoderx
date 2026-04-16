@@ -527,7 +527,7 @@ export const SkillsRoutes = lazy(() =>
         return c.json(deleted)
       },
     )
-    .execute(
+    .post(
       "/execute",
       describeRoute({
         summary: "Execute skill tool",

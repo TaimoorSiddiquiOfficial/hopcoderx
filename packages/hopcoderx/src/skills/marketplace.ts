@@ -236,9 +236,18 @@ export class SkillsMarketplace {
         description: pkgJson.hopcoderx.skill.description ?? pkgJson.description ?? "",
         version: pkgJson.version,
         requiredEnv: pkgJson.hopcoderx.skill.requiredEnv ?? [],
+        optionalEnv: pkgJson.hopcoderx.skill.optionalEnv ?? [],
         permissions: pkgJson.hopcoderx.skill.permissions ?? ["network"],
         npm: packageName,
         author: typeof pkgJson.author === "string" ? pkgJson.author : pkgJson.author?.name,
+        minHostVersion: pkgJson.hopcoderx.skill.minHostVersion,
+        docs: pkgJson.hopcoderx.skill.docs,
+        homepage: pkgJson.hopcoderx.skill.homepage ?? pkgJson.homepage,
+        category: pkgJson.hopcoderx.skill.category,
+        tags: pkgJson.hopcoderx.skill.tags ?? pkgJson.keywords ?? [],
+        auth: pkgJson.hopcoderx.skill.auth,
+        embeddedMcp: pkgJson.hopcoderx.skill.embeddedMcp ?? [],
+        presets: pkgJson.hopcoderx.skill.presets ?? [],
       }
     }
 
@@ -258,6 +267,8 @@ export class SkillsMarketplace {
       requiredEnv: [],
       permissions: ["network"],
       npm: packageName,
+      homepage: pkgJson.homepage,
+      tags: pkgJson.keywords ?? [],
     }
   }
 

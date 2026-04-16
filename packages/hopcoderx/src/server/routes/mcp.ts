@@ -7,6 +7,8 @@ import { errors } from "../error"
 import { lazy } from "../../util/lazy"
 import { resolveMcpConfigPath, updateMcpConfigEntry } from "../../mcp/config-file"
 import { Instance } from "../../project/instance"
+import { McpRegistry } from "../../mcp/registry"
+import { HubStatus } from "../../hub/status"
 
 export const McpRoutes = lazy(() =>
   new Hono()
@@ -58,10 +60,17 @@ export const McpRoutes = lazy(() =>
       ),
       async (c) => {
         const { name, config } = c.req.valid("json")
-        const result = await MCP.add(name, config)
+        const registryEntry = McpRegistry.getByName(name)
+        const resolvedConfig = registryEntry
+          ? await HubStatus.resolveCurrentMcp(registryEntry, { config }).then((status) => ({
+              ...config,
+              enabled: status.effectiveEnabled,
+            }))
+          : config
+        const result = await MCP.add(name, resolvedConfig)
         // Persist to the current working directory config surface used by the config API.
         const configPath = await resolveMcpConfigPath(Instance.directory)
-        await updateMcpConfigEntry(name, config, configPath)
+        await updateMcpConfigEntry(name, resolvedConfig, configPath)
         return c.json(result.status)
       },
     )

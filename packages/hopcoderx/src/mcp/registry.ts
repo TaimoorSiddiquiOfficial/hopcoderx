@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { Config } from "../config/config"
+import { HubManifest } from "../hub/manifest"
 
 export namespace McpRegistry {
   export const Category = z.enum([
@@ -22,14 +23,15 @@ export namespace McpRegistry {
   export const Platform = z.enum(["windows", "macos", "linux", "cross-platform"])
   export type Platform = z.infer<typeof Platform>
 
-  export const Requirement = z.object({
-    type: z.enum(["nodejs", "python", "powershell", "binary", "app", "api-key"]),
-    version: z.string().optional(),
-    description: z.string(),
-    installCommand: z.string().optional(),
+  export const Requirement = HubManifest.Requirement
+  export type Requirement = z.infer<typeof Requirement>
+
+  export const Health = z.object({
+    missingMessage: z.string().optional(),
+    configuredMessage: z.string().optional(),
     verifyCommand: z.string().optional(),
   })
-  export type Requirement = z.infer<typeof Requirement>
+  export type Health = z.infer<typeof Health>
 
   export const RegistryEntry = z.object({
     name: z.string(),
@@ -44,6 +46,9 @@ export namespace McpRegistry {
     setupInstructions: z.string().optional(),
     tags: z.array(z.string()),
     featured: z.boolean().optional(),
+    auth: HubManifest.Auth.optional(),
+    activation: HubManifest.Activation.optional(),
+    health: Health.optional(),
   })
   export type RegistryEntry = z.infer<typeof RegistryEntry>
 
@@ -302,6 +307,7 @@ export namespace McpRegistry {
         },
         {
           type: "api-key",
+          key: "RAILWAY_TOKEN",
           description: "Railway API token (set RAILWAY_TOKEN)",
         },
       ],
@@ -315,6 +321,18 @@ export namespace McpRegistry {
 2. Set environment variable: RAILWAY_TOKEN=your_token
 3. The MCP server will use the token automatically
       `,
+      auth: {
+        mode: "env",
+        required: true,
+        displayLabel: "Railway token required",
+        envKeys: ["RAILWAY_TOKEN"],
+        setupDocs: "Get your Railway token from Railway Dashboard > Settings and export RAILWAY_TOKEN.",
+      },
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: true,
+        requiresSetup: true,
+      },
       tags: ["railway", "cloud", "deployment", "hosting", "devops"],
       featured: true,
     },
@@ -364,6 +382,7 @@ export namespace McpRegistry {
         },
         {
           type: "api-key",
+          key: "SHOPIFY_ACCESS_TOKEN",
           description: "Shopify Store domain and Access Token",
         },
       ],
@@ -384,7 +403,19 @@ export namespace McpRegistry {
    - SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
    - SHOPIFY_ACCESS_TOKEN=your-token
 5. Or provide clientId/clientSecret for OAuth (Dev Dashboard apps Jan 2026+)
-      `,
+       `,
+      auth: {
+        mode: "env",
+        required: true,
+        displayLabel: "Shopify credentials required",
+        envKeys: ["SHOPIFY_STORE_DOMAIN", "SHOPIFY_ACCESS_TOKEN"],
+        setupDocs: "Set SHOPIFY_STORE_DOMAIN and SHOPIFY_ACCESS_TOKEN before enabling the MCP server.",
+      },
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: true,
+        requiresSetup: true,
+      },
       tags: ["shopify", "ecommerce", "store", "api", "graphql"],
       featured: false,
     },
@@ -556,7 +587,7 @@ Slash commands (in Claude Code):
       author: "Anthropic",
       requirements: [
         { type: "nodejs", description: "Node.js with npx", verifyCommand: "node --version" },
-        { type: "api-key", description: "GitHub Personal Access Token (GITHUB_PERSONAL_ACCESS_TOKEN)" },
+        { type: "api-key", key: "GITHUB_PERSONAL_ACCESS_TOKEN", description: "GitHub Personal Access Token (GITHUB_PERSONAL_ACCESS_TOKEN)" },
       ],
       config: {
         type: "local",
@@ -566,6 +597,18 @@ Slash commands (in Claude Code):
       },
       setupInstructions: `1. Create a PAT at https://github.com/settings/tokens (scopes: repo, read:org)
 2. Set GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxx in your environment`,
+      auth: {
+        mode: "env",
+        required: true,
+        displayLabel: "GitHub token required",
+        envKeys: ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+        setupDocs: "Create a PAT and export GITHUB_PERSONAL_ACCESS_TOKEN before enabling the server.",
+      },
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: true,
+        requiresSetup: true,
+      },
       tags: ["github", "git", "vcs", "issues", "pull-requests", "code-review"],
       featured: true,
     },
@@ -578,7 +621,7 @@ Slash commands (in Claude Code):
       author: "zereight",
       requirements: [
         { type: "nodejs", description: "Node.js with npx" },
-        { type: "api-key", description: "GitLab Personal Access Token" },
+        { type: "api-key", key: "GITLAB_TOKEN", description: "GitLab Personal Access Token" },
       ],
       config: {
         type: "local",
@@ -587,6 +630,18 @@ Slash commands (in Claude Code):
         enabled: false,
       },
       setupInstructions: `Set GITLAB_TOKEN and optionally GITLAB_URL for self-hosted instances.`,
+      auth: {
+        mode: "env",
+        required: true,
+        displayLabel: "GitLab token required",
+        envKeys: ["GITLAB_TOKEN"],
+        setupDocs: "Set GITLAB_TOKEN and optionally GITLAB_URL before enabling the server.",
+      },
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: true,
+        requiresSetup: true,
+      },
       tags: ["gitlab", "git", "vcs", "merge-requests", "ci-cd"],
       featured: false,
     },
@@ -600,7 +655,7 @@ Slash commands (in Claude Code):
       author: "Anthropic",
       requirements: [
         { type: "nodejs", description: "Node.js with npx" },
-        { type: "api-key", description: "DATABASE_URL connection string" },
+        { type: "api-key", key: "DATABASE_URL", description: "DATABASE_URL connection string" },
       ],
       config: {
         type: "local",
@@ -608,6 +663,18 @@ Slash commands (in Claude Code):
         enabled: false,
       },
       setupInstructions: `Set DATABASE_URL=postgresql://user:pass@host/db in your environment.`,
+      auth: {
+        mode: "env",
+        required: true,
+        displayLabel: "Database URL required",
+        envKeys: ["DATABASE_URL"],
+        setupDocs: "Set DATABASE_URL before enabling the PostgreSQL MCP server.",
+      },
+      activation: {
+        defaultEnabled: false,
+        autoDisableWhenMissing: true,
+        requiresSetup: true,
+      },
       tags: ["postgres", "postgresql", "sql", "database"],
       featured: true,
     },
@@ -1411,6 +1478,62 @@ HopCoderX connects to the addon endpoint at http://127.0.0.1:6006/mcp by default
 
   export function getInstallInstructions(entry: RegistryEntry): string {
     return entry.setupInstructions || "No setup instructions available."
+  }
+
+  export function getAuth(entry: RegistryEntry): HubManifest.Auth {
+    if (entry.auth) return entry.auth
+
+    const envKeys = entry.requirements
+      .filter((requirement) => requirement.type === "api-key" || requirement.type === "env")
+      .flatMap((requirement) => (requirement.key ? [requirement.key] : []))
+
+    if (envKeys.length > 0) {
+      return {
+        mode: "env",
+        required: true,
+        displayLabel: "Configuration required",
+        envKeys,
+        setupDocs: entry.setupInstructions,
+      }
+    }
+
+    return {
+      mode: "none",
+      required: false,
+      envKeys: [],
+    }
+  }
+
+  export function getActivation(entry: RegistryEntry): HubManifest.Activation {
+    if (entry.activation) return entry.activation
+
+    const auth = getAuth(entry)
+    return {
+      defaultEnabled: Boolean(entry.config.enabled),
+      autoDisableWhenMissing: auth.required,
+      requiresSetup: auth.required || entry.requirements.length > 0,
+    }
+  }
+
+  export function toManifest(entry: RegistryEntry): HubManifest.MCP {
+    return HubManifest.MCP.parse({
+      id: HubManifest.normalizeID("mcp", entry.name),
+      kind: "mcp",
+      name: entry.name,
+      description: entry.description,
+      source: "registry",
+      category: entry.category,
+      tags: entry.tags,
+      author: entry.author,
+      repository: entry.repository,
+      platforms: entry.platform,
+      requirements: entry.requirements,
+      auth: getAuth(entry),
+      activation: getActivation(entry),
+      registryName: entry.name,
+      homepage: entry.repository,
+      docs: entry.setupInstructions ? entry.repository : undefined,
+    })
   }
 
   export function formatConfig(entry: RegistryEntry): Config.Mcp {
