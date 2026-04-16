@@ -148,6 +148,43 @@ export const HubRoutes = lazy(() =>
       },
     )
     .get(
+      "/community",
+      describeRoute({
+        summary: "List community ecosystem entries",
+        description: "Return community-contributed ecosystem references (skills, agents, tools, etc.).",
+        operationId: "hub.community.list",
+        responses: {
+          200: {
+            description: "Community ecosystem entries",
+            content: {
+              "application/json": {
+                schema: resolver(z.array(HubEcosystem.ResolvedEntry)),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "query",
+        z.object({
+          kind: HubEcosystem.Kind.optional(),
+          query: z.string().optional(),
+        }),
+      ),
+      async (c) => {
+        const query = c.req.valid("query")
+        const config = await Config.get()
+        return c.json(
+          await HubEcosystem.listResolved({
+            section: "community",
+            kind: query.kind,
+            query: query.query,
+            configMcp: config.mcp,
+          }),
+        )
+      },
+    )
+    .get(
       "/catalog",
       describeRoute({
         summary: "List hub catalog items",

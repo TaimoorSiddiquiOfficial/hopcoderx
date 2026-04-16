@@ -137,7 +137,7 @@ export const HubCommand = cmd({
       return yargs
         .positional("action", {
           type: "string",
-          choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor", "ecosystem", "workflow", "suggest"] as const,
+          choices: ["search", "install", "publish", "list", "update", "uninstall", "info", "enable", "disable", "auth", "doctor", "ecosystem", "workflow", "suggest", "community"] as const,
           describe: "Action to perform",
         })
       .positional("package", {
@@ -203,6 +203,39 @@ export const HubCommand = cmd({
           console.log(`\nEcosystem entries (${items.length}):\n`)
           for (const item of items) {
             console.log(`  ${item.id} [${item.section}/${item.kind}]`)
+            console.log(`  ${item.description}`)
+            if (item.repository) console.log(`  Repo: ${item.repository}`)
+            if (item.homepage && item.homepage !== item.repository) console.log(`  Homepage: ${item.homepage}`)
+            if (item.links.length > 0) {
+              console.log("  Linked Hub items:")
+              for (const link of item.links) {
+                console.log(`    - ${link.id} [${link.kind}] — ${link.name}`)
+              }
+            }
+            console.log()
+          }
+          return
+        }
+
+        if (action === "community") {
+          const query = args.package?.toLowerCase()
+          const items = await HubEcosystem.listResolved({
+            section: "community",
+            kind: args.type as any,
+            query,
+            configMcp: config.mcp,
+          })
+          if (args.json) {
+            console.log(JSON.stringify(items, null, 2))
+            return
+          }
+          if (items.length === 0) {
+            console.log("No community ecosystem entries found.")
+            return
+          }
+          console.log(`\nCommunity ecosystem (${items.length}):\n`)
+          for (const item of items) {
+            console.log(`  ${item.id} [${item.kind}]`)
             console.log(`  ${item.description}`)
             if (item.repository) console.log(`  Repo: ${item.repository}`)
             if (item.homepage && item.homepage !== item.repository) console.log(`  Homepage: ${item.homepage}`)
