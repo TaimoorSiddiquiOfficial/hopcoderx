@@ -223,6 +223,11 @@ jobs:
         working-directory: packages/plugin
         run: bun run script/publish.ts
 
+      - name: Explain common plugin publish failure
+        if: ${{ failure() }}
+        run: |
+          echo "::warning::@hopcoderx/plugin exists on npm already. If publish failed with a 404 PUT to registry.npmjs.org, the most likely cause is that NPM_TOKEN lacks publish access to @hopcoderx/plugin (for example a granular token without that package enabled), even if the same token can publish @hopcoderx/sdk."
+
   # ─── Finalize ──────────────────────────────────────────────────────
   finalize:
     needs: [validate, publish-cli, publish-sdk, publish-plugin]
