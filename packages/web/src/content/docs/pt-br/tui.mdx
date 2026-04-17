@@ -1,22 +1,22 @@
 ---
 title: TUI
-description: Usando a interface de usuário de terminal HopCoderX.
+description: Usando a interface de usuário de terminal opencode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-O HopCoderX fornece uma interface de terminal interativa ou TUI para trabalhar em seus projetos com um LLM.
+O opencode fornece uma interface de terminal interativa ou TUI para trabalhar em seus projetos com um LLM.
 
-Executar HopCoderX inicia o TUI para o diretório atual.
+Executar opencode inicia o TUI para o diretório atual.
 
 ```bash
-HopCoderX
+opencode
 ```
 
 Ou você pode iniciá-lo para um diretório de trabalho específico.
 
 ```bash
-HopCoderX /path/to/project
+opencode /path/to/project
 ```
 
 Uma vez que você esteja no TUI, você pode solicitar com uma mensagem.
@@ -57,7 +57,7 @@ A saída do comando é adicionada à conversa como um resultado de ferramenta.
 
 ## Comandos
 
-Ao usar o TUI do HopCoderX, você pode digitar `/` seguido pelo nome de um comando para executar ações rapidamente. Por exemplo:
+Ao usar o TUI do opencode, você pode digitar `/` seguido pelo nome de um comando para executar ações rapidamente. Por exemplo:
 
 ```bash frame="none"
 /help
@@ -71,7 +71,7 @@ Aqui estão todos os comandos de barra disponíveis:
 
 ### connect
 
-Adicione um provedor ao HopCoderX. Permite que você selecione entre os provedores disponíveis e adicione suas chaves de API.
+Adicione um provedor ao opencode. Permite que você selecione entre os provedores disponíveis e adicione suas chaves de API.
 
 ```bash frame="none"
 /connect
@@ -117,7 +117,7 @@ Abra um editor externo para compor mensagens. Usa o editor definido na sua vari�
 
 ### exit
 
-Saia do HopCoderX. _Aliases_: `/quit`, `/q`
+Saia do opencode. _Aliases_: `/quit`, `/q`
 
 ```bash frame="none"
 /exit
@@ -234,7 +234,7 @@ Compartilhe a sessão atual. [Saiba mais](/docs/share).
 Liste os temas disponíveis.
 
 ```bash frame="none"
-/theme
+/themes
 ```
 
 **Atalho:** `ctrl+x t`
@@ -352,24 +352,34 @@ Alguns editores precisam de argumentos de linha de comando para rodar em modo bl
 
 ## Configuração
 
-Você pode personalizar o comportamento do TUI através do seu arquivo de configuração do HopCoderX.
+Você pode personalizar o comportamento do TUI através de `tui.json` (ou `tui.jsonc`).
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
-  "tui": {
-    "scroll_speed": 3,
-    "scroll_acceleration": {
-      "enabled": true
-    }
-  }
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "opencode",
+  "keybinds": {
+    "leader": "ctrl+x"
+  },
+  "scroll_speed": 3,
+  "scroll_acceleration": {
+    "enabled": true
+  },
+  "diff_style": "auto"
 }
 ```
 
+Isso é separado do `opencode.json`, que configura o comportamento do servidor/runtime.
+
 ### Opções
 
-- `scroll_acceleration` - Ative a aceleração de rolagem no estilo macOS para uma rolagem suave e natural. Quando ativado, a velocidade de rolagem aumenta com gestos de rolagem rápidos e permanece precisa para movimentos mais lentos. **Esta configuração tem precedência sobre `scroll_speed` e a substitui quando ativada.**
-- `scroll_speed` - Controla quão rápido o TUI rola ao usar comandos de rolagem (mínimo: `1`). O padrão é `3`. **Nota: Isso é ignorado se `scroll_acceleration.enabled` estiver definido como `true`.**
+- `theme` - Define o tema da sua interface. [Saiba mais](/docs/themes).
+- `keybinds` - Personaliza atalhos de teclado. [Saiba mais](/docs/keybinds).
+- `scroll_acceleration.enabled` - Ative a aceleração de rolagem no estilo macOS para uma rolagem suave e natural. Quando ativado, a velocidade de rolagem aumenta com gestos de rolagem rápidos e permanece precisa para movimentos mais lentos. **Esta configuração tem precedência sobre `scroll_speed` e a substitui quando ativada.**
+- `scroll_speed` - Controla quão rápido o TUI rola ao usar comandos de rolagem (mínimo: `0.001`, suporta valores decimais). O padrão é `3`. **Nota: Isso é ignorado se `scroll_acceleration.enabled` estiver definido como `true`.**
+- `diff_style` - Controla a renderização de diffs. `"auto"` se adapta à largura do terminal, `"stacked"` sempre mostra um layout de coluna única.
+
+Use `OPENCODE_TUI_CONFIG` para carregar um caminho de configuração TUI personalizado.
 
 ---
 

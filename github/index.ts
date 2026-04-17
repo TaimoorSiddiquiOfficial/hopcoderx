@@ -6,8 +6,9 @@ import * as core from "@actions/core"
 import * as github from "@actions/github"
 import type { Context as GitHubContext } from "@actions/github/lib/context"
 import type { IssueCommentEvent, PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
-import { createHopCoderXClient } from "@hopcoderx/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 import { spawn } from "node:child_process"
+import { setTimeout as sleep } from "node:timers/promises"
 
 type GitHubAuthor = {
   login: string
@@ -112,7 +113,7 @@ type IssueQueryResponse = {
   }
 }
 
-const { client, server } = createHopCoderX()
+const { client, server } = createOpencode()
 let accessToken: string
 let octoRest: Octokit
 let octoGraph: typeof graphql
@@ -126,7 +127,7 @@ type PromptFiles = Awaited<ReturnType<typeof getUserPrompt>>["promptFiles"]
 try {
   assertContextEvent("issue_comment", "pull_request_review_comment")
   assertPayloadKeyword()
-  await assertHopCoderXConnected()
+  await assertOpencodeConnected()
 
   accessToken = await getAccessToken()
   octoRest = new Octokit({ auth: accessToken })
@@ -141,7 +142,7 @@ try {
   const comment = await createComment()
   commentId = comment.data.id
 
-  // Setup HopCoderX session
+  // Setup opencode session
   const repoData = await fetchRepo()
   session = await client.session.create<true>().then((r) => r.data)
   await subscribeSessionEvents()
@@ -151,7 +152,7 @@ try {
     await client.session.share<true>({ path: session })
     return session.id.slice(-8)
   })()
-  console.log("HopCoderX session", session.id)
+  console.log("opencode session", session.id)
   if (shareId) {
     console.log("Share link:", `${useShareUrl()}/s/${shareId}`)
   }
@@ -227,12 +228,12 @@ try {
 }
 process.exit(exitCode)
 
-function createHopCoderX() {
+function createOpencode() {
   const host = "127.0.0.1"
   const port = 4096
   const url = `http://${host}:${port}`
-  const proc = spawn(`HopCoderX`, [`serve`, `--hostname=${host}`, `--port=${port}`])
-  const client = createHopCoderXClient({ baseUrl: url })
+  const proc = spawn(`opencode`, [`serve`, `--hostname=${host}`, `--port=${port}`])
+  const client = createOpencodeClient({ baseUrl: url })
 
   return {
     server: { url, close: () => proc.kill() },
@@ -243,8 +244,8 @@ function createHopCoderX() {
 function assertPayloadKeyword() {
   const payload = useContext().payload as IssueCommentEvent | PullRequestReviewCommentEvent
   const body = payload.comment.body.trim()
-  if (!body.match(/(?:^|\s)(?:\/HopCoderX|\/oc)(?=$|\s)/)) {
-    throw new Error("Comments must mention `/HopCoderX` or `/oc`")
+  if (!body.match(/(?:^|\s)(?:\/opencode|\/oc)(?=$|\s)/)) {
+    throw new Error("Comments must mention `/opencode` or `/oc`")
   }
 }
 
@@ -266,7 +267,7 @@ function getReviewCommentContext() {
   }
 }
 
-async function assertHopCoderXConnected() {
+async function assertOpencodeConnected() {
   let retry = 0
   let connected = false
   do {
@@ -280,12 +281,12 @@ async function assertHopCoderXConnected() {
       })
       connected = true
       break
-    } catch (e) {}
-    await Bun.sleep(300)
+    } catch {}
+    await sleep(300)
   } while (retry++ < 30)
 
   if (!connected) {
-    throw new Error("Failed to connect to HopCoderX server")
+    throw new Error("Failed to connect to opencode server")
   }
 }
 
@@ -362,7 +363,7 @@ function useIssueId() {
 }
 
 function useShareUrl() {
-  return isMock() ? "https://dev.hopcoderx.dev" : "https://hopcoderx.dev"
+  return isMock() ? "https://dev.opencode.ai" : "https://opencode.ai"
 }
 
 async function getAccessToken() {
@@ -373,7 +374,7 @@ async function getAccessToken() {
 
   let response
   if (isMock()) {
-    response = await fetch("https://api.hopcoderx.dev/exchange_github_app_token_with_pat", {
+    response = await fetch("https://api.opencode.ai/exchange_github_app_token_with_pat", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${useEnvMock().mockToken}`,
@@ -381,8 +382,8 @@ async function getAccessToken() {
       body: JSON.stringify({ owner: repo.owner, repo: repo.repo }),
     })
   } else {
-    const oidcToken = await core.getIDToken("HopCoderX-github-action")
-    response = await fetch("https://api.hopcoderx.dev/exchange_github_app_token", {
+    const oidcToken = await core.getIDToken("opencode-github-action")
+    response = await fetch("https://api.opencode.ai/exchange_github_app_token", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${oidcToken}`,
@@ -417,19 +418,19 @@ async function getUserPrompt() {
 
   let prompt = (() => {
     const body = payload.comment.body.trim()
-    if (body === "/HopCoderX" || body === "/oc") {
+    if (body === "/opencode" || body === "/oc") {
       if (reviewContext) {
         return `Review this code change and suggest improvements for the commented lines:\n\nFile: ${reviewContext.file}\nLines: ${reviewContext.line}\n\n${reviewContext.diffHunk}`
       }
       return "Summarize this thread"
     }
-    if (body.includes("/HopCoderX") || body.includes("/oc")) {
+    if (body.includes("/opencode") || body.includes("/oc")) {
       if (reviewContext) {
         return `${body}\n\nContext: You are reviewing a comment on file "${reviewContext.file}" at line ${reviewContext.line}.\n\nDiff context:\n${reviewContext.diffHunk}`
       }
       return body
     }
-    throw new Error("Comments must mention `/HopCoderX` or `/oc`")
+    throw new Error("Comments must mention `/opencode` or `/oc`")
   })()
 
   // Handle images
@@ -495,7 +496,6 @@ async function subscribeSessionEvents() {
 
   const TOOL: Record<string, [string, string]> = {
     todowrite: ["Todo", "\x1b[33m\x1b[1m"],
-    todoread: ["Todo", "\x1b[33m\x1b[1m"],
     bash: ["Bash", "\x1b[31m\x1b[1m"],
     edit: ["Edit", "\x1b[32m\x1b[1m"],
     glob: ["Glob", "\x1b[34m\x1b[1m"],
@@ -513,7 +513,7 @@ async function subscribeSessionEvents() {
   const decoder = new TextDecoder()
 
   let text = ""
-  ;(async () => {
+  void (async () => {
     while (true) {
       try {
         const { done, value } = await reader.read()
@@ -542,7 +542,7 @@ async function subscribeSessionEvents() {
                     ? JSON.stringify(part.state.input)
                     : "Unknown"
                 console.log()
-                console.log(color + `|`, "\x1b[0m\x1b[2m" + ` ${tool.padEnd(7, " ")}`, "", "\x1b[0m" + title)
+                console.log(`${color}|`, `\x1b[0m\x1b[2m ${tool.padEnd(7, " ")}`, "", `\x1b[0m${title}`)
               }
 
               if (part.type === "text") {
@@ -561,7 +561,7 @@ async function subscribeSessionEvents() {
               if (evt.properties.info.id !== session.id) continue
               session = evt.properties.info
             }
-          } catch (e) {
+          } catch {
             // Ignore parse errors
           }
         }
@@ -576,7 +576,7 @@ async function subscribeSessionEvents() {
 async function summarize(response: string) {
   try {
     return await chat(`Summarize the following in less than 40 characters:\n\n${response}`)
-  } catch (e) {
+  } catch {
     if (isScheduleEvent()) {
       return "Scheduled task changes"
     }
@@ -607,7 +607,7 @@ async function resolveAgent(): Promise<string | undefined> {
 }
 
 async function chat(text: string, files: PromptFiles = []) {
-  console.log("Sending message to HopCoderX...")
+  console.log("Sending message to opencode...")
   const { providerID, modelID } = useEnvModel()
   const agent = await resolveAgent()
 
@@ -663,8 +663,8 @@ async function configureGit(appToken: string) {
 
   await $`git config --local --unset-all ${config}`
   await $`git config --local ${config} "AUTHORIZATION: basic ${newCredentials}"`
-  await $`git config --global user.name "HopCoderX-agent[bot]"`
-  await $`git config --global user.email "HopCoderX-agent[bot]@users.noreply.github.com"`
+  await $`git config --global user.name "opencode-agent[bot]"`
+  await $`git config --global user.email "opencode-agent[bot]@users.noreply.github.com"`
 }
 
 async function restoreGitConfig() {
@@ -710,7 +710,7 @@ function generateBranchName(type: "issue" | "pr") {
     .replace(/\.\d{3}Z/, "")
     .split("T")
     .join("")
-  return `HopCoderX/${type}${useIssueId()}-${timestamp}`
+  return `opencode/${type}${useIssueId()}-${timestamp}`
 }
 
 async function pushToNewBranch(summary: string, branch: string) {
@@ -776,7 +776,7 @@ async function assertPermissions() {
     console.log(`  permission: ${permission}`)
   } catch (error) {
     console.error(`Failed to check permissions: ${error}`)
-    throw new Error(`Failed to check permissions for user ${actor}: ${error}`)
+    throw new Error(`Failed to check permissions for user ${actor}: ${error}`, { cause: error })
   }
 
   if (!["admin", "write"].includes(permission)) throw new Error(`User ${actor} does not have write permissions`)
@@ -821,9 +821,9 @@ function footer(opts?: { image?: boolean }) {
     const titleAlt = encodeURIComponent(session.title.substring(0, 50))
     const title64 = Buffer.from(session.title.substring(0, 700), "utf8").toString("base64")
 
-    return `<a href="${useShareUrl()}/s/${shareId}"><img width="200" alt="${titleAlt}" src="https://social-cards.sst.dev/HopCoderX-share/${title64}.png?model=${providerID}/${modelID}&version=${session.version}&id=${shareId}" /></a>\n`
+    return `<a href="${useShareUrl()}/s/${shareId}"><img width="200" alt="${titleAlt}" src="https://social-cards.sst.dev/opencode-share/${title64}.png?model=${providerID}/${modelID}&version=${session.version}&id=${shareId}" /></a>\n`
   })()
-  const shareUrl = shareId ? `[HopCoderX session](${useShareUrl()}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
+  const shareUrl = shareId ? `[opencode session](${useShareUrl()}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
   return `\n\n${image}${shareUrl}[github run](${useEnvRunUrl()})`
 }
 

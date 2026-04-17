@@ -1,8 +1,8 @@
 import "./index.css"
 import { Title, Meta } from "@solidjs/meta"
 //import { HttpHeader } from "@solidjs/start"
-import video from "../asset/lander/HopCoderX-min.mp4"
-import videoPoster from "../asset/lander/HopCoderX-poster.png"
+import video from "../asset/lander/opencode-min.mp4"
+import videoPoster from "../asset/lander/opencode-poster.png"
 import { IconCopy, IconCheck } from "../component/icon"
 import { A, createAsync } from "@solidjs/router"
 import { EmailSignup } from "~/component/email-signup"
@@ -12,7 +12,6 @@ import { Header } from "~/component/header"
 import { Footer } from "~/component/footer"
 import { Legal } from "~/component/legal"
 import { github } from "~/lib/github"
-import { createMemo } from "solid-js"
 import { config } from "~/config"
 import { useI18n } from "~/context/i18n"
 import { useLanguage } from "~/context/language"
@@ -30,14 +29,12 @@ function CopyStatus() {
 export default function Home() {
   const i18n = useI18n()
   const language = useLanguage()
-  const githubData = createAsync(() => github())
-  const release = createMemo(() => githubData()?.release)
-
+  const _githubData = createAsync(() => github())
   const handleCopyClick = (event: Event) => {
     const button = event.currentTarget as HTMLButtonElement
     const text = button.textContent
     if (text) {
-      navigator.clipboard.writeText(text)
+      void navigator.clipboard.writeText(text)
       button.setAttribute("data-copied", "")
       setTimeout(() => {
         button.removeAttribute("data-copied")
@@ -46,7 +43,7 @@ export default function Home() {
   }
 
   return (
-    <main data-page="hopcoderx">
+    <main data-page="opencode">
       {/*<HttpHeader name="Cache-Control" value="public, max-age=1, s-maxage=3600, stale-while-revalidate=86400" />*/}
       <Title>{i18n.t("home.title")}</Title>
       <LocaleLinks path="/" />
@@ -118,7 +115,7 @@ export default function Home() {
                       <span data-slot="command-script">
                         <span>curl -fsSL </span>
                         <span data-slot="protocol">https://</span>
-                        <span data-slot="highlight">hopcoderx.dev/install</span>
+                        <span data-slot="highlight">opencode.ai/install</span>
                         <span> | bash</span>
                       </span>
                       <CopyStatus />
@@ -128,7 +125,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">npm i -g </span>
-                        <span data-slot="highlight">HopCoderX-ai</span>
+                        <span data-slot="highlight">opencode-ai</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -137,7 +134,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">bun add -g </span>
-                        <span data-slot="highlight">HopCoderX-ai</span>
+                        <span data-slot="highlight">opencode-ai</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -146,7 +143,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">brew install </span>
-                        <span data-slot="highlight">TaimoorSiddiquiOfficial/tap/hopcoderx</span>
+                        <span data-slot="highlight">anomalyco/tap/opencode</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -155,7 +152,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">paru -S </span>
-                        <span data-slot="highlight">HopCoderX</span>
+                        <span data-slot="highlight">opencode</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -681,9 +678,9 @@ export default function Home() {
               </li>
               <li>
                 <Faq question={i18n.t("home.faq.q3")}>
-                  {i18n.t("home.faq.a3.p1")} {i18n.t("home.faq.a3.p2.beforeBdr")}{" "}
-                  <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
-                  {i18n.t("home.faq.a3.p2.afterBdr")} {i18n.t("home.faq.a3.p3")} {i18n.t("home.faq.a3.p4.beforeLocal")}{" "}
+                  {i18n.t("home.faq.a3.p1")} {i18n.t("home.faq.a3.p2.beforeZen")}{" "}
+                  <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
+                  {i18n.t("home.faq.a3.p2.afterZen")} {i18n.t("home.faq.a3.p3")} {i18n.t("home.faq.a3.p4.beforeLocal")}{" "}
                   <a href={language.route("/docs/providers/#lm-studio")} target="_blank">
                     {i18n.t("home.faq.a3.p4.localLink")}
                   </a>
@@ -709,7 +706,7 @@ export default function Home() {
               <li>
                 <Faq question={i18n.t("home.faq.q7")}>
                   {i18n.t("home.faq.a7.p1")} {i18n.t("home.faq.a7.p2.beforeModels")}{" "}
-                  <a href={language.route("/docs/bdr/#privacy")}>{i18n.t("home.faq.a7.p2.modelsLink")}</a>{" "}
+                  <a href={language.route("/docs/zen/#privacy")}>{i18n.t("home.faq.a7.p2.modelsLink")}</a>{" "}
                   {i18n.t("home.faq.a7.p2.and")}{" "}
                   <a href={language.route("/docs/share/#privacy")}>{i18n.t("home.faq.a7.p2.shareLink")}</a>.
                 </Faq>
@@ -730,10 +727,10 @@ export default function Home() {
             </ul>
           </section>
 
-          <section data-component="bdr-cta">
-            <div data-slot="bdr-cta-copy">
-              <strong>{i18n.t("home.bdrCta.title")}</strong>
-              <p>{i18n.t("home.bdrCta.body")}</p>
+          <section data-component="zen-cta">
+            <div data-slot="zen-cta-copy">
+              <strong>{i18n.t("home.zenCta.title")}</strong>
+              <p>{i18n.t("home.zenCta.body")}</p>
               <div data-slot="model-logos">
                 <div>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -815,8 +812,8 @@ export default function Home() {
                   </svg>
                 </div>
               </div>
-              <A href={language.route("/bdr")}>
-                <span>{i18n.t("home.bdrCta.link")} </span>
+              <A href={language.route("/zen")}>
+                <span>{i18n.t("home.zenCta.link")} </span>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     d="M6.5 12L17 12M13 16.5L17.5 12L13 7.5"

@@ -1,18 +1,18 @@
 import { createStore, reconcile } from "solid-js/store"
 import { batch, createEffect, createMemo, onCleanup } from "solid-js"
 import { useParams } from "@solidjs/router"
-import { createSimpleContext } from "@hopcoderx/ui/context"
+import { createSimpleContext } from "@opencode-ai/ui/context"
 import { useGlobalSDK } from "./global-sdk"
 import { useGlobalSync } from "./global-sync"
 import { usePlatform } from "@/context/platform"
 import { useLanguage } from "@/context/language"
 import { useSettings } from "@/context/settings"
-import { Binary } from "@hopcoderx/util/binary"
-import { base64Encode } from "@hopcoderx/util/encode"
+import { Binary } from "@opencode-ai/shared/util/binary"
+import { base64Encode } from "@opencode-ai/shared/util/encode"
 import { decode64 } from "@/utils/base64"
-import { EventSessionError } from "@hopcoderx/sdk/v2"
+import { EventSessionError } from "@opencode-ai/sdk/v2"
 import { Persist, persisted } from "@/utils/persist"
-import { playSound, soundSrc } from "@/utils/sound"
+import { playSoundById } from "@/utils/sound"
 
 type NotificationBase = {
   directory?: string
@@ -234,7 +234,7 @@ export const { use: useNotification, provider: NotificationProvider } = createSi
         if (session.parentID) return
 
         if (settings.sounds.agentEnabled()) {
-          playSound(soundSrc(settings.sounds.agent()))
+          void playSoundById(settings.sounds.agent())
         }
 
         append({
@@ -263,7 +263,7 @@ export const { use: useNotification, provider: NotificationProvider } = createSi
         if (session?.parentID) return
 
         if (settings.sounds.errorsEnabled()) {
-          playSound(soundSrc(settings.sounds.errors()))
+          void playSoundById(settings.sounds.errors())
         }
 
         const error = "error" in event.properties ? event.properties.error : undefined

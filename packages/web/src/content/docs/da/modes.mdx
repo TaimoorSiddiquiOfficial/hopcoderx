@@ -4,14 +4,14 @@ description: Forskellige tilstande til forskellige anvendelsestilfælde.
 ---
 
 :::caution
-Tilstande er nu konfigureret gennem indstillingen `agent` i HopCoderX-konfigurationen. De
+Tilstande er nu konfigureret gennem indstillingen `agent` i opencode-konfigurationen. De
 `mode` mulighed er nu forældet. [Learn more](/docs/agents).
 :::
 
-Tilstande i HopCoderX giver dig mulighed for at tilpasse adfærd, værktøjer og prompter til forskellige brugstilfælde.
+Tilstande i opencode giver dig mulighed for at tilpasse adfærd, værktøjer og prompter til forskellige brugstilfælde.
 
 Den kommer med to indbyggede tilstande: **build** og **plan**. Du kan tilpasse
-disse eller konfigurer dine egne gennem HopCoderX-konfigurationen.
+disse eller konfigurer dine egne gennem opencode-konfigurationen.
 
 Du kan skifte mellem tilstande under en session eller konfigurere dem i din konfigurationsfil.
 
@@ -19,7 +19,7 @@ Du kan skifte mellem tilstande under en session eller konfigurere dem i din konf
 
 ## Indbyggede
 
-HopCoderX leveres med to indbyggede tilstande.
+opencode leveres med to indbyggede tilstande.
 
 ---
 
@@ -34,7 +34,7 @@ Byg er **standard**-tilstanden med alle værktøjer aktiveret. Dette er standard
 En begrænset tilstand designet til planlægning og analyse. I plantilstand er følgende værktøjer deaktiveret som standard:
 
 - `write` - Kan ikke oprette nye filer
-- `edit` - Kan ikke ændre eksisterende filer, undtagen filer placeret på `.HopCoderX/plans/*.md` for at detaljere selve planen
+- `edit` - Kan ikke ændre eksisterende filer, undtagen filer placeret på `.opencode/plans/*.md` for at detaljere selve planen
 - `patch` - Kan ikke anvende patches
 - `bash` - Kan ikke udføre shell-kommandoer
 
@@ -56,11 +56,11 @@ Du kan tilpasse de indbyggede tilstande eller oprette dine egne gennem konfigura
 
 ### JSON-konfiguration
 
-Konfigurer tilstande i din `HopCoderX.json`-konfigurationsfil:
+Konfigurer tilstande i din `opencode.json`-konfigurationsfil:
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mode": {
     "build": {
       "model": "anthropic/claude-sonnet-4-20250514",
@@ -87,10 +87,10 @@ Konfigurer tilstande i din `HopCoderX.json`-konfigurationsfil:
 
 Du kan også definere tilstande ved hjælp af markdown-filer. Placer dem i:
 
-- Globalt: `~/.config/HopCoderX/modes/`
-- Projekt: `.HopCoderX/modes/`
+- Globalt: `~/.config/opencode/modes/`
+- Projekt: `.opencode/modes/`
 
-```markdown title="~/.config/HopCoderX/modes/review.md"
+```markdown title="~/.config/opencode/modes/review.md"
 ---
 model: anthropic/claude-sonnet-4-20250514
 temperature: 0.1
@@ -120,7 +120,7 @@ Lad os se nærmere på disse konfigurationsmuligheder.
 
 Brug `model`-konfigurationen til at tilsidesætte standardmodellen for denne tilstand. Nyttigt til brug af forskellige modeller optimeret til forskellige opgaver. For eksempel en hurtigere model til planlægning, en mere dygtig model til implementering.
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
   "mode": {
     "plan": {
@@ -136,7 +136,7 @@ Brug `model`-konfigurationen til at tilsidesætte standardmodellen for denne til
 
 Styr tilfældigheden og kreativiteten af ​​AI's svar med `temperature`-konfigurationen. Lavere værdier gør svar mere fokuserede og deterministiske, mens højere værdier øger kreativitet og variabilitet.
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
   "mode": {
     "plan": {
@@ -155,7 +155,7 @@ Temperaturværdier varierer typisk fra 0,0 til 1,0:
 - **0,3-0,5**: Afbalancerede svar med en vis kreativitet, god til generelle udviklingsopgaver
 - **0.6-1.0**: Mere kreative og varierede svar, nyttige til brainstorming og udforskning
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
   "mode": {
     "analyze": {
@@ -173,7 +173,7 @@ Temperaturværdier varierer typisk fra 0,0 til 1,0:
 }
 ```
 
-Hvis der ikke er angivet nogen temperatur, bruger HopCoderX modelspecifikke standarder (typisk 0 for de fleste modeller, 0,55 for Qwen-modeller).
+Hvis der ikke er angivet nogen temperatur, bruger opencode modelspecifikke standarder (typisk 0 for de fleste modeller, 0,55 for Qwen-modeller).
 
 ---
 
@@ -181,7 +181,7 @@ Hvis der ikke er angivet nogen temperatur, bruger HopCoderX modelspecifikke stan
 
 Angiv en brugerdefineret systempromptfil for denne tilstand med `prompt`-konfigurationen. Promptfilen skal indeholde instruktioner, der er specifikke for tilstandens formål.
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
   "mode": {
     "review": {
@@ -192,7 +192,7 @@ Angiv en brugerdefineret systempromptfil for denne tilstand med `prompt`-konfigu
 ```
 
 Denne sti er i forhold til, hvor konfigurationsfilen er placeret. Så dette virker for
-både den globale HopCoderX-konfiguration og den projektspecifikke konfiguration.
+både den globale opencode-konfiguration og den projektspecifikke konfiguration.
 
 ---
 
@@ -233,10 +233,8 @@ Her er alle de værktøjer, der kan styres gennem tilstandskonfigurationen.
 | `read`      | Læs filindhold             |
 | `grep`      | Søg filindhold             |
 | `glob`      | Find filer efter mønster   |
-| `list`      | Liste biblioteksindhold    |
 | `patch`     | Anvend patches til filer   |
 | `todowrite` | Administrer todo-lister    |
-| `todoread`  | Læs todo-lister            |
 | `webfetch`  | Hent webindhold            |
 
 ---
@@ -247,9 +245,9 @@ Du kan oprette dine egne brugerdefinerede tilstande ved at tilføje dem til konf
 
 ### Brug af JSON-konfiguration
 
-```json title="HopCoderX.json" {4-14}
+```json title="opencode.json" {4-14}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mode": {
     "docs": {
       "prompt": "{file:./prompts/documentation.txt}",
@@ -268,9 +266,9 @@ Du kan oprette dine egne brugerdefinerede tilstande ved at tilføje dem til konf
 
 ### Brug af markdown-filer
 
-Opret tilstandsfiler i `.HopCoderX/modes/` for projektspecifikke tilstande eller `~/.config/HopCoderX/modes/` for globale tilstande:
+Opret tilstandsfiler i `.opencode/modes/` for projektspecifikke tilstande eller `~/.config/opencode/modes/` for globale tilstande:
 
-```markdown title=".HopCoderX/modes/debug.md"
+```markdown title=".opencode/modes/debug.md"
 ---
 temperature: 0.1
 tools:
@@ -294,7 +292,7 @@ Focus on:
 Do not make any changes to files. Only investigate and report.
 ```
 
-```markdown title="~/.config/HopCoderX/modes/refactor.md"
+```markdown title="~/.config/opencode/modes/refactor.md"
 ---
 model: anthropic/claude-sonnet-4-20250514
 temperature: 0.2

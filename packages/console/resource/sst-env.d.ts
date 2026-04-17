@@ -95,6 +95,18 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "SALESFORCE_CLIENT_ID": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "SALESFORCE_CLIENT_SECRET": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "SALESFORCE_INSTANCE_URL": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "STRIPE_PUBLISHABLE_KEY": {
       "type": "sst.sst.Secret"
       "value": string
@@ -119,141 +131,150 @@ declare module "sst" {
       "type": "sst.cloudflare.StaticSite"
       "url": string
     }
-    "BDR_BLACK_LIMITS": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "BDR_BLACK_PRICE": {
+    "ZEN_BLACK_PRICE": {
       "plan100": string
       "plan20": string
       "plan200": string
-      "planMini": string
-      "planPro": string
-      "planEngineer": string
       "product": string
       "type": "sst.sst.Linkable"
     }
-    "BDR_MODELS1": {
+    "ZEN_LIMITS": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS10": {
+    "ZEN_LITE_COUPON_FIRST_MONTH_100_INVITEES": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS11": {
+    "ZEN_LITE_PRICE": {
+      "firstMonth100Coupon": string
+      "firstMonth50Coupon": string
+      "price": string
+      "priceInr": number
+      "product": string
+      "type": "sst.sst.Linkable"
+    }
+    "ZEN_MODELS1": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS12": {
+    "ZEN_MODELS10": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS13": {
+    "ZEN_MODELS11": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS14": {
+    "ZEN_MODELS12": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS15": {
+    "ZEN_MODELS13": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS16": {
+    "ZEN_MODELS14": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS17": {
+    "ZEN_MODELS15": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS18": {
+    "ZEN_MODELS16": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS19": {
+    "ZEN_MODELS17": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS2": {
+    "ZEN_MODELS18": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS20": {
+    "ZEN_MODELS19": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS21": {
+    "ZEN_MODELS2": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS22": {
+    "ZEN_MODELS20": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS23": {
+    "ZEN_MODELS21": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS24": {
+    "ZEN_MODELS22": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS25": {
+    "ZEN_MODELS23": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS26": {
+    "ZEN_MODELS24": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS27": {
+    "ZEN_MODELS25": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS28": {
+    "ZEN_MODELS26": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS29": {
+    "ZEN_MODELS27": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS3": {
+    "ZEN_MODELS28": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS30": {
+    "ZEN_MODELS29": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS4": {
+    "ZEN_MODELS3": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS5": {
+    "ZEN_MODELS30": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS6": {
+    "ZEN_MODELS4": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS7": {
+    "ZEN_MODELS5": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS8": {
+    "ZEN_MODELS6": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_MODELS9": {
+    "ZEN_MODELS7": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "BDR_SESSION_SECRET": {
+    "ZEN_MODELS8": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZEN_MODELS9": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZEN_SESSION_SECRET": {
       "type": "sst.sst.Secret"
       "value": string
     }
@@ -270,8 +291,8 @@ declare module "sst" {
     "EnterpriseStorage": cloudflare.R2Bucket
     "GatewayKv": cloudflare.KVNamespace
     "LogProcessor": cloudflare.Service
-    "BdrData": cloudflare.R2Bucket
-    "BdrDataNew": cloudflare.R2Bucket
+    "ZenData": cloudflare.R2Bucket
+    "ZenDataNew": cloudflare.R2Bucket
   }
 }
 

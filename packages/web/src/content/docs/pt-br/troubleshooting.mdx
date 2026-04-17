@@ -3,7 +3,7 @@ title: Solução de Problemas
 description: Problemas comuns e como resolvê-los.
 ---
 
-Para depurar problemas com o HopCoderX, comece verificando os logs e os dados locais que ele armazena no disco.
+Para depurar problemas com o opencode, comece verificando os logs e os dados locais que ele armazena no disco.
 
 ---
 
@@ -11,21 +11,21 @@ Para depurar problemas com o HopCoderX, comece verificando os logs e os dados lo
 
 Os arquivos de log são gravados em:
 
-- **macOS/Linux**: `~/.local/share/HopCoderX/log/`
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.local\share\HopCoderX\log`
+- **macOS/Linux**: `~/.local/share/opencode/log/`
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.local\share\opencode\log`
 
 Os arquivos de log são nomeados com timestamps (por exemplo, `2025-01-09T123456.log`) e os 10 arquivos de log mais recentes são mantidos.
 
-Você pode definir o nível de log com a opção de linha de comando `--log-level` para obter informações de depuração mais detalhadas. Por exemplo, `HopCoderX --log-level DEBUG`.
+Você pode definir o nível de log com a opção de linha de comando `--log-level` para obter informações de depuração mais detalhadas. Por exemplo, `opencode --log-level DEBUG`.
 
 ---
 
 ## Armazenamento
 
-O HopCoderX armazena dados de sessão e outros dados do aplicativo no disco em:
+O opencode armazena dados de sessão e outros dados do aplicativo no disco em:
 
-- **macOS/Linux**: `~/.local/share/HopCoderX/`
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.local\share\HopCoderX`
+- **macOS/Linux**: `~/.local/share/opencode/`
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.local\share\opencode`
 
 Este diretório contém:
 
@@ -39,13 +39,13 @@ Este diretório contém:
 
 ## Aplicativo de Desktop
 
-O HopCoderX Desktop executa um servidor HopCoderX local (o sidecar `HopCoderX-cli`) em segundo plano. A maioria dos problemas é causada por um plugin com mau funcionamento, um cache corrompido ou uma configuração de servidor incorreta.
+O opencode Desktop executa um servidor opencode local (o sidecar `opencode-cli`) em segundo plano. A maioria dos problemas é causada por um plugin com mau funcionamento, um cache corrompido ou uma configuração de servidor incorreta.
 
 ### Verificações rápidas
 
 - Saia completamente do aplicativo e reinicie-o.
 - Se o aplicativo mostrar uma tela de erro, clique em **Reiniciar** e copie os detalhes do erro.
-- Apenas macOS: menu `HopCoderX` -> **Recarregar Webview** (ajuda se a interface estiver em branco/congelada).
+- Apenas macOS: menu `OpenCode` -> **Recarregar Webview** (ajuda se a interface estiver em branco/congelada).
 
 ---
 
@@ -57,28 +57,28 @@ Se o aplicativo de desktop estiver travando ao iniciar, pendurado ou se comporta
 
 Abra seu arquivo de configuração global e procure uma chave `plugin`.
 
-- **macOS/Linux**: `~/.config/HopCoderX/HopCoderX.jsonc` (ou `~/.config/HopCoderX/HopCoderX.json`)
-- **macOS/Linux** (instalações mais antigas): `~/.local/share/HopCoderX/HopCoderX.jsonc`
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\HopCoderX\HopCoderX.jsonc`
+- **macOS/Linux**: `~/.config/opencode/opencode.jsonc` (ou `~/.config/opencode/opencode.json`)
+- **macOS/Linux** (instalações mais antigas): `~/.local/share/opencode/opencode.jsonc`
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\opencode\opencode.jsonc`
 
 Se você tiver plugins configurados, desative-os temporariamente removendo a chave ou definindo-a como um array vazio:
 
 ```jsonc
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [],
 }
 ```
 
 #### Verificando os diretórios de plugins
 
-O HopCoderX também pode carregar plugins locais do disco. Mova-os temporariamente para fora do caminho (ou renomeie a pasta) e reinicie o aplicativo de desktop:
+O opencode também pode carregar plugins locais do disco. Mova-os temporariamente para fora do caminho (ou renomeie a pasta) e reinicie o aplicativo de desktop:
 
 - **Plugins globais**
-  - **macOS/Linux**: `~/.config/HopCoderX/plugins/`
-  - **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\HopCoderX\plugins`
+  - **macOS/Linux**: `~/.config/opencode/plugins/`
+  - **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\opencode\plugins`
 - **Plugins de projeto** (apenas se você usar configuração por projeto)
-  - `<your-project>/.HopCoderX/plugins/`
+  - `<your-project>/.opencode/plugins/`
 
 Se o aplicativo voltar a funcionar, reative os plugins um por um para descobrir qual está causando o problema.
 
@@ -86,22 +86,22 @@ Se o aplicativo voltar a funcionar, reative os plugins um por um para descobrir 
 
 ### Limpando o cache
 
-Se desativar plugins não ajudar (ou se a instalação de um plugin estiver travada), limpe o cache para que o HopCoderX possa reconstruí-lo.
+Se desativar plugins não ajudar (ou se a instalação de um plugin estiver travada), limpe o cache para que o opencode possa reconstruí-lo.
 
-1. Saia completamente do HopCoderX Desktop.
+1. Saia completamente do opencode Desktop.
 2. Exclua o diretório de cache:
 
-- **macOS**: Finder -> `Cmd+Shift+G` -> cole `~/.cache/HopCoderX`
-- **Linux**: exclua `~/.cache/HopCoderX` (ou execute `rm -rf ~/.cache/HopCoderX`)
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.cache\HopCoderX`
+- **macOS**: Finder -> `Cmd+Shift+G` -> cole `~/.cache/opencode`
+- **Linux**: exclua `~/.cache/opencode` (ou execute `rm -rf ~/.cache/opencode`)
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.cache\opencode`
 
-3. Reinicie o HopCoderX Desktop.
+3. Reinicie o opencode Desktop.
 
 ---
 
 ### Corrigindo problemas de conexão com o servidor
 
-O HopCoderX Desktop pode iniciar seu próprio servidor local (padrão) ou conectar-se a uma URL de servidor que você configurou.
+O opencode Desktop pode iniciar seu próprio servidor local (padrão) ou conectar-se a uma URL de servidor que você configurou.
 
 Se você ver um diálogo **"Conexão Falhou"** (ou o aplicativo nunca passa da tela de inicialização), verifique se há uma URL de servidor personalizada.
 
@@ -111,13 +111,13 @@ Na tela inicial, clique no nome do servidor (com o ponto de status) para abrir o
 
 #### Removendo `server.port` / `server.hostname` da sua configuração
 
-Se seu `HopCoderX.json(c)` contiver uma seção `server`, remova-a temporariamente e reinicie o aplicativo de desktop.
+Se seu `opencode.json(c)` contiver uma seção `server`, remova-a temporariamente e reinicie o aplicativo de desktop.
 
 #### Verificando as variáveis de ambiente
 
-Se você tiver `HOPCODERX_PORT` definido em seu ambiente, o aplicativo de desktop tentará usar essa porta para o servidor local.
+Se você tiver `OPENCODE_PORT` definido em seu ambiente, o aplicativo de desktop tentará usar essa porta para o servidor local.
 
-- Desfaça `HOPCODERX_PORT` (ou escolha uma porta livre) e reinicie.
+- Desfaça `OPENCODE_PORT` (ou escolha uma porta livre) e reinicie.
 
 ---
 
@@ -132,21 +132,21 @@ No Linux, algumas configurações do Wayland podem causar janelas em branco ou e
 
 ### Windows: Runtime do WebView2
 
-No Windows, o HopCoderX Desktop requer o **WebView2 Runtime** do Microsoft Edge. Se o aplicativo abrir em uma janela em branco ou não iniciar, instale/atualize o WebView2 e tente novamente.
+No Windows, o opencode Desktop requer o **WebView2 Runtime** do Microsoft Edge. Se o aplicativo abrir em uma janela em branco ou não iniciar, instale/atualize o WebView2 e tente novamente.
 
 ---
 
 ### Windows: Problemas gerais de desempenho
 
-Se você estiver enfrentando desempenho lento, problemas de acesso a arquivos ou problemas no terminal no Windows, tente usar [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). O WSL fornece um ambiente Linux que funciona de forma mais integrada com os recursos do HopCoderX.
+Se você estiver enfrentando desempenho lento, problemas de acesso a arquivos ou problemas no terminal no Windows, tente usar [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). O WSL fornece um ambiente Linux que funciona de forma mais integrada com os recursos do opencode.
 
 ---
 
 ### Notificações não aparecendo
 
-O HopCoderX Desktop só mostra notificações do sistema quando:
+O opencode Desktop só mostra notificações do sistema quando:
 
-- as notificações estão habilitadas para o HopCoderX nas configurações do seu sistema operacional, e
+- as notificações estão habilitadas para o opencode nas configurações do seu sistema operacional, e
 - a janela do aplicativo não está focada.
 
 ---
@@ -155,11 +155,11 @@ O HopCoderX Desktop só mostra notificações do sistema quando:
 
 Se o aplicativo não iniciar e você não conseguir limpar as configurações pela interface, redefina o estado salvo do aplicativo de desktop.
 
-1. Saia do HopCoderX Desktop.
-2. Encontre e exclua estes arquivos (eles estão no diretório de dados do aplicativo HopCoderX Desktop):
+1. Saia do opencode Desktop.
+2. Encontre e exclua estes arquivos (eles estão no diretório de dados do aplicativo opencode Desktop):
 
-- `HopCoderX.settings.dat` (URL do servidor padrão do desktop)
-- `HopCoderX.global.dat` e `HopCoderX.workspace.*.dat` (estado da interface como servidores/projetos recentes)
+- `opencode.settings.dat` (URL do servidor padrão do desktop)
+- `opencode.global.dat` e `opencode.workspace.*.dat` (estado da interface como servidores/projetos recentes)
 
 Para encontrar o diretório rapidamente:
 
@@ -171,13 +171,13 @@ Para encontrar o diretório rapidamente:
 
 ## Obtendo ajuda
 
-Se você estiver enfrentando problemas com o HopCoderX:
+Se você estiver enfrentando problemas com o opencode:
 
 1. **Relatar problemas no GitHub**
 
    A melhor maneira de relatar bugs ou solicitar recursos é através do nosso repositório no GitHub:
 
-   [**github.com/TaimoorSiddiquiOfficial/hopcoderx/issues**](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/issues)
+   [**github.com/anomalyco/opencode/issues**](https://github.com/anomalyco/opencode/issues)
 
    Antes de criar um novo problema, pesquise problemas existentes para ver se seu problema já foi relatado.
 
@@ -185,7 +185,7 @@ Se você estiver enfrentando problemas com o HopCoderX:
 
    Para ajuda em tempo real e discussão da comunidade, junte-se ao nosso servidor Discord:
 
-   [**hopcoderx.dev/discord**](https://hopcoderx.dev/discord)
+   [**opencode.ai/discord**](https://opencode.ai/discord)
 
 ---
 
@@ -195,11 +195,11 @@ Aqui estão alguns problemas comuns e como resolvê-los.
 
 ---
 
-### O HopCoderX não inicia
+### O opencode não inicia
 
 1. Verifique os logs em busca de mensagens de erro
 2. Tente executar com `--print-logs` para ver a saída no terminal
-3. Certifique-se de que você tem a versão mais recente com `HopCoderX upgrade`
+3. Certifique-se de que você tem a versão mais recente com `opencode upgrade`
 
 ---
 
@@ -224,9 +224,9 @@ Exemplos:
 
 - `openai/gpt-4.1`
 - `openrouter/google/gemini-2.5-flash`
-- `HopCoderX/kimi-k2`
+- `opencode/kimi-k2`
 
-Para descobrir quais modelos você tem acesso, execute `HopCoderX models`
+Para descobrir quais modelos você tem acesso, execute `opencode models`
 
 ---
 
@@ -240,10 +240,10 @@ Para resolver isso:
 2. Se o problema persistir, tente limpar sua configuração armazenada:
 
    ```bash
-   rm -rf ~/.local/share/HopCoderX
+   rm -rf ~/.local/share/opencode
    ```
 
-   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.local\share\HopCoderX`
+   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.local\share\opencode`
 
 3. Reautentique-se com seu provedor usando o comando `/connect` na TUI.
 
@@ -251,21 +251,21 @@ Para resolver isso:
 
 ### AI_APICallError e problemas com pacotes de provedores
 
-Se você encontrar erros de chamada de API, isso pode ser devido a pacotes de provedores desatualizados. O HopCoderX instala dinamicamente pacotes de provedores (OpenAI, Anthropic, Google, etc.) conforme necessário e os armazena em cache localmente.
+Se você encontrar erros de chamada de API, isso pode ser devido a pacotes de provedores desatualizados. O opencode instala dinamicamente pacotes de provedores (OpenAI, Anthropic, Google, etc.) conforme necessário e os armazena em cache localmente.
 
 Para resolver problemas com pacotes de provedores:
 
 1. Limpe o cache do pacote de provedores:
 
    ```bash
-   rm -rf ~/.cache/HopCoderX
+   rm -rf ~/.cache/opencode
    ```
 
-   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.cache\HopCoderX`
+   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.cache\opencode`
 
-2. Reinicie o HopCoderX para reinstalar os pacotes de provedores mais recentes
+2. Reinicie o opencode para reinstalar os pacotes de provedores mais recentes
 
-Isso forçará o HopCoderX a baixar as versões mais recentes dos pacotes de provedores, o que muitas vezes resolve problemas de compatibilidade com parâmetros de modelo e alterações na API.
+Isso forçará o opencode a baixar as versões mais recentes dos pacotes de provedores, o que muitas vezes resolve problemas de compatibilidade com parâmetros de modelo e alterações na API.
 
 ---
 
@@ -296,4 +296,4 @@ Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 export DISPLAY=:99.0
 ```
 
-O HopCoderX detectará se você está usando Wayland e preferirá `wl-clipboard`, caso contrário, tentará encontrar ferramentas de área de transferência na ordem: `xclip` e `xsel`.
+O opencode detectará se você está usando Wayland e preferirá `wl-clipboard`, caso contrário, tentará encontrar ferramentas de área de transferência na ordem: `xclip` e `xsel`.

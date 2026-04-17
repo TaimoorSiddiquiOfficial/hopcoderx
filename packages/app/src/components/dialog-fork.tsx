@@ -3,13 +3,13 @@ import { useNavigate, useParams } from "@solidjs/router"
 import { useSync } from "@/context/sync"
 import { useSDK } from "@/context/sdk"
 import { usePrompt } from "@/context/prompt"
-import { useDialog } from "@hopcoderx/ui/context/dialog"
-import { Dialog } from "@hopcoderx/ui/dialog"
-import { List } from "@hopcoderx/ui/list"
-import { showToast } from "@hopcoderx/ui/toast"
+import { useDialog } from "@opencode-ai/ui/context/dialog"
+import { Dialog } from "@opencode-ai/ui/dialog"
+import { List } from "@opencode-ai/ui/list"
+import { showToast } from "@opencode-ai/ui/toast"
 import { extractPromptFromParts } from "@/utils/prompt"
-import type { TextPart as SDKTextPart } from "@hopcoderx/sdk/v2/client"
-import { base64Encode } from "@hopcoderx/util/encode"
+import type { TextPart as SDKTextPart } from "@opencode-ai/sdk/v2/client"
+import { base64Encode } from "@opencode-ai/shared/util/encode"
 import { useLanguage } from "@/context/language"
 
 interface ForkableMessage {
@@ -66,6 +66,7 @@ export const DialogFork: Component = () => {
       directory: sdk.directory,
       attachmentName: language.t("common.attachment"),
     })
+    const dir = base64Encode(sdk.directory)
 
     sdk.client.session
       .fork({ sessionID, messageID: item.id })
@@ -75,10 +76,8 @@ export const DialogFork: Component = () => {
           return
         }
         dialog.close()
-        navigate(`/${base64Encode(sdk.directory)}/session/${forked.data.id}`)
-        requestAnimationFrame(() => {
-          prompt.set(restored)
-        })
+        prompt.set(restored, undefined, { dir, id: forked.data.id })
+        navigate(`/${dir}/session/${forked.data.id}`)
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err)

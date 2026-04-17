@@ -1,68 +1,68 @@
 ---
 title: GitLab
-description: użyj HopCoderX w problemach z GitLabem i zastosujch scalania.
+description: użyj opencode w problemach z GitLabem i zastosujch scalania.
 ---
 
-HopCoderX integruje się z przepływem pracy GitLab poprzez potok GitLab CI/CD lub z GitLab Duo.
+opencode integruje się z przepływem pracy GitLab poprzez potok GitLab CI/CD lub z GitLab Duo.
 
-W obu przypadkach HopCoderX będzie modułem GitLab.
+W obu przypadkach opencode będzie modułem GitLab.
 
 ---
 
 ## GitLab CI
 
-HopCoderX działa w zwykłym potoku GitLab. Możesz wbudować go w potok jako [komponent CI](https://docs.gitlab.com/ee/ci/components/)
+opencode działa w zwykłym potoku GitLab. Możesz wbudować go w potok jako [komponent CI](https://docs.gitlab.com/ee/ci/components/)
 
-Tutaj obowiązkowego przez społeczność komponentu CI/CD dla HopCoderX — [nagyv/gitlab-HopCoderX](https://gitlab.com/nagyv/gitlab-HopCoderX).
+Tutaj obowiązkowego przez społeczność komponentu CI/CD dla opencode — [nagyv/gitlab-opencode](https://gitlab.com/nagyv/gitlab-opencode).
 
 ---
 
 ### Cechy
 
-- **Użyj konfiguracji dla każdego zadania**: Skonfiguruj HopCoderX z niestandardowym katalogiem konfiguracyjnym, na przykładzie `./config/#custom-directory`, aby włączyć lub funkcjonalności na każde wywołanie HopCoderX.
-- **Konfiguracja minimalna**: Komponent CI konfiguruje HopCoderX w tle, wystarczy skonfigurować HopCoderX i początkowy monit.
+- **Użyj konfiguracji dla każdego zadania**: Skonfiguruj opencode z niestandardowym katalogiem konfiguracyjnym, na przykładzie `./config/#custom-directory`, aby włączyć lub funkcjonalności na każde wywołanie opencode.
+- **Konfiguracja minimalna**: Komponent CI konfiguruje opencode w tle, wystarczy skonfigurować opencode i początkowy monit.
 - **Elastyczny**: Komponent CI obsługuje kilka danych, które są stosowane w celu dostosowania jego zachowania
 
 ---
 
 ### Organizować coś
 
-1. Przechowuj dane uwierzytelniające HopCoderX w formacie JSON jako zmienne parametry CI typu pliku w specyfikacji **Ustawienia** > **CI/CD** > **Zmienne**. Zachowaj, aby być oznaczony jako „Zamaskowane i ukryte”.
+1. Przechowuj dane uwierzytelniające opencode w formacie JSON jako zmienne parametry CI typu pliku w specyfikacji **Ustawienia** > **CI/CD** > **Zmienne**. Zachowaj, aby być oznaczony jako „Zamaskowane i ukryte”.
 2. Dodaj elementy do swojego pliku `.gitlab-ci.yml`.
 
    ```yaml title=".gitlab-ci.yml"
    include:
-     - component: $CI_SERVER_FQDN/nagyv/gitlab-HopCoderX/HopCoderX@2
+     - component: $CI_SERVER_FQDN/nagyv/gitlab-opencode/opencode@2
        inputs:
-         config_dir: ${CI_PROJECT_DIR}/HopCoderX-config
-         auth_json: $HOPCODERX_AUTH_JSON # The variable name for your HopCoderX authentication JSON
+         config_dir: ${CI_PROJECT_DIR}/opencode-config
+         auth_json: $OPENCODE_AUTH_JSON # The variable name for your OpenCode authentication JSON
          command: optional-custom-command
          message: "Your prompt here"
    ```
 
-Więcej danych dotyczących użycia [sprawdź opis](https://gitlab.com/explore/catalog/nagyv/gitlab-HopCoderX) tego komponentu.
+Więcej danych dotyczących użycia [sprawdź opis](https://gitlab.com/explore/catalog/nagyv/gitlab-opencode) tego komponentu.
 
 ---
 
 ## Duet GitLab
 
-HopCoderX integruje się z przepływem pracy GitLab.
-Wspomnij o `@HopCoderX` w komentarzu, a HopCoderX wykonaj zadania w ramach swojego potoku GitLab CI.
+opencode integruje się z przepływem pracy GitLab.
+Wspomnij o `@opencode` w komentarzu, a opencode wykonaj zadania w ramach swojego potoku GitLab CI.
 
 ---
 
 ### Cechy
 
-- **Problem związany z segregacją**: Poproś HopCoderX o szczegółowe wyjaśnienie problemu i wyjaśnienie go.
-- **Napraw i zaimplementuj**: Poproś HopCoderX o naprawienie problemu lub zaimplementowanie funkcji.
+- **Problem związany z segregacją**: Poproś opencode o szczegółowe wyjaśnienie problemu i wyjaśnienie go.
+- **Napraw i zaimplementuj**: Poproś opencode o naprawienie problemu lub zaimplementowanie funkcji.
   Utworzył nowy oddział i zgłosi ataku ze sobą.
-- **Bezpieczny**: HopCoderX działa na modułach GitLab.
+- **Bezpieczny**: opencode działa na modułach GitLab.
 
 ---
 
 ### Organizować coś
 
-HopCoderX działa w potoku CI/CD GitLab. Oto, czego potrzebujesz, aby przejść do:
+opencode działa w potoku CI/CD GitLab. Oto, czego potrzebujesz, aby przejść do:
 
 :::tip
 Aktualne instrukcje dotyczące [**dokumentacji GitLab**](https://docs.gitlab.com/user/duo_agent_platform/agent_assistant/).
@@ -82,19 +82,19 @@ Aktualne instrukcje dotyczące [**dokumentacji GitLab**](https://docs.gitlab.com
     ```yaml
     image: node:22-slim
     commands:
-      - echo "Installing HopCoderX"
-      - npm install --global HopCoderX-ai
+      - echo "Installing opencode"
+      - npm install --global opencode-ai
       - echo "Installing glab"
-      - export GITLAB_TOKEN=$GITLAB_TOKEN_HopCoderX
+      - export GITLAB_TOKEN=$GITLAB_TOKEN_OPENCODE
       - apt-get update --quiet && apt-get install --yes curl wget gpg git && rm --recursive --force /var/lib/apt/lists/*
       - curl --silent --show-error --location "https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository" | bash
       - apt-get install --yes glab
       - echo "Configuring glab"
       - echo $GITLAB_HOST
-      - echo "Creating HopCoderX auth configuration"
-      - mkdir --parents ~/.local/share/HopCoderX
+      - echo "Creating OpenCode auth configuration"
+      - mkdir --parents ~/.local/share/opencode
       - |
-        cat > ~/.local/share/HopCoderX/auth.json << EOF
+        cat > ~/.local/share/opencode/auth.json << EOF
         {
           "anthropic": {
             "type": "api",
@@ -103,13 +103,13 @@ Aktualne instrukcje dotyczące [**dokumentacji GitLab**](https://docs.gitlab.com
         }
         EOF
       - echo "Configuring git"
-      - git config --global user.email "HopCoderX@gitlab.com"
-      - git config --global user.name "hopcoderx"
+      - git config --global user.email "opencode@gitlab.com"
+      - git config --global user.name "OpenCode"
       - echo "Testing glab"
       - glab issue list
-      - echo "Running HopCoderX"
+      - echo "Running OpenCode"
       - |
-        HopCoderX run "
+        opencode run "
         You are an AI assistant helping with GitLab operations.
 
         Context: $AI_FLOW_CONTEXT
@@ -146,7 +146,7 @@ Aktualne instrukcje dotyczące [**dokumentacji GitLab**](https://docs.gitlab.com
         fi
     variables:
       - ANTHROPIC_API_KEY
-      - GITLAB_TOKEN_HopCoderX
+      - GITLAB_TOKEN_OPENCODE
       - GITLAB_HOST
     ```
 
@@ -158,10 +158,10 @@ Szczegółowe instrukcje w [dokumentacji agentów GitLab CLI](https://docs.gitla
 
 ### Przykłady
 
-Oto kilka możliwości wykorzystania HopCoderX w GitLabie.
+Oto kilka możliwości wykorzystania opencode w GitLabie.
 
 :::tip
-Można zastosować inną metodę ograniczającą niż `@HopCoderX`.
+Można zastosować inną metodę ograniczającą niż `@opencode`.
 :::
 
 - **Wyjaśnij problem**
@@ -169,27 +169,27 @@ Można zastosować inną metodę ograniczającą niż `@HopCoderX`.
   Dodaj dziesięć komentarzy w numerze GitLab.
 
   ```
-  @HopCoderX explain this issue
+  @opencode explain this issue
   ```
 
-  HopCoderX przeczytaj problem i odpowiedź z wyjaśnieniem.
+  opencode przeczytaj problem i odpowiedź z wyjaśnieniem.
 
 - **Napraw problem**
 
   W numerze GitLab powiedz:
 
   ```
-  @HopCoderX fix this
+  @opencode fix this
   ```
 
-  HopCoderX utworzy nową podstawę, zaimplementuje zmiany i spowoduje, że skalowanie będzie możliwe.
+  opencode utworzy nową podstawę, zaimplementuje zmiany i spowoduje, że skalowanie będzie możliwe.
 
 - **Przejrzyj prośby o połączenie**
 
   Zostaw komentarz w sprawie rozwiązania połączenia GitLab.
 
   ```
-  @HopCoderX review this merge request
+  @opencode review this merge request
   ```
 
-  HopCoderX sprawdzenie rozwiązania i przepuszczenie.
+  opencode sprawdzenie rozwiązania i przepuszczenie.

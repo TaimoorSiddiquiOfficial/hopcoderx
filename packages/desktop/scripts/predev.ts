@@ -6,10 +6,10 @@ const RUST_TARGET = Bun.env.TAURI_ENV_TARGET_TRIPLE
 
 const sidecarConfig = getCurrentSidecar(RUST_TARGET)
 
-const binaryPath = windowsify(`../hopcoderx/dist/${sidecarConfig.ocBinary}/bin/hopcoderx`)
+const binaryPath = windowsify(`../opencode/dist/${sidecarConfig.ocBinary}/bin/opencode`)
 
 await (sidecarConfig.ocBinary.includes("-baseline")
-  ? $`cd ../hopcoderx && bun run build --single --baseline`
-  : $`cd ../hopcoderx && bun run build --single`)
+  ? $`cd ../opencode && bun run build --single --baseline`
+  : $`cd ../opencode && bun run build --single`)
 
 await copyBinaryToSidecarFolder(binaryPath, RUST_TARGET)

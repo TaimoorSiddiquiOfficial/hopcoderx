@@ -1,15 +1,15 @@
 ---
 title: Server LSP
-description: HopCoderX si integra con i tuoi server LSP.
+description: OpenCode si integra con i tuoi server LSP.
 ---
 
-HopCoderX si integra con il tuo Language Server Protocol (LSP) per aiutare l'LLM a interagire con la tua codebase. Usa le diagnostiche per fornire feedback all'LLM.
+OpenCode si integra con il tuo Language Server Protocol (LSP) per aiutare l'LLM a interagire con la tua codebase. Usa le diagnostiche per fornire feedback all'LLM.
 
 ---
 
 ## Integrati
 
-HopCoderX include diversi server LSP integrati per linguaggi popolari:
+OpenCode include diversi server LSP integrati per linguaggi popolari:
 
 | Server LSP         | Estensioni                                                          | Requisiti                                                                |
 | ------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -27,6 +27,7 @@ HopCoderX include diversi server LSP integrati per linguaggi popolari:
 | gopls              | .go                                                                 | comando `go` disponibile                                                 |
 | hls                | .hs, .lhs                                                           | comando `haskell-language-server-wrapper` disponibile                    |
 | jdtls              | .java                                                               | `Java SDK (version 21+)` installato                                      |
+| julials            | .jl                                                                 | `julia` e `LanguageServer.jl` installati                                 |
 | kotlin-ls          | .kt, .kts                                                           | Installazione automatica per progetti Kotlin                             |
 | lua-ls             | .lua                                                                | Installazione automatica per progetti Lua                                |
 | nixd               | .nix                                                                | comando `nixd` disponibile                                               |
@@ -49,14 +50,14 @@ HopCoderX include diversi server LSP integrati per linguaggi popolari:
 I server LSP vengono abilitati automaticamente quando viene rilevata una delle estensioni qui sopra e i requisiti sono soddisfatti.
 
 :::note
-Puoi disabilitare il download automatico dei server LSP impostando la variabile d'ambiente `HOPCODERX_DISABLE_LSP_DOWNLOAD` a `true`.
+Puoi disabilitare il download automatico dei server LSP impostando la variabile d'ambiente `OPENCODE_DISABLE_LSP_DOWNLOAD` a `true`.
 :::
 
 ---
 
 ## Come funziona
 
-Quando HopCoderX apre un file:
+Quando opencode apre un file:
 
 1. Controlla l'estensione del file rispetto a tutti i server LSP abilitati.
 2. Avvia il server LSP appropriato se non e gia in esecuzione.
@@ -65,11 +66,11 @@ Quando HopCoderX apre un file:
 
 ## Configura
 
-Puoi personalizzare i server LSP tramite la sezione `lsp` nella configurazione di HopCoderX.
+Puoi personalizzare i server LSP tramite la sezione `lsp` nella configurazione di opencode.
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {}
 }
 ```
@@ -92,9 +93,9 @@ Vediamo alcuni esempi.
 
 Usa la proprieta `env` per impostare variabili d'ambiente quando avvii il server LSP:
 
-```json title="HopCoderX.json" {5-7}
+```json title="opencode.json" {5-7}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "rust": {
       "env": {
@@ -111,9 +112,9 @@ Usa la proprieta `env` per impostare variabili d'ambiente quando avvii il server
 
 Usa la proprieta `initialization` per passare opzioni di inizializzazione al server LSP. Sono impostazioni specifiche del server inviate durante la richiesta LSP `initialize`:
 
-```json title="HopCoderX.json" {5-9}
+```json title="opencode.json" {5-9}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "initialization": {
@@ -136,18 +137,18 @@ Le opzioni di inizializzazione variano da server a server. Consulta la documenta
 
 Per disabilitare **tutti** i server LSP globalmente, imposta `lsp` a `false`:
 
-```json title="HopCoderX.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": false
 }
 ```
 
 Per disabilitare un server LSP **specifico**, imposta `disabled` a `true`:
 
-```json title="HopCoderX.json" {5}
+```json title="opencode.json" {5}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "disabled": true
@@ -162,9 +163,9 @@ Per disabilitare un server LSP **specifico**, imposta `disabled` a `true`:
 
 Puoi aggiungere server LSP personalizzati specificando il comando e le estensioni file:
 
-```json title="HopCoderX.json" {4-7}
+```json title="opencode.json" {4-7}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "custom-lsp": {
       "command": ["custom-lsp-server", "--stdio"],

@@ -1,18 +1,18 @@
 import "./index.css"
-import { Title, Meta } from "@solidjs/meta"
-import { A, createAsync, query } from "@solidjs/router"
-import { Header } from "~/component/header"
-import { Footer } from "~/component/footer"
-import { IconCopy, IconCheck } from "~/component/icon"
+import { Meta, Title } from "@solidjs/meta"
+import { A } from "@solidjs/router"
+import { createSignal, type JSX, onMount, Show } from "solid-js"
 import { Faq } from "~/component/faq"
-import desktopAppIcon from "../../asset/lander/HopCoderX-desktop-icon.png"
+import { Footer } from "~/component/footer"
+import { Header } from "~/component/header"
+import { IconCheck, IconCopy } from "~/component/icon"
 import { Legal } from "~/component/legal"
+import { LocaleLinks } from "~/component/locale-links"
 import { config } from "~/config"
-import { createSignal, onMount, Show, JSX } from "solid-js"
-import { DownloadPlatform } from "./types"
 import { useI18n } from "~/context/i18n"
 import { useLanguage } from "~/context/language"
-import { LocaleLinks } from "~/component/locale-links"
+import desktopAppIcon from "../../asset/lander/opencode-desktop-icon.png"
+import type { DownloadPlatform } from "./types"
 
 type OS = "macOS" | "Windows" | "Linux" | null
 
@@ -40,8 +40,8 @@ function getDownloadPlatform(os: OS): DownloadPlatform {
   }
 }
 
-function getDownloadHref(platform: DownloadPlatform) {
-  return `/download/${platform}`
+function getDownloadHref(platform: DownloadPlatform, channel: "stable" | "beta" = "stable") {
+  return `/download/${channel}/${platform}`
 }
 
 function IconDownload(props: JSX.SvgSVGAttributes<SVGSVGElement>) {
@@ -77,7 +77,7 @@ export default function Download() {
 
   const handleCopyClick = (command: string) => (event: Event) => {
     const button = event.currentTarget as HTMLButtonElement
-    navigator.clipboard.writeText(command)
+    void navigator.clipboard.writeText(command)
     button.setAttribute("data-copied", "")
     setTimeout(() => {
       button.removeAttribute("data-copied")
@@ -118,34 +118,34 @@ export default function Download() {
             <div data-component="section-content">
               <button
                 data-component="cli-row"
-                onClick={handleCopyClick("curl -fsSL https://hopcoderx.dev/install | bash")}
+                onClick={handleCopyClick("curl -fsSL https://opencode.ai/install | bash")}
               >
                 <code>
-                  curl -fsSL https://<strong>hopcoderx.dev/install</strong> | bash
+                  curl -fsSL https://<strong>opencode.ai/install</strong> | bash
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("npm i -g HopCoderX-ai")}>
+              <button data-component="cli-row" onClick={handleCopyClick("npm i -g opencode-ai")}>
                 <code>
-                  npm i -g <strong>HopCoderX-ai</strong>
+                  npm i -g <strong>opencode-ai</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("bun add -g HopCoderX-ai")}>
+              <button data-component="cli-row" onClick={handleCopyClick("bun add -g opencode-ai")}>
                 <code>
-                  bun add -g <strong>HopCoderX-ai</strong>
+                  bun add -g <strong>opencode-ai</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("brew install TaimoorSiddiquiOfficial/tap/hopcoderx")}>
+              <button data-component="cli-row" onClick={handleCopyClick("brew install anomalyco/tap/opencode")}>
                 <code>
-                  brew install <strong>TaimoorSiddiquiOfficial/tap/hopcoderx</strong>
+                  brew install <strong>anomalyco/tap/opencode</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("paru -S HopCoderX")}>
+              <button data-component="cli-row" onClick={handleCopyClick("paru -S opencode")}>
                 <code>
-                  paru -S <strong>HopCoderX</strong>
+                  paru -S <strong>opencode</strong>
                 </code>
                 <CopyStatus />
               </button>
@@ -157,9 +157,9 @@ export default function Download() {
               <span>[2]</span> {i18n.t("download.section.desktop")}
             </div>
             <div data-component="section-content">
-              <button data-component="cli-row" onClick={handleCopyClick("brew install --cask HopCoderX-desktop")}>
+              <button data-component="cli-row" onClick={handleCopyClick("brew install --cask opencode-desktop")}>
                 <code>
-                  brew install --cask <strong>HopCoderX-desktop</strong>
+                  brew install --cask <strong>opencode-desktop</strong>
                 </code>
                 <CopyStatus />
               </button>
@@ -437,9 +437,9 @@ export default function Download() {
                 <a href={language.route("/docs/providers/#lm-studio")} target="_blank">
                   {i18n.t("download.faq.a3.localLink")}
                 </a>{" "}
-                {i18n.t("download.faq.a3.afterLocal.beforeBdr")}{" "}
-                <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
-                {i18n.t("download.faq.a3.afterBdr")}
+                {i18n.t("download.faq.a3.afterLocal.beforeZen")}{" "}
+                <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
+                {i18n.t("download.faq.a3.afterZen")}
               </Faq>
             </li>
             <li>
@@ -451,9 +451,9 @@ export default function Download() {
             </li>
             <li>
               <Faq question={i18n.t("home.faq.q6")}>
-                {i18n.t("download.faq.a5.p1")} {i18n.t("download.faq.a5.p2.beforeBdr")}{" "}
-                <A href={language.route("/bdr")}>{i18n.t("nav.bdr")}</A>
-                {i18n.t("download.faq.a5.p2.afterBdr")}
+                {i18n.t("download.faq.a5.p1")} {i18n.t("download.faq.a5.p2.beforeZen")}{" "}
+                <A href={language.route("/zen")}>{i18n.t("nav.zen")}</A>
+                {i18n.t("download.faq.a5.p2.afterZen")}
               </Faq>
             </li>
             <li>

@@ -317,7 +317,7 @@ export type StepFinishPart = {
   sessionID: string
   messageID: string
   type: "step-finish"
-  reason?: string
+  reason: string
   snapshot?: string
   cost: number
   tokens: {
@@ -701,17 +701,6 @@ export type EventServerConnected = {
   }
 }
 
-export type EventContextUpdated = {
-  type: "context.updated"
-  properties: {
-    enabled: boolean
-    loadedFiles: string[]
-    totalTokens: number
-    maxTokens: number
-    utilizationPercent: number
-  }
-}
-
 export type Event =
   | EventServerInstanceDisposed
   | EventInstallationUpdated
@@ -745,7 +734,6 @@ export type Event =
   | EventPtyExited
   | EventPtyDeleted
   | EventServerConnected
-  | EventContextUpdated
 
 export type GlobalEvent = {
   directory: string
@@ -1221,7 +1209,7 @@ export type Config = {
     diff_style?: "auto" | "stacked"
   }
   /**
-   * Command configuration, see https://hopcoderx.dev/docs/commands
+   * Command configuration, see https://opencode.ai/docs/commands
    */
   command?: {
     [key: string]: {
@@ -1278,7 +1266,7 @@ export type Config = {
     [key: string]: AgentConfig | undefined
   }
   /**
-   * Agent configuration, see https://hopcoderx.dev/docs/agent
+   * Agent configuration, see https://opencode.ai/docs/agent
    */
   agent?: {
     plan?: AgentConfig

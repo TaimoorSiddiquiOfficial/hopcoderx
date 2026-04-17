@@ -1,22 +1,22 @@
 ---
 title: TUI
-description: 使用 HopCoderX 終端機使用者介面。
+description: 使用 OpenCode 終端機使用者介面。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-HopCoderX 提供了一個互動式終端機介面（TUI），用於配合 LLM 處理您的專案。
+OpenCode 提供了一個互動式終端機介面（TUI），用於配合 LLM 處理您的專案。
 
-執行 HopCoderX 即可啟動當前目錄的 TUI。
+執行 OpenCode 即可啟動當前目錄的 TUI。
 
 ```bash
-HopCoderX
+opencode
 ```
 
 或者您可以為指定的工作目錄啟動它。
 
 ```bash
-HopCoderX /path/to/project
+opencode /path/to/project
 ```
 
 進入 TUI 後，您可以輸入訊息進行提示。
@@ -57,7 +57,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ## 指令
 
-使用 HopCoderX TUI 時，您可以輸入 `/` 後跟指令名稱來快速執行操作。例如：
+使用 OpenCode TUI 時，您可以輸入 `/` 後跟指令名稱來快速執行操作。例如：
 
 ```bash frame="none"
 /help
@@ -71,7 +71,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ### connect
 
-將供應商新增到 HopCoderX。允許您從可用的供應商中選擇並新增其 API 金鑰。
+將供應商新增到 OpenCode。允許您從可用的供應商中選擇並新增其 API 金鑰。
 
 ```bash frame="none"
 /connect
@@ -117,7 +117,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ### exit
 
-退出 HopCoderX。_別名_：`/quit`、`/q`
+退出 OpenCode。_別名_：`/quit`、`/q`
 
 ```bash frame="none"
 /exit
@@ -352,24 +352,34 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ## 設定
 
-您可以透過 HopCoderX 設定檔自訂 TUI 行為。
+您可以透過 `tui.json`（或 `tui.jsonc`）自訂 TUI 行為。
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
-  "tui": {
-    "scroll_speed": 3,
-    "scroll_acceleration": {
-      "enabled": true
-    }
-  }
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "opencode",
+  "keybinds": {
+    "leader": "ctrl+x"
+  },
+  "scroll_speed": 3,
+  "scroll_acceleration": {
+    "enabled": true
+  },
+  "diff_style": "auto"
 }
 ```
 
+這與設定伺服器/執行時行為的 `opencode.json` 是分開的。
+
 ### 選項
 
-- `scroll_acceleration` - 啟用 macOS 風格的捲動加速，實現平滑、自然的捲動體驗。啟用後，快速捲動時速度會增加，慢速移動時保持精確。**此設定優先於 `scroll_speed`，啟用時會覆蓋它。**
-- `scroll_speed` - 控制使用捲動指令時 TUI 的捲動速度（最小值：`1`）。預設為 `3`。**注意：如果 `scroll_acceleration.enabled` 設定為 `true`，則此設定會被忽略。**
+- `theme` - 設定您的 UI 主題。[了解更多](/docs/themes)。
+- `keybinds` - 自訂鍵盤快速鍵。[了解更多](/docs/keybinds)。
+- `scroll_acceleration.enabled` - 啟用 macOS 風格的捲動加速，實現平滑、自然的捲動體驗。啟用後，快速捲動時速度會增加，慢速移動時保持精確。**此設定優先於 `scroll_speed`，啟用時會覆蓋它。**
+- `scroll_speed` - 控制使用捲動指令時 TUI 的捲動速度（最小值：`0.001`，支援小數值）。預設為 `3`。**注意：如果 `scroll_acceleration.enabled` 設定為 `true`，則此設定會被忽略。**
+- `diff_style` - 控制差異呈現方式。`"auto"` 根據終端機寬度自適應，`"stacked"` 始終顯示單列。
+
+使用 `OPENCODE_TUI_CONFIG` 載入自訂 TUI 設定路徑。
 
 ---
 

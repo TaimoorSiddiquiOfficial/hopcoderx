@@ -1,15 +1,19 @@
 // @refresh reload
 
 import {
+  ACCEPTED_FILE_EXTENSIONS,
+  filePickerFilters,
   AppBaseProviders,
   AppInterface,
   handleNotificationClick,
+  loadLocaleDict,
+  normalizeLocale,
+  type Locale,
   type Platform,
   PlatformProvider,
   ServerConnection,
   useCommand,
-} from "@hopcoderx/app"
-import { Splash } from "@hopcoderx/ui/logo"
+} from "@opencode-ai/app"
 import type { AsyncStorage } from "@solid-primitives/storage"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { readImage } from "@tauri-apps/plugin-clipboard-manager"
@@ -17,13 +21,12 @@ import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link"
 import { open, save } from "@tauri-apps/plugin-dialog"
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http"
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification"
-import { openPath as openerOpenPath } from "@tauri-apps/plugin-opener"
 import { type as ostype } from "@tauri-apps/plugin-os"
 import { relaunch } from "@tauri-apps/plugin-process"
 import { open as shellOpen } from "@tauri-apps/plugin-shell"
 import { Store } from "@tauri-apps/plugin-store"
 import { check, type Update } from "@tauri-apps/plugin-updater"
-import { createResource, type JSX, onCleanup, onMount, Show } from "solid-js"
+import { createResource, onCleanup, onMount, Show } from "solid-js"
 import { render } from "solid-js/web"
 import pkg from "../package.json"
 import { initI18n, t } from "./i18n"
@@ -31,7 +34,7 @@ import { UPDATER_ENABLED } from "./updater"
 import { webviewZoom } from "./webview-zoom"
 import "./styles.css"
 import { Channel } from "@tauri-apps/api/core"
-import { commands, ServerReadyData, type InitStep } from "./bindings"
+import { commands, type InitStep } from "./bindings"
 import { createMenu } from "./menu"
 
 const root = document.getElementById("root")
@@ -43,13 +46,13 @@ void initI18n()
 
 let update: Update | null = null
 
-const deepLinkEvent = "HopCoderX:deep-link"
+const deepLinkEvent = "opencode:deep-link"
 
 const emitDeepLinks = (urls: string[]) => {
   if (urls.length === 0) return
-  window.__HOPCODERX__ ??= {}
-  const pending = window.__HOPCODERX__.deepLinks ?? []
-  window.__HOPCODERX__.deepLinks = [...pending, ...urls]
+  window.__OPENCODE__ ??= {}
+  const pending = window.__OPENCODE__.deepLinks ?? []
+  window.__OPENCODE__.deepLinks = [...pending, ...urls]
   window.dispatchEvent(new CustomEvent(deepLinkEvent, { detail: { urls } }))
 }
 
@@ -67,12 +70,12 @@ const createPlatform = (): Platform => {
   })()
 
   const wslHome = async () => {
-    if (os !== "windows" || !window.__HOPCODERX__?.wsl) return undefined
+    if (os !== "windows" || !window.__OPENCODE__?.wsl) return undefined
     return commands.wslPath("~", "windows").catch(() => undefined)
   }
 
   const handleWslPicker = async <T extends string | string[]>(result: T | null): Promise<T | null> => {
-    if (!result || !window.__HOPCODERX__?.wsl) return result
+    if (!result || !window.__OPENCODE__?.wsl) return result
     if (Array.isArray(result)) {
       return Promise.all(result.map((path) => commands.wslPath(path, "linux").catch(() => path))) as any
     }
@@ -100,6 +103,7 @@ const createPlatform = (): Platform => {
         directory: false,
         multiple: opts?.multiple ?? false,
         title: opts?.title ?? t("desktop.dialog.chooseFile"),
+        filters: filePickerFilters(opts?.extensions ?? ACCEPTED_FILE_EXTENSIONS),
       })
       return handleWslPicker(result)
     },
@@ -116,20 +120,7 @@ const createPlatform = (): Platform => {
       void shellOpen(url).catch(() => undefined)
     },
     async openPath(path: string, app?: string) {
-      const os = ostype()
-      if (os === "windows") {
-        const resolvedApp = (app && (await commands.resolveAppPath(app))) || app
-        const resolvedPath = await (async () => {
-          if (window.__HOPCODERX__?.wsl) {
-            const converted = await commands.wslPath(path, "windows").catch(() => null)
-            if (converted) return converted
-          }
-
-          return path
-        })()
-        return openerOpenPath(resolvedPath, resolvedApp)
-      }
-      return openerOpenPath(path, app)
+      await commands.openPath(path, app ?? null)
     },
 
     back() {
@@ -330,7 +321,7 @@ const createPlatform = (): Platform => {
         .then(() => {
           const notification = new Notification(title, {
             body: description ?? "",
-            icon: "https://hopcoderx.dev/favicon-96x96-v3.png",
+            icon: "https://opencode.ai/favicon-96x96-v3.png",
           })
           notification.onclick = () => {
             const win = getCurrentWindow()
@@ -355,19 +346,20 @@ const createPlatform = (): Platform => {
     getWslEnabled: async () => {
       const next = await commands.getWslConfig().catch(() => null)
       if (next) return next.enabled
-      return window.__HOPCODERX__!.wsl ?? false
+      return window.__OPENCODE__!.wsl ?? false
     },
 
     setWslEnabled: async (enabled) => {
       await commands.setWslConfig({ enabled })
     },
 
-    getDefaultServerUrl: async () => {
-      const result = await commands.getDefaultServerUrl().catch(() => null)
-      return result
+    getDefaultServer: async () => {
+      const url = await commands.getDefaultServerUrl().catch(() => null)
+      if (!url) return null
+      return ServerConnection.Key.make(url)
     },
 
-    setDefaultServerUrl: async (url: string | null) => {
+    setDefaultServer: async (url: string | null) => {
       await commands.setDefaultServerUrl(url)
     },
 
@@ -418,19 +410,52 @@ const createPlatform = (): Platform => {
 }
 
 let menuTrigger = null as null | ((id: string) => void)
-createMenu((id) => {
+void createMenu((id) => {
   menuTrigger?.(id)
 })
 void listenForDeepLinks()
 
 render(() => {
   const platform = createPlatform()
+  const loadLocale = async () => {
+    const current = await platform.storage?.("opencode.global.dat").getItem("language")
+    const legacy = current ? undefined : await platform.storage?.().getItem("language.v1")
+    const raw = current ?? legacy
+    if (!raw) return
+    const locale = raw.match(/"locale"\s*:\s*"([^"]+)"/)?.[1]
+    if (!locale) return
+    const next = normalizeLocale(locale)
+    if (next !== "en") await loadLocaleDict(next)
+    return next satisfies Locale
+  }
+
+  // Fetch sidecar credentials from Rust (available immediately, before health check)
+  const [sidecar] = createResource(() => commands.awaitInitialization(new Channel<InitStep>() as any))
 
   const [defaultServer] = createResource(() =>
-    platform.getDefaultServerUrl?.().then((url) => {
+    platform.getDefaultServer?.().then((url) => {
       if (url) return ServerConnection.key({ type: "http", http: { url } })
     }),
   )
+  const [locale] = createResource(loadLocale)
+
+  // Build the sidecar server connection once credentials arrive
+  const servers = () => {
+    const data = sidecar()
+    if (!data) return []
+    const http = {
+      url: data.url,
+      username: data.username ?? undefined,
+      password: data.password ?? undefined,
+    }
+    const server: ServerConnection.Sidecar = {
+      displayName: t("desktop.server.local"),
+      type: "sidecar",
+      variant: "base",
+      http,
+    }
+    return [server] as ServerConnection.Any[]
+  }
 
   function handleClick(e: MouseEvent) {
     const link = (e.target as HTMLElement).closest("a.external-link") as HTMLAnchorElement | null
@@ -438,6 +463,12 @@ render(() => {
       e.preventDefault()
       platform.openLink(link.href)
     }
+  }
+
+  function Inner() {
+    const cmd = useCommand()
+    menuTrigger = (id) => cmd.trigger(id)
+    return null
   }
 
   onMount(() => {
@@ -449,76 +480,20 @@ render(() => {
 
   return (
     <PlatformProvider value={platform}>
-      <AppBaseProviders>
-        <ServerGate>
-          {(data) => {
-            const http = {
-              url: data.url,
-              username: data.username ?? undefined,
-              password: data.password ?? undefined,
-            }
-            const server: ServerConnection.Any = data.is_sidecar
-              ? {
-                  displayName: "Local Server",
-                  type: "sidecar",
-                  variant: "base",
-                  http,
-                }
-              : { type: "http", http }
-
-            function Inner() {
-              const cmd = useCommand()
-
-              menuTrigger = (id) => cmd.trigger(id)
-
-              return null
-            }
-
+      <AppBaseProviders locale={locale.latest}>
+        <Show when={!defaultServer.loading && !sidecar.loading && !locale.loading}>
+          {(_) => {
             return (
-              <Show when={!defaultServer.loading}>
-                <AppInterface defaultServer={defaultServer.latest ?? ServerConnection.key(server)} servers={[server]}>
-                  <Inner />
-                </AppInterface>
-              </Show>
+              <AppInterface
+                defaultServer={defaultServer.latest ?? ServerConnection.Key.make("sidecar")}
+                servers={servers()}
+              >
+                <Inner />
+              </AppInterface>
             )
           }}
-        </ServerGate>
+        </Show>
       </AppBaseProviders>
     </PlatformProvider>
   )
 }, root!)
-
-// Gate component that waits for the server to be ready
-function ServerGate(props: { children: (data: ServerReadyData) => JSX.Element }) {
-  const [serverData] = createResource(() => commands.awaitInitialization(new Channel<InitStep>() as any))
-
-  return (
-    <Show
-      when={serverData.state !== "errored"}
-      fallback={
-        <div class="h-screen w-screen flex flex-col items-center justify-center bg-background-base gap-4">
-          <Splash class="w-16 h-20 opacity-50" />
-          <div class="max-w-md px-4 text-center">
-            <p class="text-sm font-medium text-red-400">Failed to start server</p>
-            <p class="mt-2 text-xs text-zinc-400 break-words whitespace-pre-wrap">
-              {String(serverData.error ?? "Unknown error")}
-            </p>
-          </div>
-          <div data-tauri-decorum-tb class="flex flex-row absolute top-0 right-0 z-10 h-10" />
-        </div>
-      }
-    >
-      <Show
-        when={serverData.state !== "pending" && serverData()}
-        fallback={
-          <div class="h-screen w-screen flex flex-col items-center justify-center bg-background-base">
-            <Splash class="w-16 h-20 opacity-50 animate-pulse" />
-            <div data-tauri-decorum-tb class="flex flex-row absolute top-0 right-0 z-10 h-10" />
-          </div>
-        }
-      >
-        {(data) => props.children(data())}
-      </Show>
-    </Show>
-  )
-}

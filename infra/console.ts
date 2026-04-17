@@ -6,8 +6,8 @@ import { EMAILOCTOPUS_API_KEY } from "./app"
 ////////////////
 
 const cluster = planetscale.getDatabaseOutput({
-  name: "HopCoderX",
-  organization: "TaimoorSiddiquiOfficial",
+  name: "opencode",
+  organization: "anomalyco",
 })
 
 const branch =
@@ -100,68 +100,94 @@ export const stripeWebhook = new stripe.WebhookEndpoint("StripeWebhookEndpoint",
   ],
 })
 
-const bdrProduct = new stripe.Product("BdrBlack", {
-  name: "HopCoderX Black",
+const zenLiteProduct = new stripe.Product("ZenLite", {
+  name: "OpenCode Go",
 })
-const bdrPriceProps = {
-  product: bdrProduct.id,
+const zenLiteCouponFirstMonth50 = new stripe.Coupon("ZenLiteCouponFirstMonth50", {
+  name: "First month 50% off",
+  percentOff: 50,
+  appliesToProducts: [zenLiteProduct.id],
+  duration: "once",
+})
+const zenLiteCouponFirstMonth100 = new stripe.Coupon("ZenLiteCouponFirstMonth100", {
+  name: "First month 100% off",
+  percentOff: 100,
+  appliesToProducts: [zenLiteProduct.id],
+  duration: "once",
+})
+const zenLitePrice = new stripe.Price("ZenLitePrice", {
+  product: zenLiteProduct.id,
+  currency: "usd",
+  recurring: {
+    interval: "month",
+    intervalCount: 1,
+  },
+  unitAmount: 1000,
+})
+const ZEN_LITE_PRICE = new sst.Linkable("ZEN_LITE_PRICE", {
+  properties: {
+    product: zenLiteProduct.id,
+    price: zenLitePrice.id,
+    priceInr: 92900,
+    firstMonth50Coupon: zenLiteCouponFirstMonth50.id,
+    firstMonth100Coupon: zenLiteCouponFirstMonth100.id,
+  },
+})
+
+const zenBlackProduct = new stripe.Product("ZenBlack", {
+  name: "OpenCode Black",
+})
+const zenBlackPriceProps = {
+  product: zenBlackProduct.id,
   currency: "usd",
   recurring: {
     interval: "month",
     intervalCount: 1,
   },
 }
-const bdrPrice200 = new stripe.Price("BdrBlackPrice", { ...bdrPriceProps, unitAmount: 20000 })
-const bdrPrice100 = new stripe.Price("BdrBlack100Price", { ...bdrPriceProps, unitAmount: 10000 })
-const bdrPrice20 = new stripe.Price("BdrBlack20Price", { ...bdrPriceProps, unitAmount: 2000 })
-// Tiered plans: Free ($0) / Mini ($9) / Pro ($29) / Engineer ($79)
-const bdrPriceMini = new stripe.Price("BdrMiniPrice", { ...bdrPriceProps, unitAmount: 900 })
-const bdrPricePro = new stripe.Price("BdrProPrice", { ...bdrPriceProps, unitAmount: 2900 })
-const bdrPriceEngineer = new stripe.Price("BdrEngineerPrice", { ...bdrPriceProps, unitAmount: 7900 })
-const BDR_BLACK_PRICE = new sst.Linkable("BDR_BLACK_PRICE", {
+const zenBlackPrice200 = new stripe.Price("ZenBlackPrice", { ...zenBlackPriceProps, unitAmount: 20000 })
+const zenBlackPrice100 = new stripe.Price("ZenBlack100Price", { ...zenBlackPriceProps, unitAmount: 10000 })
+const zenBlackPrice20 = new stripe.Price("ZenBlack20Price", { ...zenBlackPriceProps, unitAmount: 2000 })
+const ZEN_BLACK_PRICE = new sst.Linkable("ZEN_BLACK_PRICE", {
   properties: {
-    product: bdrProduct.id,
-    plan200: bdrPrice200.id,
-    plan100: bdrPrice100.id,
-    plan20: bdrPrice20.id,
-    planMini: bdrPriceMini.id,
-    planPro: bdrPricePro.id,
-    planEngineer: bdrPriceEngineer.id,
+    product: zenBlackProduct.id,
+    plan200: zenBlackPrice200.id,
+    plan100: zenBlackPrice100.id,
+    plan20: zenBlackPrice20.id,
   },
 })
-const BDR_BLACK_LIMITS = new sst.Secret("BDR_BLACK_LIMITS")
 
-const BDR_MODELS = [
-  new sst.Secret("BDR_MODELS1"),
-  new sst.Secret("BDR_MODELS2"),
-  new sst.Secret("BDR_MODELS3"),
-  new sst.Secret("BDR_MODELS4"),
-  new sst.Secret("BDR_MODELS5"),
-  new sst.Secret("BDR_MODELS6"),
-  new sst.Secret("BDR_MODELS7"),
-  new sst.Secret("BDR_MODELS8"),
-  new sst.Secret("BDR_MODELS9"),
-  new sst.Secret("BDR_MODELS10"),
-  new sst.Secret("BDR_MODELS11"),
-  new sst.Secret("BDR_MODELS12"),
-  new sst.Secret("BDR_MODELS13"),
-  new sst.Secret("BDR_MODELS14"),
-  new sst.Secret("BDR_MODELS15"),
-  new sst.Secret("BDR_MODELS16"),
-  new sst.Secret("BDR_MODELS17"),
-  new sst.Secret("BDR_MODELS18"),
-  new sst.Secret("BDR_MODELS19"),
-  new sst.Secret("BDR_MODELS20"),
-  new sst.Secret("BDR_MODELS21"),
-  new sst.Secret("BDR_MODELS22"),
-  new sst.Secret("BDR_MODELS23"),
-  new sst.Secret("BDR_MODELS24"),
-  new sst.Secret("BDR_MODELS25"),
-  new sst.Secret("BDR_MODELS26"),
-  new sst.Secret("BDR_MODELS27"),
-  new sst.Secret("BDR_MODELS28"),
-  new sst.Secret("BDR_MODELS29"),
-  new sst.Secret("BDR_MODELS30"),
+const ZEN_MODELS = [
+  new sst.Secret("ZEN_MODELS1"),
+  new sst.Secret("ZEN_MODELS2"),
+  new sst.Secret("ZEN_MODELS3"),
+  new sst.Secret("ZEN_MODELS4"),
+  new sst.Secret("ZEN_MODELS5"),
+  new sst.Secret("ZEN_MODELS6"),
+  new sst.Secret("ZEN_MODELS7"),
+  new sst.Secret("ZEN_MODELS8"),
+  new sst.Secret("ZEN_MODELS9"),
+  new sst.Secret("ZEN_MODELS10"),
+  new sst.Secret("ZEN_MODELS11"),
+  new sst.Secret("ZEN_MODELS12"),
+  new sst.Secret("ZEN_MODELS13"),
+  new sst.Secret("ZEN_MODELS14"),
+  new sst.Secret("ZEN_MODELS15"),
+  new sst.Secret("ZEN_MODELS16"),
+  new sst.Secret("ZEN_MODELS17"),
+  new sst.Secret("ZEN_MODELS18"),
+  new sst.Secret("ZEN_MODELS19"),
+  new sst.Secret("ZEN_MODELS20"),
+  new sst.Secret("ZEN_MODELS21"),
+  new sst.Secret("ZEN_MODELS22"),
+  new sst.Secret("ZEN_MODELS23"),
+  new sst.Secret("ZEN_MODELS24"),
+  new sst.Secret("ZEN_MODELS25"),
+  new sst.Secret("ZEN_MODELS26"),
+  new sst.Secret("ZEN_MODELS27"),
+  new sst.Secret("ZEN_MODELS28"),
+  new sst.Secret("ZEN_MODELS29"),
+  new sst.Secret("ZEN_MODELS30"),
 ]
 const STRIPE_SECRET_KEY = new sst.Secret("STRIPE_SECRET_KEY")
 const STRIPE_PUBLISHABLE_KEY = new sst.Secret("STRIPE_PUBLISHABLE_KEY")
@@ -177,11 +203,15 @@ const gatewayKv = new sst.cloudflare.Kv("GatewayKv")
 // CONSOLE
 ////////////////
 
-const bucket = new sst.cloudflare.Bucket("BdrData")
-const bucketNew = new sst.cloudflare.Bucket("BdrDataNew")
+const bucket = new sst.cloudflare.Bucket("ZenData")
+const bucketNew = new sst.cloudflare.Bucket("ZenDataNew")
 
 const AWS_SES_ACCESS_KEY_ID = new sst.Secret("AWS_SES_ACCESS_KEY_ID")
 const AWS_SES_SECRET_ACCESS_KEY = new sst.Secret("AWS_SES_SECRET_ACCESS_KEY")
+
+const SALESFORCE_CLIENT_ID = new sst.Secret("SALESFORCE_CLIENT_ID")
+const SALESFORCE_CLIENT_SECRET = new sst.Secret("SALESFORCE_CLIENT_SECRET")
+const SALESFORCE_INSTANCE_URL = new sst.Secret("SALESFORCE_INSTANCE_URL")
 
 const logProcessor = new sst.cloudflare.Worker("LogProcessor", {
   handler: "packages/console/function/src/log-processor.ts",
@@ -201,10 +231,15 @@ new sst.cloudflare.x.SolidStart("Console", {
     EMAILOCTOPUS_API_KEY,
     AWS_SES_ACCESS_KEY_ID,
     AWS_SES_SECRET_ACCESS_KEY,
-    BDR_BLACK_PRICE,
-    BDR_BLACK_LIMITS,
-    new sst.Secret("BDR_SESSION_SECRET"),
-    ...BDR_MODELS,
+    SALESFORCE_CLIENT_ID,
+    SALESFORCE_CLIENT_SECRET,
+    SALESFORCE_INSTANCE_URL,
+    ZEN_BLACK_PRICE,
+    ZEN_LITE_PRICE,
+    new sst.Secret("ZEN_LITE_COUPON_FIRST_MONTH_100_INVITEES"),
+    new sst.Secret("ZEN_LIMITS"),
+    new sst.Secret("ZEN_SESSION_SECRET"),
+    ...ZEN_MODELS,
     ...($dev
       ? [
           new sst.Secret("CLOUDFLARE_DEFAULT_ACCOUNT_ID", process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID!),

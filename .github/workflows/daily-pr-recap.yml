@@ -8,28 +8,27 @@ on:
 
 jobs:
   pr-recap:
-    if: vars.HOPCODERX_APP_ID != ''
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
       pull-requests: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Install hopcoderx
-        run: curl -fsSL https://hopcoderx.ai/install | bash
+      - name: Install opencode
+        run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Generate daily PR recap
         id: recap
         env:
-          HOPCODERX_API_KEY: ${{ secrets.HOPCODERX_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOPCODERX_PERMISSION: |
+          OPENCODE_PERMISSION: |
             {
               "bash": {
                 "*": "deny",
@@ -43,7 +42,7 @@ jobs:
         run: |
           TODAY=$(date -u +%Y-%m-%d)
 
-          hopcoderx run -m hopcoderx/claude-sonnet-4-5 "Generate a daily PR activity recap for the HopCoderX repository.
+          opencode run -m opencode/claude-sonnet-4-5 "Generate a daily PR activity recap for the OpenCode repository.
 
           TODAY'S DATE: ${TODAY}
 

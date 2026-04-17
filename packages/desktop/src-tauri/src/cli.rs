@@ -4,10 +4,13 @@ use process_wrap::tokio::CommandWrap;
 use process_wrap::tokio::ProcessGroup;
 #[cfg(windows)]
 use process_wrap::tokio::{CommandWrapper, JobObject, KillOnDrop};
+use std::collections::HashMap;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
+use std::path::Path;
+use std::process::Stdio;
 use std::sync::Arc;
-use std::{process::Stdio, time::Duration};
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager, path::BaseDirectory};
 use tauri_specta::Event;
 use tokio::{
@@ -19,7 +22,7 @@ use tokio::{
 use tokio_stream::wrappers::ReceiverStream;
 use tracing::Instrument;
 #[cfg(windows)]
-use windows::Win32::System::Threading::{CREATE_NO_WINDOW, CREATE_SUSPENDED};
+use windows_sys::Win32::System::Threading::{CREATE_NO_WINDOW, CREATE_SUSPENDED};
 
 use crate::server::get_wsl_config;
 
@@ -32,13 +35,14 @@ struct WinCreationFlags;
 #[cfg(windows)]
 impl CommandWrapper for WinCreationFlags {
     fn pre_spawn(&mut self, command: &mut Command, _core: &CommandWrap) -> std::io::Result<()> {
-        command.creation_flags((CREATE_NO_WINDOW | CREATE_SUSPENDED).0);
+        command.creation_flags(CREATE_NO_WINDOW | CREATE_SUSPENDED);
         Ok(())
     }
 }
 
-const CLI_INSTALL_DIR: &str = ".hopcoderx/bin";
-const CLI_BINARY_NAME: &str = "hopcoderx";
+const CLI_INSTALL_DIR: &str = ".opencode/bin";
+const CLI_BINARY_NAME: &str = "opencode";
+const SHELL_ENV_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(serde::Deserialize, Debug)]
 pub struct ServerConfig {
@@ -111,7 +115,7 @@ pub fn get_sidecar_path(app: &tauri::AppHandle) -> std::path::PathBuf {
         .expect("Failed to get current binary")
         .parent()
         .expect("Failed to get parent dir")
-        .join("hopcoderx-cli")
+        .join("opencode-cli")
 }
 
 fn is_cli_installed() -> bool {
@@ -134,7 +138,7 @@ pub fn install_cli(app: tauri::AppHandle) -> Result<String, String> {
         return Err("Sidecar binary not found".to_string());
     }
 
-    let temp_script = std::env::temp_dir().join("hopcoderx-install.sh");
+    let temp_script = std::env::temp_dir().join("opencode-install.sh");
     std::fs::write(&temp_script, INSTALL_SCRIPT)
         .map_err(|e| format!("Failed to write install script: {}", e))?;
 
@@ -232,6 +236,133 @@ fn shell_escape(input: &str) -> String {
     escaped
 }
 
+fn parse_shell_env(stdout: &[u8]) -> HashMap<String, String> {
+    String::from_utf8_lossy(stdout)
+        .split('\0')
+        .filter_map(|line| {
+            if line.is_empty() {
+                return None;
+            }
+
+            let (key, value) = line.split_once('=')?;
+            if key.is_empty() {
+                return None;
+            }
+
+            Some((key.to_string(), value.to_string()))
+        })
+        .collect()
+}
+
+fn command_output_with_timeout(
+    mut cmd: std::process::Command,
+    timeout: Duration,
+) -> std::io::Result<Option<std::process::Output>> {
+    let mut child = cmd.spawn()?;
+    let start = Instant::now();
+
+    loop {
+        if child.try_wait()?.is_some() {
+            return child.wait_with_output().map(Some);
+        }
+
+        if start.elapsed() >= timeout {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Ok(None);
+        }
+
+        std::thread::sleep(Duration::from_millis(25));
+    }
+}
+
+enum ShellEnvProbe {
+    Loaded(HashMap<String, String>),
+    Timeout,
+    Unavailable,
+}
+
+fn probe_shell_env(shell: &str, mode: &str) -> ShellEnvProbe {
+    let mut cmd = std::process::Command::new(shell);
+    cmd.args([mode, "-c", "env -0"]);
+    cmd.stdin(Stdio::null());
+    cmd.stdout(Stdio::piped());
+    cmd.stderr(Stdio::null());
+    let output = match command_output_with_timeout(cmd, SHELL_ENV_TIMEOUT) {
+        Ok(Some(output)) => output,
+        Ok(None) => return ShellEnvProbe::Timeout,
+        Err(error) => {
+            tracing::debug!(shell, mode, ?error, "Shell env probe failed");
+            return ShellEnvProbe::Unavailable;
+        }
+    };
+    if !output.status.success() {
+        tracing::debug!(shell, mode, "Shell env probe exited with non-zero status");
+        return ShellEnvProbe::Unavailable;
+    }
+    let env = parse_shell_env(&output.stdout);
+    if env.is_empty() {
+        tracing::debug!(shell, mode, "Shell env probe returned empty env");
+        return ShellEnvProbe::Unavailable;
+    }
+
+    ShellEnvProbe::Loaded(env)
+}
+
+fn is_nushell(shell: &str) -> bool {
+    let shell_name = Path::new(shell)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(shell)
+        .to_ascii_lowercase();
+    shell_name == "nu" || shell_name == "nu.exe" || shell.to_ascii_lowercase().ends_with("\\nu.exe")
+}
+fn load_shell_env(shell: &str) -> Option<HashMap<String, String>> {
+    if is_nushell(shell) {
+        tracing::debug!(shell, "Skipping shell env probe for nushell");
+        return None;
+    }
+
+    match probe_shell_env(shell, "-il") {
+        ShellEnvProbe::Loaded(env) => {
+            tracing::info!(
+                shell,
+                env_count = env.len(),
+                "Loaded shell environment with -il"
+            );
+            return Some(env);
+        }
+        ShellEnvProbe::Timeout => {
+            tracing::warn!(shell, "Interactive shell env probe timed out");
+            return None;
+        }
+        ShellEnvProbe::Unavailable => {}
+    }
+
+    if let ShellEnvProbe::Loaded(env) = probe_shell_env(shell, "-l") {
+        tracing::info!(
+            shell,
+            env_count = env.len(),
+            "Loaded shell environment with -l"
+        );
+        return Some(env);
+    }
+    tracing::warn!(shell, "Falling back to app environment");
+    None
+}
+
+fn merge_shell_env(
+    shell_env: Option<HashMap<String, String>>,
+    envs: Vec<(String, String)>,
+) -> Vec<(String, String)> {
+    let mut merged = shell_env.unwrap_or_default();
+    for (key, value) in envs {
+        merged.insert(key, value);
+    }
+
+    merged.into_iter().collect()
+}
+
 pub fn spawn_command(
     app: &tauri::AppHandle,
     args: &str,
@@ -244,14 +375,14 @@ pub fn spawn_command(
 
     let mut envs = vec![
         (
-            "HOPCODERX_EXPERIMENTAL_ICON_DISCOVERY".to_string(),
+            "OPENCODE_EXPERIMENTAL_ICON_DISCOVERY".to_string(),
             "true".to_string(),
         ),
         (
-            "HOPCODERX_EXPERIMENTAL_FILEWATCHER".to_string(),
+            "OPENCODE_EXPERIMENTAL_FILEWATCHER".to_string(),
             "true".to_string(),
         ),
-        ("HOPCODERX_CLIENT".to_string(), "desktop".to_string()),
+        ("OPENCODE_CLIENT".to_string(), "desktop".to_string()),
         (
             "XDG_STATE_HOME".to_string(),
             state_dir.to_string_lossy().to_string(),
@@ -269,26 +400,26 @@ pub fn spawn_command(
             let version = app.package_info().version.to_string();
             let mut script = vec![
                 "set -e".to_string(),
-                "BIN=\"$HOME/.hopcoderx/bin/hopcoderx\"".to_string(),
+                "BIN=\"$HOME/.opencode/bin/opencode\"".to_string(),
                 "if [ ! -x \"$BIN\" ]; then".to_string(),
                 format!(
-                    "  curl -fsSL https://hopcoderx.ai/install | bash -s -- --version {} --no-modify-path",
+                    "  curl -fsSL https://opencode.ai/install | bash -s -- --version {} --no-modify-path",
                     shell_escape(&version)
                 ),
                 "fi".to_string(),
             ];
 
             let mut env_prefix = vec![
-                "HOPCODERX_EXPERIMENTAL_ICON_DISCOVERY=true".to_string(),
-                "HOPCODERX_EXPERIMENTAL_FILEWATCHER=true".to_string(),
-                "HOPCODERX_CLIENT=desktop".to_string(),
+                "OPENCODE_EXPERIMENTAL_ICON_DISCOVERY=true".to_string(),
+                "OPENCODE_EXPERIMENTAL_FILEWATCHER=true".to_string(),
+                "OPENCODE_CLIENT=desktop".to_string(),
                 "XDG_STATE_HOME=\"$HOME/.local/state\"".to_string(),
             ];
             env_prefix.extend(
                 envs.iter()
-                    .filter(|(key, _)| key != "HOPCODERX_EXPERIMENTAL_ICON_DISCOVERY")
-                    .filter(|(key, _)| key != "HOPCODERX_EXPERIMENTAL_FILEWATCHER")
-                    .filter(|(key, _)| key != "HOPCODERX_CLIENT")
+                    .filter(|(key, _)| key != "OPENCODE_EXPERIMENTAL_ICON_DISCOVERY")
+                    .filter(|(key, _)| key != "OPENCODE_EXPERIMENTAL_FILEWATCHER")
+                    .filter(|(key, _)| key != "OPENCODE_CLIENT")
                     .filter(|(key, _)| key != "XDG_STATE_HOME")
                     .map(|(key, value)| format!("{}={}", key, shell_escape(value))),
             );
@@ -312,6 +443,7 @@ pub fn spawn_command(
     } else {
         let sidecar = get_sidecar_path(app);
         let shell = get_user_shell();
+        let envs = merge_shell_env(load_shell_env(&shell), envs);
 
         let line = if shell.ends_with("/nu") {
             format!("^\"{}\" {}", sidecar.display(), args)
@@ -320,6 +452,7 @@ pub fn spawn_command(
         };
 
         let mut cmd = Command::new(shell);
+        cmd.current_dir(app.path().home_dir().unwrap());
         cmd.args(["-l", "-c", &line]);
 
         for (key, value) in envs {
@@ -428,8 +561,8 @@ pub fn serve(
     tracing::info!(port, "Spawning sidecar");
 
     let envs = [
-        ("HOPCODERX_SERVER_USERNAME", "hopcoderx".to_string()),
-        ("HOPCODERX_SERVER_PASSWORD", password.to_string()),
+        ("OPENCODE_SERVER_USERNAME", "opencode".to_string()),
+        ("OPENCODE_SERVER_PASSWORD", password.to_string()),
     ];
 
     let (events, child) = spawn_command(
@@ -437,7 +570,7 @@ pub fn serve(
         format!("--print-logs --log-level WARN serve --hostname {hostname} --port {port}").as_str(),
         &envs,
     )
-    .expect("Failed to spawn hopcoderx");
+    .expect("Failed to spawn opencode");
 
     let mut exit_tx = Some(exit_tx);
     tokio::spawn(
@@ -554,5 +687,56 @@ async fn read_line<F: Fn(String) -> CommandEvent + Send + Copy + 'static>(
                 break;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn parse_shell_env_supports_null_delimited_pairs() {
+        let env = parse_shell_env(b"PATH=/usr/bin:/bin\0FOO=bar=baz\0\0");
+
+        assert_eq!(env.get("PATH"), Some(&"/usr/bin:/bin".to_string()));
+        assert_eq!(env.get("FOO"), Some(&"bar=baz".to_string()));
+    }
+
+    #[test]
+    fn parse_shell_env_ignores_invalid_entries() {
+        let env = parse_shell_env(b"INVALID\0=empty\0OK=1\0");
+
+        assert_eq!(env.len(), 1);
+        assert_eq!(env.get("OK"), Some(&"1".to_string()));
+    }
+
+    #[test]
+    fn merge_shell_env_keeps_explicit_overrides() {
+        let mut shell_env = HashMap::new();
+        shell_env.insert("PATH".to_string(), "/shell/path".to_string());
+        shell_env.insert("HOME".to_string(), "/tmp/home".to_string());
+
+        let merged = merge_shell_env(
+            Some(shell_env),
+            vec![
+                ("PATH".to_string(), "/desktop/path".to_string()),
+                ("OPENCODE_CLIENT".to_string(), "desktop".to_string()),
+            ],
+        )
+        .into_iter()
+        .collect::<HashMap<_, _>>();
+
+        assert_eq!(merged.get("PATH"), Some(&"/desktop/path".to_string()));
+        assert_eq!(merged.get("HOME"), Some(&"/tmp/home".to_string()));
+        assert_eq!(merged.get("OPENCODE_CLIENT"), Some(&"desktop".to_string()));
+    }
+
+    #[test]
+    fn is_nushell_handles_path_and_binary_name() {
+        assert!(is_nushell("nu"));
+        assert!(is_nushell("/opt/homebrew/bin/nu"));
+        assert!(is_nushell("C:\\Program Files\\nu.exe"));
+        assert!(!is_nushell("/bin/zsh"));
     }
 }

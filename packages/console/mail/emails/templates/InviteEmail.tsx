@@ -15,7 +15,7 @@ import {
   buttonText,
 } from "../styles"
 
-const CONSOLE_URL = "https://hopcoderx.dev/"
+const CONSOLE_URL = "https://opencode.ai/"
 
 interface InviteEmailProps {
   inviter: string
@@ -34,7 +34,7 @@ export const InviteEmail = ({
   return (
     <Html lang="en">
       <Head>
-        <Title>{`HopCoderX — ${messagePlain}`}</Title>
+        <Title>{`OpenCode — ${messagePlain}`}</Title>
       </Head>
       <Fonts assetsUrl={assetsUrl} />
       <Preview>{messagePlain}</Preview>
@@ -43,17 +43,17 @@ export const InviteEmail = ({
           <Section style={frame}>
             <Row>
               <Column>
-                <A href={`${CONSOLE_URL}bdr`}>
-                  <Img height="32" alt="HopCoderX Logo" src={`${assetsUrl}/logo.png`} />
+                <A href={`${CONSOLE_URL}zen`}>
+                  <Img height="32" alt="OpenCode Logo" src={`${assetsUrl}/logo.png`} />
                 </A>
               </Column>
             </Row>
 
             <Section style={{ padding: `${unit * 2}px 0 0 0` }}>
-              <Text style={headingText}>Join your team's HopCoderX workspace</Text>
+              <Text style={headingText}>Join your team's OpenCode workspace</Text>
               <Text style={contentText}>
                 You have been invited by <Span style={contentHighlightText}>{inviter}</Span> to join the{" "}
-                <Span style={contentHighlightText}>{workspaceName}</Span> workspace on HopCoderX.
+                <Span style={contentHighlightText}>{workspaceName}</Span> workspace on OpenCode.
               </Text>
             </Section>
 

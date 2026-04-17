@@ -77,6 +77,7 @@ function detectLocale(): Locale {
   const languages = navigator.languages?.length ? navigator.languages : [navigator.language]
   for (const language of languages) {
     if (!language) continue
+    if (language.toLowerCase().startsWith("en")) return "en"
     if (language.toLowerCase().startsWith("zh")) {
       if (language.toLowerCase().includes("hant")) return "zht"
       return "zh"
@@ -174,7 +175,7 @@ export function initI18n(): Promise<Locale> {
   if (cached) return cached
 
   const promise = (async () => {
-    const store = await Store.load("HopCoderX.global.dat").catch(() => null)
+    const store = await Store.load("opencode.global.dat").catch(() => null)
     if (!store) return state.locale
 
     const raw = await store.get("language").catch(() => null)

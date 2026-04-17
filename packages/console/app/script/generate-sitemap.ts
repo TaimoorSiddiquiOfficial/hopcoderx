@@ -8,7 +8,6 @@ import { LOCALES, route } from "../src/lib/language.js"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const BASE_URL = config.baseUrl
 const PUBLIC_DIR = join(__dirname, "../public")
-const ROUTES_DIR = join(__dirname, "../src/routes")
 const DOCS_DIR = join(__dirname, "../../../web/src/content/docs")
 
 interface SitemapEntry {
@@ -25,7 +24,8 @@ async function getMainRoutes(): Promise<SitemapEntry[]> {
     { path: "/", priority: 1.0, changefreq: "daily" },
     { path: "/enterprise", priority: 0.8, changefreq: "weekly" },
     { path: "/brand", priority: 0.6, changefreq: "monthly" },
-    { path: "/bdr", priority: 0.8, changefreq: "weekly" },
+    { path: "/zen", priority: 0.8, changefreq: "weekly" },
+    { path: "/go", priority: 0.8, changefreq: "weekly" },
   ]
 
   for (const item of staticRoutes) {
@@ -105,4 +105,4 @@ async function main() {
   console.log(`✓ Sitemap generated at ${outputPath}`)
 }
 
-main()
+void main()

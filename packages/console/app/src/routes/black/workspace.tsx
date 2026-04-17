@@ -23,27 +23,26 @@ export default function BlackWorkspace() {
       : config.github.starsFormatted.compact,
   )
 
-  const workspaces = createMemo(() => {
-    // Fetch real workspaces from the API
-    // This will be populated when workspace management is implemented
-    const storedWorkspaces = localStorage.getItem("hopcoderx.workspaces")
-    if (storedWorkspaces) {
-      try {
-        return JSON.parse(storedWorkspaces) as { id: string; name: string }[]
-      } catch {
-        // Invalid JSON, fall through to default
-      }
-    }
-
-    // Default empty state - user needs to create a workspace
-    return [] as { id: string; name: string }[]
-  })
+  // TODO: Frank, replace with real workspaces
+  const workspaces = [
+    { id: "wrk_123", n: 1 },
+    { id: "wrk_456", n: 2 },
+    { id: "wrk_789", n: 3 },
+    { id: "wrk_111", n: 4 },
+    { id: "wrk_222", n: 5 },
+    { id: "wrk_333", n: 6 },
+    { id: "wrk_444", n: 7 },
+    { id: "wrk_555", n: 8 },
+  ].map((workspace) => ({
+    ...workspace,
+    name: i18n.t("black.workspace.name", { n: workspace.n }),
+  }))
 
   let listRef: HTMLUListElement | undefined
 
   const { active, setActive, onKeyDown } = createList({
-    items: () => workspaces().map((w) => w.id),
-    initialActive: workspaces()[0]?.id ?? null,
+    items: () => workspaces.map((w) => w.id),
+    initialActive: workspaces[0]?.id ?? null,
     handleTab: true,
   })
 
@@ -196,7 +195,7 @@ export default function BlackWorkspace() {
               }
             }}
           >
-            <For each={workspaces()}>
+            <For each={workspaces}>
               {(workspace) => (
                 <li
                   data-slot="workspace"

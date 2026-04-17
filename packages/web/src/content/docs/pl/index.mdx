@@ -1,15 +1,15 @@
 ---
 title: Wstęp
-description: Zacznij pracę z HopCoderX.
+description: Zacznij pracę z opencode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 import config from "../../../../config.mjs"
 export const console = config.console
 
-[**HopCoderX**](/) to agent kodujący AI typu open source. Jest dostępny jako interfejs terminalowy, aplikacja desktopowa i rozszerzenie IDE.
+[**opencode**](/) to agent kodujący AI typu open source. Jest dostępny jako interfejs terminalowy, aplikacja desktopowa i rozszerzenie IDE.
 
-![HopCoderX TUI z motywem HopCoderX](../../../assets/lander/screenshot.png)
+![opencode TUI z motywem opencode](../../../assets/lander/screenshot.png)
 
 Zacznijmy.
 
@@ -17,7 +17,7 @@ Zacznijmy.
 
 #### Warunki wstępne
 
-Aby uzyskać dostęp do HopCoderX w swoim terminalu, będziesz potrzebować:
+Aby uzyskać dostęp do opencode w swoim terminalu, będziesz potrzebować:
 
 1. Nowoczesny emulator terminala, taki jak:
    - [WezTerm](https://wezterm.org), wieloplatformowy
@@ -31,10 +31,10 @@ Aby uzyskać dostęp do HopCoderX w swoim terminalu, będziesz potrzebować:
 
 ## Instalacja
 
-Najłatwiej zainstalować HopCoderX za pomocą skryptu instalacyjnego.
+Najłatwiej zainstalować opencode za pomocą skryptu instalacyjnego.
 
 ```bash
-curl -fsSL https://hopcoderx.dev/install | bash
+curl -fsSL https://opencode.ai/install | bash
 ```
 
 Możesz też użyć poniższych metod instalacji:
@@ -45,28 +45,28 @@ Możesz też użyć poniższych metod instalacji:
 
       <TabItem label="npm">
       ```bash
-      npm install -g HopCoderX-ai
+      npm install -g opencode-ai
       ```
 
           </TabItem>
 
         <TabItem label="Bun">
         ```bash
-        bun install -g HopCoderX-ai
+        bun install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="pnpm">
         ```bash
-        pnpm install -g HopCoderX-ai
+        pnpm install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="Yarn">
         ```bash
-        yarn global add HopCoderX-ai
+        yarn global add opencode-ai
         ```
 
       </TabItem>
@@ -76,68 +76,68 @@ Możesz też użyć poniższych metod instalacji:
 - **Korzystanie z Homebrew na macOS i Linux**
 
   ```bash
-  brew install TaimoorSiddiquiOfficial/tap/hopcoderx
+  brew install anomalyco/tap/opencode
   ```
 
-  > W celu uzyskania najbardziej aktualnej wersji zalecamy korzystanie z HopCoderX. Oficjalna formuła `brew install HopCoderX` jest utrzymywana przez zespół Homebrew i jest aktualizowana.
+  > W celu uzyskania najbardziej aktualnej wersji zalecamy korzystanie z opencode. Oficjalna formuła `brew install opencode` jest utrzymywana przez zespół Homebrew i jest aktualizowana.
 
 - **Korzystanie z Paru na Arch Linux**
 
   ```bash
-  sudo pacman -S HopCoderX           # Arch Linux (Stable)
-  paru -S HopCoderX-bin              # Arch Linux (Latest from AUR)
+  sudo pacman -S opencode           # Arch Linux (Stable)
+  paru -S opencode-bin              # Arch Linux (Latest from AUR)
   ```
 
 #### Windows
 
 :::tip[Zalecane: Uruchamianie w WSL]
-Aby najlepiej wykorzystać działanie w systemie Windows, zalecamy włączenie [Podsystemu Windows dla systemu Linux (WSL)](/docs/windows-wsl). Zapewnia to pełną kompatybilność z funkcjami HopCoderX.
+Aby najlepiej wykorzystać działanie w systemie Windows, zalecamy włączenie [Podsystemu Windows dla systemu Linux (WSL)](/docs/windows-wsl). Zapewnia to pełną kompatybilność z funkcjami opencode.
 :::
 
 - **Używając Chocolatey**
 
   ```bash
-  choco install HopCoderX
+  choco install opencode
   ```
 
 - **Korzystanie z Scoop**
 
   ```bash
-  scoop install HopCoderX
+  scoop install opencode
   ```
 
 - **Przy użyciu NPM**
 
   ```bash
-  npm install -g HopCoderX-ai
+  npm install -g opencode-ai
   ```
 
 - **Używając Mise’a**
 
   ```bash
-  mise use -g github:TaimoorSiddiquiOfficial/hopcoderx
+  mise use -g github:anomalyco/opencode
   ```
 
 - **Korzystanie z Dockera**
 
   ```bash
-  docker run -it --rm ghcr.io/TaimoorSiddiquiOfficial/hopcoderx
+  docker run -it --rm ghcr.io/anomalyco/opencode
   ```
 
-Obecnie pracujemy nad instalacją HopCoderX w systemie Windows za pomocą Bun.
+Obecnie pracujemy nad instalacją opencode w systemie Windows za pomocą Bun.
 
-Możesz także pobrać plik binarny z [Releases](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases).
+Możesz także pobrać plik binarny z [Releases](https://github.com/anomalyco/opencode/releases).
 
 ---
 
 ## Konfiguracja
 
-Dzięki HopCoderX możesz korzystać z dowolnego dostawcy LLM, konfigurując jego klucze API.
+Dzięki opencode możesz korzystać z dowolnego dostawcy LLM, konfigurując jego klucze API.
 
-Jeśli będziesz korzystać z wielu dostawców LLM, zalecamy skorzystanie z [HopCoderX Bdr](/docs/bdr).
-Aby uzyskać dostęp do wyselekcjonowanej listy modeli, które zostały zatwierdzone i zweryfikowane przez zespół HopCoderX.
+Jeśli będziesz korzystać z wielu dostawców LLM, zalecamy skorzystanie z [OpenCode Zen](/docs/zen).
+Aby uzyskać dostęp do wyselekcjonowanej listy modeli, które zostały zatwierdzone i zweryfikowane przez zespół opencode.
 
-1. Uruchom polecenie `/connect` w TUI, wybierz HopCoderX i przejdź do [hopcoderx.dev/auth](https://hopcoderx.dev/auth).
+1. Uruchom polecenie `/connect` w TUI, wybierz opencode i przejdź do [opencode.ai/auth](https://opencode.ai/auth).
 
    ```txt
    /connect
@@ -166,25 +166,25 @@ Po skonfigurowaniu dostawcy możesz przejść do projektu, nad którym chcesz pr
 cd /path/to/project
 ```
 
-Uruchom HopCoderX.
+Uruchom opencode.
 
 ```bash
-HopCoderX
+opencode
 ```
 
-Następnie zainicjuj HopCoderX dla projektu, uruchamiając odpowiednie polecenie.
+Następnie zainicjuj opencode dla projektu, uruchamiając odpowiednie polecenie.
 
 ```bash frame="none"
 /init
 ```
 
-Spowoduje to, że HopCoderX przeanalizuje Twój projekt i utworzy plik `AGENTS.md` w katalogu głównym projektu.
+Spowoduje to, że opencode przeanalizuje Twój projekt i utworzy plik `AGENTS.md` w katalogu głównym projektu.
 
 :::tip
 Powinieneś zacommitować plik `AGENTS.md` swojego projektu w Git.
 :::
 
-Pomaga to HopCoderX zrozumieć strukturę projektu i stosowane wzorce kodowania.
+Pomaga to opencode zrozumieć strukturę projektu i stosowane wzorce kodowania.
 
 ---
 
@@ -198,7 +198,7 @@ Jeśli dopiero zaczynasz korzystać z agenta kodującego AI, oto kilka wskazówe
 
 ### Zadawaj pytania
 
-Możesz poprosić HopCoderX o wyjaśnienie bazy kodu.
+Możesz poprosić opencode o wyjaśnienie bazy kodu.
 
 :::tip
 Użyj `@` do wyszukiwania rozmytego plików w projekcie.
@@ -214,11 +214,11 @@ Jest to pomocne, jeśli istnieje część bazy kodu, nad którą nie pracowałe�
 
 ### Dodaj funkcje
 
-Możesz poprosić HopCoderX o dodanie nowej funkcji do Twojego projektu. Najpierw zalecamy poproszenie o przygotowanie planu.
+Możesz poprosić opencode o dodanie nowej funkcji do Twojego projektu. Najpierw zalecamy poproszenie o przygotowanie planu.
 
 1. **Stwórz Plan**
 
-   HopCoderX ma _Plan Mode_, który umożliwia wyłączenie zmian i
+   opencode ma _Plan Mode_, który umożliwia wyłączenie zmian i
    zamiast tego zasugeruje, jak zaimplementować tę funkcję.
 
    Przejdź do niego za pomocą klawisza **Tab**. Zobaczysz odpowiedni wskaźnik w prawym dolnym rogu.
@@ -235,11 +235,11 @@ Możesz poprosić HopCoderX o dodanie nowej funkcji do Twojego projektu. Najpier
    From this screen, the user can undelete a note or permanently delete it.
    ```
 
-   Wersja HopCoderX jest bardzo inteligentna, aby zrozumieć, czego chcesz. To pomaga
+   Wersja opencode jest bardzo inteligentna, aby zrozumieć, czego chcesz. To pomaga
    rozmawiaj z nim tak, jakbyś rozmawiał z młodszym programistą w swoim zespole.
 
    :::tip
-   Podaj HopCoderX kontekst, aby zrozumiał, czego chcesz.
+   Podaj opencode kontekst, aby zrozumiał, czego chcesz.
    :::
 
 2. **Udoskonalanie planu**
@@ -255,7 +255,7 @@ Możesz poprosić HopCoderX o dodanie nowej funkcji do Twojego projektu. Najpier
    Przeciągnij i upuść obrazy do terminala, aby dodać je do monitu.
    :::
 
-   HopCoderX może zeskanować obrazy, które mu przekażesz i zrozumieć je. Możesz to zrobić, przeciągając i upuszczając obraz do terminala.
+   opencode może zeskanować obrazy, które mu przekażesz i zrozumieć je. Możesz to zrobić, przeciągając i upuszczając obraz do terminala.
 
 3. **Wprowadź zmiany**
 
@@ -275,7 +275,7 @@ Możesz poprosić HopCoderX o dodanie nowej funkcji do Twojego projektu. Najpier
 
 ### Wprowadź zmiany
 
-Aby wprowadzić kolejną zmianę, możesz poprosić HopCoderX lub zrobić to bezpośrednio bez konieczności wcześniejszego przeglądania planu.
+Aby wprowadzić kolejną zmianę, możesz poprosić opencode lub zrobić to bezpośrednio bez konieczności wcześniejszego przeglądania planu.
 
 ```txt frame="none" "@packages/functions/src/settings.ts" "@packages/functions/src/notes.ts"
 We need to add authentication to the /settings route. Take a look at how this is
@@ -283,13 +283,13 @@ handled in the /notes route in @packages/functions/src/notes.ts and implement
 the same logic in @packages/functions/src/settings.ts
 ```
 
-Musisz upewnić się, że dostarczyłeś odpowiednie pliki, aby HopCoderX mógł wprowadzić zmiany.
+Musisz upewnić się, że dostarczyłeś odpowiednie pliki, aby opencode mógł wprowadzić zmiany.
 
 ---
 
 ### Cofnij zmiany
 
-Załóżmy, że prosisz HopCoderX o wprowadzenie zmian.
+Załóżmy, że prosisz opencode o wprowadzenie zmian.
 
 ```txt frame="none" "@packages/functions/src/api/index.ts"
 Can you refactor the function in @packages/functions/src/api/index.ts?
@@ -302,13 +302,13 @@ za pomocą polecenia `/undo`.
 /undo
 ```
 
-HopCoderX cofnie teraz zmiany i wyświetli wiadomość ponownie.
+opencode cofnie teraz zmiany i wyświetli wiadomość ponownie.
 
 ```txt frame="none" "@packages/functions/src/api/index.ts"
 Can you refactor the function in @packages/functions/src/api/index.ts?
 ```
 
-Możesz edytować monit i poprosić HopCoderX o ponowną próbę.
+Możesz edytować monit i poprosić opencode o ponowną próbę.
 
 :::tip
 Możesz użyć `/undo` wiele razy, aby cofnąć wiele zmian.
@@ -324,7 +324,7 @@ Możesz też **przywrócić** zmianę za pomocą polecenia `/redo`.
 
 ## Udostępnianie
 
-Rozmowy z HopCoderX można [udostępniać swojemu zespołowi](/docs/share).
+Rozmowy z opencode można [udostępniać swojemu zespołowi](/docs/share).
 
 ```bash frame="none"
 /share
@@ -336,12 +336,12 @@ Spowoduje to, że link do bieżącej rozmowy zostanie skopiowany do schowka.
 Rozmowy nie są ogólnodostępne.
 :::
 
-Oto [przykładowa rozmowa](https://hopcoderx.dev/s/4XP1fce5) z HopCoderX.
+Oto [przykładowa rozmowa](https://opencode.ai/s/4XP1fce5) z opencode.
 
 ---
 
 ## Dostosuj
 
-To tyle! Jesteś teraz profesjonalistą w korzystaniu z HopCoderX.
+To tyle! Jesteś teraz profesjonalistą w korzystaniu z opencode.
 
-Aby dostosować go do potrzeb, zalecamy [wybranie motywu](/docs/themes), [dostosowanie skrótów klawiaturowych](/docs/keybinds), [konfigurowanie programów formatujących kod](/docs/formatters), [tworzenie niestandardowych poleceń](/docs/commands) lub zabawę z [konfiguracją HopCoderX](/docs/config).
+Aby dostosować go do potrzeb, zalecamy [wybranie motywu](/docs/themes), [dostosowanie skrótów klawiaturowych](/docs/keybinds), [konfigurowanie programów formatujących kod](/docs/formatters), [tworzenie niestandardowych poleceń](/docs/commands) lub zabawę z [konfiguracją opencode](/docs/config).

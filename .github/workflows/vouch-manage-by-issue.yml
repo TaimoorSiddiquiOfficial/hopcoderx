@@ -15,10 +15,9 @@ permissions:
 
 jobs:
   manage:
-    if: vars.HOPCODERX_APP_ID != ''
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -27,12 +26,13 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          hopcoderx-app-id: ${{ vars.HOPCODERX_APP_ID }}
-          hopcoderx-app-secret: ${{ secrets.HOPCODERX_APP_SECRET }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - uses: mitchellh/vouch/action/manage-by-issue@main
         with:
           issue-id: ${{ github.event.issue.number }}
           comment-id: ${{ github.event.comment.id }}
+          roles: admin,maintain,write
         env:
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}

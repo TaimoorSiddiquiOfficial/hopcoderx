@@ -14,9 +14,9 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -24,6 +24,6 @@ jobs:
 
       - name: Release
         run: |
-          git config --global user.email "hopcoderx@hopcoder.dev"
-          git config --global user.name "hopcoderx"
+          git config --global user.email "opencode@sst.dev"
+          git config --global user.name "opencode"
           ./github/script/release

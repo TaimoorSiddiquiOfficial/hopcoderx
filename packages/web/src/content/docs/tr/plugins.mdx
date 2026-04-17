@@ -1,9 +1,9 @@
 ---
 title: Eklentiler
-description: HopCoderX'u genişletmek için kendi eklentilerinizi yazın.
+description: OpenCode'u genişletmek için kendi eklentilerinizi yazın.
 ---
 
-Eklentiler, çeşitli olaylara bağlanarak ve davranışı özelleştirerek HopCoderX'u genişletmenize olanak tanır. Yeni özellikler eklemek, harici hizmetlerle entegrasyon sağlamak veya HopCoderX'un varsayılan davranışını değiştirmek için eklentiler oluşturabilirsiniz.
+Eklentiler, çeşitli olaylara bağlanarak ve davranışı özelleştirerek OpenCode'u genişletmenize olanak tanır. Yeni özellikler eklemek, harici hizmetlerle entegrasyon sağlamak veya OpenCode'un varsayılan davranışını değiştirmek için eklentiler oluşturabilirsiniz.
 
 Örnekler için topluluk tarafından oluşturulan [eklentilere](/docs/ecosystem#plugins) göz atın.
 
@@ -19,8 +19,8 @@ Eklentileri yüklemenin iki yolu vardır.
 
 JavaScript veya TypeScript dosyalarını eklenti dizinine yerleştirin.
 
-- `.HopCoderX/plugins/` - Proje düzeyinde eklentiler
-- `~/.config/HopCoderX/plugins/` - Genel eklentiler
+- `.opencode/plugins/` - Proje düzeyinde eklentiler
+- `~/.config/opencode/plugins/` - Genel eklentiler
 
 Bu dizinlerdeki dosyalar başlangıçta otomatik olarak yüklenir.
 
@@ -30,10 +30,10 @@ Bu dizinlerdeki dosyalar başlangıçta otomatik olarak yüklenir.
 
 Yapılandırma dosyanızda npm paketlerini belirtin.
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
-  "plugin": ["HopCoderX-helicone-session", "HopCoderX-wakatime", "@my-org/custom-plugin"]
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-helicone-session", "opencode-wakatime", "@my-org/custom-plugin"]
 }
 ```
 
@@ -45,9 +45,9 @@ Hem normal hem de kapsamlı npm paketleri desteklenir.
 
 ### Eklentiler nasıl kurulur?
 
-**npm eklentileri** başlangıçta Bun kullanılarak otomatik olarak yüklenir. Paketler ve bağımlılıkları `~/.cache/HopCoderX/node_modules/`'da önbelleğe alınır.
+**npm eklentileri** başlangıçta Bun kullanılarak otomatik olarak yüklenir. Paketler ve bağımlılıkları `~/.cache/opencode/node_modules/`'da önbelleğe alınır.
 
-**Yerel eklentiler** doğrudan eklenti dizininden yüklenir. Harici paketleri kullanmak için, sisteminizin dizininde bir `package.json` oluşturmanız (bkz. [Bağımlılıklar](#dependencies)) veya eklentiyi npm ve [add it to your config](/docs/config#plugins)'de yayınlamanız gerekir.
+**Yerel eklentiler** doğrudan eklenti dizininden yüklenir. Harici paketleri kullanmak için, sisteminizin dizininde bir `package.json` oluşturmanız (bkz. [Bağımlılıklar](#dependencies)) veya eklentiyi npm ve [yapılandırmanıza eklemeniz](/docs/config#plugins) gerekir.
 
 ---
 
@@ -55,10 +55,10 @@ Hem normal hem de kapsamlı npm paketleri desteklenir.
 
 Eklentiler tüm kaynaklardan yüklenir ve tüm kancalar sırayla çalışır. Yükleme sırası şöyledir:
 
-1. Global config (`~/.config/HopCoderX/HopCoderX.json`)
-2. Project config (`HopCoderX.json`)
-3. Global eklenti dizini (`~/.config/HopCoderX/plugins/`)
-4. Proje eklenti dizini (`.HopCoderX/plugins/`)
+1. Global config (`~/.config/opencode/opencode.json`)
+2. Project config (`opencode.json`)
+3. Global eklenti dizini (`~/.config/opencode/plugins/`)
+4. Proje eklenti dizini (`.opencode/plugins/`)
 
 Aynı ad ve sürüme sahip yinelenen npm paketleri bir kez yüklenir. Ancak benzer adlara sahip bir yerel eklenti ve bir npm eklentisinin her ikisi de ayrı ayrı yüklenir.
 
@@ -66,8 +66,7 @@ Aynı ad ve sürüme sahip yinelenen npm paketleri bir kez yüklenir. Ancak benz
 
 ## Eklenti oluşturma
 
-Eklenti, bir veya daha fazla eklentiyi dışa aktaran bir **JavaScript/TypeScript modülüdür**
-işlevler. Her işlev bir bağlam nesnesi alır ve bir kanca nesnesi döndürür.
+Eklenti, bir veya daha fazla eklenti işlevini dışa aktaran bir **JavaScript/TypeScript modülüdür**. Her işlev bir bağlam nesnesi alır ve bir kanca nesnesi döndürür.
 
 ---
 
@@ -75,7 +74,7 @@ işlevler. Her işlev bir bağlam nesnesi alır ve bir kanca nesnesi döndürür
 
 Yerel eklentiler ve özel araçlar harici npm paketlerini kullanabilir. İhtiyacınız olan bağımlılıkları içeren config dizininize bir `package.json` ekleyin.
 
-```json title=".HopCoderX/package.json"
+```json title=".opencode/package.json"
 {
   "dependencies": {
     "shescape": "^2.1.0"
@@ -83,9 +82,9 @@ Yerel eklentiler ve özel araçlar harici npm paketlerini kullanabilir. İhtiyac
 }
 ```
 
-HopCoderX bunları yüklemek için başlangıçta `bun install` komutunu çalıştırır. Eklentileriniz ve araçlarınız daha sonra bunları içe aktarabilir.
+OpenCode bunları yüklemek için başlangıçta `bun install` komutunu çalıştırır. Eklentileriniz ve araçlarınız daha sonra bunları içe aktarabilir.
 
-```ts title=".HopCoderX/plugins/my-plugin.ts"
+```ts title=".opencode/plugins/my-plugin.ts"
 import { escape } from "shescape"
 
 export const MyPlugin = async (ctx) => {
@@ -103,7 +102,7 @@ export const MyPlugin = async (ctx) => {
 
 ### Temel yapı
 
-```js title=".HopCoderX/plugins/example.js"
+```js title=".opencode/plugins/example.js"
 export const MyPlugin = async ({ project, client, $, directory, worktree }) => {
   console.log("Plugin initialized!")
 
@@ -116,9 +115,9 @@ export const MyPlugin = async ({ project, client, $, directory, worktree }) => {
 Eklenti işlevi şunları alır:
 
 - `project`: Mevcut proje bilgisi.
-- `directory`: güncel çalışma dizini.
+- `directory`: Güncel çalışma dizini.
 - `worktree`: Git çalışma ağacı yolu.
-- `client`: Yapay zeka ile etkileşime geçmek için HopCoderX'lu bir SDK istemcisi.
+- `client`: Yapay zeka ile etkileşim kurmak için bir OpenCode SDK istemcisi.
 - `$`: Bun'un komutları yürütmek için kullandığı [shell API](https://bun.com/docs/runtime/shell).
 
 ---
@@ -128,7 +127,7 @@ Eklenti işlevi şunları alır:
 TypeScript eklentileri için türleri eklenti paketinden içe aktarabilirsiniz:
 
 ```ts title="my-plugin.ts" {1}
-import type { Plugin } from "@HopCoderX-ai/plugin"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const MyPlugin: Plugin = async ({ project, client, $, directory, worktree }) => {
   return {
@@ -211,7 +210,7 @@ Eklentiler aşağıdaki Örnekler bölümünde görüldüğü gibi etkinliklere 
 
 ## Örnekler
 
-HopCoderX'u genişletmek için kullanabileceğiniz bazı eklenti örneklerini burada bulabilirsiniz.
+OpenCode'u genişletmek için kullanabileceğiniz bazı eklenti örneklerini burada bulabilirsiniz.
 
 ---
 
@@ -219,32 +218,32 @@ HopCoderX'u genişletmek için kullanabileceğiniz bazı eklenti örneklerini bu
 
 Belirli olaylar meydana geldiğinde bildirim gönderin:
 
-```js title=".HopCoderX/plugins/notification.js"
+```js title=".opencode/plugins/notification.js"
 export const NotificationPlugin = async ({ project, client, $, directory, worktree }) => {
   return {
     event: async ({ event }) => {
       // Send notification on session completion
       if (event.type === "session.idle") {
-        await $`osascript -e 'display notification "Session completed!" with title "hopcoderx"'`
+        await $`osascript -e 'display notification "Session completed!" with title "opencode"'`
       }
     },
   }
 }
 ```
 
-MacOS'ta AppleScript'i çalıştırmak için `osascript` kullanıyoruz. Burada bildirim göndermek için kullanıyoruz.
+macOS'ta AppleScript'i çalıştırmak için `osascript` kullanıyoruz. Burada bildirim göndermek için kullanıyoruz.
 
 :::note
-HopCoderX masaüstü uygulamasını kullanıyorsanız yanıt hazır olduğunda veya oturum hataları oluştuğunda otomatik olarak sistem bildirimleri gönderebilir.
+OpenCode masaüstü uygulamasını kullanıyorsanız yanıt hazır olduğunda veya oturum hataları oluştuğunda otomatik olarak sistem bildirimleri gönderebilir.
 :::
 
 ---
 
 ### .env Koruması
 
-HopCoderX'un `.env` dosyalarını okumasını önleyin:
+OpenCode'un `.env` dosyalarını okumasını önleyin:
 
-```javascript title=".HopCoderX/plugins/env-protection.js"
+```javascript title=".opencode/plugins/env-protection.js"
 export const EnvProtection = async ({ project, client, $, directory, worktree }) => {
   return {
     "tool.execute.before": async (input, output) => {
@@ -262,7 +261,7 @@ export const EnvProtection = async ({ project, client, $, directory, worktree })
 
 Ortam değişkenlerini tüm kabuk yürütmeye (AI araçları ve kullanıcı terminalleri) enjekte edin:
 
-```javascript title=".HopCoderX/plugins/inject-env.js"
+```javascript title=".opencode/plugins/inject-env.js"
 export const InjectEnvPlugin = async () => {
   return {
     "shell.env": async (input, output) => {
@@ -277,10 +276,10 @@ export const InjectEnvPlugin = async () => {
 
 ### Özel araçlar
 
-Eklentiler ayrıca HopCoderX'a özel araçlar da ekleyebilir:
+Eklentiler ayrıca OpenCode'a özel araçlar da ekleyebilir:
 
-```ts title=".HopCoderX/plugins/custom-tools.ts"
-import { type Plugin, tool } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/plugins/custom-tools.ts"
+import { type Plugin, tool } from "@opencode-ai/plugin"
 
 export const CustomToolsPlugin: Plugin = async (ctx) => {
   return {
@@ -300,21 +299,25 @@ export const CustomToolsPlugin: Plugin = async (ctx) => {
 }
 ```
 
-`tool` yardımcısı, HopCoderX'un çağırabileceği özel bir araç oluşturur. Bir Zod şeması işlevini alır ve aşağıdakileri içeren bir araç tanımı döndürür:
+`tool` yardımcısı, OpenCode'un çağırabileceği özel bir araç oluşturur. Bir Zod şeması işlevini alır ve aşağıdakileri içeren bir araç tanımı döndürür:
 
 - `description`: Araç ne yapar?
 - `args`: Aracın argümanları için Zod şeması
 - `execute`: Araç çağrıldığında çalışan fonksiyon
 
-Özel araçlarınız, yerleşik araçların yanı sıra kod açmaya da hazır olacaktır.
+Özel araçlarınız, yerleşik araçların yanı sıra OpenCode'a da hazır olacaktır.
+
+:::note
+Eğer bir eklenti aracı yerleşik bir araçla aynı adı kullanırsa, eklenti aracı öncelik kazanır.
+:::
 
 ---
 
 ### Günlüğe kaydetme
 
-Yapılandırılmış günlük kaydı için `client.app.log()` yerine `console.log` kullanın:
+Yapılandırılmış günlük kaydı için `console.log` yerine `client.app.log()` kullanın:
 
-```ts title=".HopCoderX/plugins/my-plugin.ts"
+```ts title=".opencode/plugins/my-plugin.ts"
 export const MyPlugin = async ({ client }) => {
   await client.app.log({
     body: {
@@ -327,7 +330,7 @@ export const MyPlugin = async ({ client }) => {
 }
 ```
 
-Seviyeler: `debug`, `info`, `warn`, `error`. Ayrıntılar için [SDK documentation](https://hopcoderx.dev/docs/sdk)'e bakın.
+Seviyeler: `debug`, `info`, `warn`, `error`. Ayrıntılar için [SDK belgelerine](https://opencode.ai/docs/sdk) bakın.
 
 ---
 
@@ -335,8 +338,8 @@ Seviyeler: `debug`, `info`, `warn`, `error`. Ayrıntılar için [SDK documentati
 
 Bir oturum sıkıştırıldığında içerilen bağlamı özelleştirin:
 
-```ts title=".HopCoderX/plugins/compaction.ts"
-import type { Plugin } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/plugins/compaction.ts"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const CompactionPlugin: Plugin = async (ctx) => {
   return {
@@ -359,8 +362,8 @@ Include any state that should persist across compaction:
 
 Ayrıca `output.prompt` ayarını yaparak sıkıştırma istemini tamamen değiştirebilirsiniz:
 
-```ts title=".HopCoderX/plugins/custom-compaction.ts"
-import type { Plugin } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/plugins/custom-compaction.ts"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const CustomCompactionPlugin: Plugin = async (ctx) => {
   return {

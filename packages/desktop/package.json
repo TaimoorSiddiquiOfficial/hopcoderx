@@ -1,7 +1,7 @@
 {
-  "name": "@hopcoderx/desktop",
+  "name": "@opencode-ai/desktop",
   "private": true,
-  "version": "1.2.10",
+  "version": "1.4.10",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -13,8 +13,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@hopcoderx/app": "workspace:*",
-    "@hopcoderx/ui": "workspace:*",
+    "@opencode-ai/app": "workspace:*",
+    "@opencode-ai/ui": "workspace:*",
     "@solid-primitives/i18n": "2.2.1",
     "@solid-primitives/storage": "catalog:",
     "@tauri-apps/api": "^2",
@@ -38,7 +38,7 @@
     "@tauri-apps/cli": "^2",
     "@types/bun": "catalog:",
     "@typescript/native-preview": "catalog:",
-    "typescript": "catalog:",
+    "typescript": "~5.6.2",
     "vite": "catalog:"
   }
 }

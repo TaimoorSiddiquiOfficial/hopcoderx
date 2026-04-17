@@ -53,16 +53,16 @@ impl MainWindow {
             app,
             decorations,
         )
-        .title("HopCoderX")
+        .title("OpenCode")
         .disable_drag_drop_handler()
         .zoom_hotkeys_enabled(false)
         .visible(true)
         .maximized(true)
         .initialization_script(format!(
             r#"
-            window.__HOPCODERX__ ??= {{}};
-            window.__HOPCODERX__.updaterEnabled = {UPDATER_ENABLED};
-            window.__HOPCODERX__.wsl = {wsl_enabled};
+            window.__OPENCODE__ ??= {{}};
+            window.__OPENCODE__.updaterEnabled = {UPDATER_ENABLED};
+            window.__OPENCODE__.wsl = {wsl_enabled};
           "#
         ));
 

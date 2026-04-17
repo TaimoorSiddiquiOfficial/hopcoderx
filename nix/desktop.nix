@@ -21,11 +21,11 @@
   openssl,
   webkitgtk_4_1,
   gst_all_1,
-  hopcoderx,
+  opencode,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
-  pname = "hopcoderx-desktop";
-  inherit (hopcoderx)
+  pname = "opencode-desktop";
+  inherit (opencode)
     version
     src
     node_modules
@@ -72,7 +72,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     patchShebangs packages/desktop/node_modules
 
     mkdir -p packages/desktop/src-tauri/sidecars
-    cp ${hopcoderx}/bin/hopcoderx packages/desktop/src-tauri/sidecars/hopcoderx-cli-${stdenv.hostPlatform.rust.rustcTarget}
+    cp ${opencode}/bin/opencode packages/desktop/src-tauri/sidecars/opencode-cli-${stdenv.hostPlatform.rust.rustcTarget}
   '';
 
   # see publish-tauri job in .github/workflows/publish.yml
@@ -86,15 +86,15 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # should be removed once binary is renamed or decided otherwise
   # darwin output is a .app bundle so no conflict
   postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
-    mv $out/bin/HopCoderX $out/bin/hopcoderx-desktop
-    sed -i 's|^Exec=HopCoderX$|Exec=hopcoderx-desktop|' $out/share/applications/HopCoderX.desktop
+    mv $out/bin/OpenCode $out/bin/opencode-desktop
+    sed -i 's|^Exec=OpenCode$|Exec=opencode-desktop|' $out/share/applications/OpenCode.desktop
   '';
 
   meta = {
-    description = "HopCoderX Desktop App";
-    homepage = "https://hopcoderx.ai";
+    description = "OpenCode Desktop App";
+    homepage = "https://opencode.ai";
     license = lib.licenses.mit;
-    mainProgram = "hopcoderx-desktop";
-    inherit (hopcoderx.meta) platforms;
+    mainProgram = "opencode-desktop";
+    inherit (opencode.meta) platforms;
   };
 })

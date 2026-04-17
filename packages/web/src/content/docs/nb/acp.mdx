@@ -1,9 +1,9 @@
 ---
 title: ACP-støtte
-description: Bruk HopCoderX i en hvilken som helst ACP-kompatibel editor.
+description: Bruk opencode i en hvilken som helst ACP-kompatibel editor.
 ---
 
-HopCoderX støtter [Agent Client Protocol](https://agentclientprotocol.com) eller (ACP), slik at du kan bruke den direkte i kompatible editorer og IDE-er.
+OpenCode støtter [Agent Client Protocol](https://agentclientprotocol.com) eller (ACP), slik at du kan bruke den direkte i kompatible editorer og IDE-er.
 
 :::tip
 For en liste over editorer og verktøy som støtter ACP, sjekk ut [ACP fremdriftsrapport](https://zed.dev/blog/acp-progress-report#available-now).
@@ -15,9 +15,9 @@ ACP er en åpen protokoll som standardiserer kommunikasjon mellom kodeditorer og
 
 ## Konfigurasjon
 
-For å bruke HopCoderX via ACP, konfigurer redigeringsprogrammet til å kjøre kommandoen `HopCoderX acp`.
+For å bruke OpenCode via ACP, konfigurer redigeringsprogrammet til å kjøre kommandoen `opencode acp`.
 
-Kommandoen starter HopCoderX som en ACP-kompatibel underprosess som kommuniserer med editoren din over JSON-RPC via stdio.
+Kommandoen starter OpenCode som en ACP-kompatibel underprosess som kommuniserer med editoren din over JSON-RPC via stdio.
 
 Nedenfor er eksempler på populære editorer som støtter ACP.
 
@@ -30,8 +30,8 @@ Legg til i [Zed](https://zed.dev)-konfigurasjonen (`~/.config/zed/settings.json`
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "hopcoderx": {
-      "command": "hopcoderx",
+    "OpenCode": {
+      "command": "opencode",
       "args": ["acp"]
     }
   }
@@ -51,9 +51,9 @@ Du kan også binde en hurtigtast ved å redigere `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "hopcoderx",
+              "name": "OpenCode",
               "command": {
-                "command": "hopcoderx",
+                "command": "opencode",
                 "args": ["acp"]
               }
             }
@@ -74,15 +74,15 @@ Legg til [JetBrains IDE](https://www.jetbrains.com/) acp.json i henhold til [dok
 ```json title="acp.json"
 {
   "agent_servers": {
-    "hopcoderx": {
-      "command": "/absolute/path/bin/HopCoderX",
+    "OpenCode": {
+      "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
   }
 }
 ```
 
-For å åpne den, bruk den nye 'hopcoderx'-agenten i AI Chat-agentvelgeren.
+For å åpne den, bruk den nye 'OpenCode'-agenten i AI Chat-agentvelgeren.
 
 ---
 
@@ -93,8 +93,8 @@ Legg til i [Avante.nvim](https://github.com/yetone/avante.nvim)-konfigurasjonen:
 ```lua
 {
   acp_providers = {
-    ["hopcoderx"] = {
-      command = "hopcoderx",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" }
     }
   }
@@ -106,11 +106,11 @@ Hvis du trenger å sende miljøvariabler:
 ```lua {6-8}
 {
   acp_providers = {
-    ["hopcoderx"] = {
-      command = "hopcoderx",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" },
       env = {
-        HOPCODERX_API_KEY = os.getenv("HOPCODERX_API_KEY")
+        OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY")
       }
     }
   }
@@ -121,14 +121,14 @@ Hvis du trenger å sende miljøvariabler:
 
 ### CodeCompanion.nvim
 
-For å bruke HopCoderX som en ACP-agent i [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), legg til følgende i Neovim-konfigurasjonen:
+For å bruke OpenCode som en ACP-agent i [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), legg til følgende i Neovim-konfigurasjonen:
 
 ```lua
 require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "hopcoderx",
+        name = "opencode",
         model = "claude-sonnet-4",
       },
     },
@@ -136,13 +136,13 @@ require("codecompanion").setup({
 })
 ```
 
-Denne konfigurasjonen setter opp CodeCompanion.nvim til å bruke HopCoderX som ACP-agent for chat.
+Denne konfigurasjonen setter opp CodeCompanion.nvim til å bruke OpenCode som ACP-agent for chat.
 
-Hvis du trenger å sende miljøvariabler (som `HOPCODERX_API_KEY`), se [Konfigurere adaptere: miljøvariabler](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) i CodeCompanion.nvim-dokumentasjonen for fullstendige detaljer.
+Hvis du trenger å sende miljøvariabler (som `OPENCODE_API_KEY`), se [Konfigurere adaptere: miljøvariabler](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) i CodeCompanion.nvim-dokumentasjonen for fullstendige detaljer.
 
 ## Støtte
 
-HopCoderX fungerer på samme måte via ACP som i terminalen. Alle funksjoner støttes:
+OpenCode fungerer på samme måte via ACP som i terminalen. Alle funksjoner støttes:
 
 :::note
 Noen innebygde slash-kommandoer som `/undo` og `/redo` støttes for øyeblikket ikke.
@@ -150,7 +150,7 @@ Noen innebygde slash-kommandoer som `/undo` og `/redo` støttes for øyeblikket 
 
 - Innebygde verktøy (filoperasjoner, terminalkommandoer, etc.)
 - Egendefinerte verktøy og slash-kommandoer
-- MCP servere konfigurert i HopCoderX-konfigurasjonen
+- MCP servere konfigurert i OpenCode-konfigurasjonen
 - Prosjektspesifikke regler fra `AGENTS.md`
 - Tilpassede formatere og linters
 - Agenter og tillatelsessystem

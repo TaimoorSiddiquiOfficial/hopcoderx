@@ -3,15 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 import { invoke } from "@tauri-apps/api/core"
+import { type as ostype } from "@tauri-apps/plugin-os"
 import { createSignal } from "solid-js"
 
-// Use browser UA to determine platform to avoid plugin-os dependency in dev.
-const OS_NAME = (() => {
-  const ua = navigator.userAgent.toLowerCase()
-  if (ua.includes("mac")) return "macos"
-  if (ua.includes("linux")) return "linux"
-  return "windows"
-})()
+const OS_NAME = ostype()
 
 const [webviewZoom, setWebviewZoom] = createSignal(1)
 
@@ -22,7 +17,7 @@ const clamp = (value: number) => Math.min(Math.max(value, MIN_ZOOM_LEVEL), MAX_Z
 
 const applyZoom = (next: number) => {
   setWebviewZoom(next)
-  invoke("plugin:webview|set_webview_zoom", {
+  void invoke("plugin:webview|set_webview_zoom", {
     value: next,
   })
 }

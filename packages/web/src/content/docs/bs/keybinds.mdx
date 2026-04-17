@@ -3,11 +3,11 @@ title: Prečice tipki
 description: Prilagodite svoje veze tipki.
 ---
 
-HopCoderX ima listu veza tipki koje možete prilagoditi preko HopCoderX konfiguracije.
+OpenCode ima listu veza tipki koje možete prilagoditi putem `tui.json`.
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "leader": "ctrl+x",
     "app_exit": "ctrl+c,ctrl+d,<leader>q",
@@ -28,6 +28,7 @@ HopCoderX ima listu veza tipki koje možete prilagoditi preko HopCoderX konfigur
     "session_unshare": "none",
     "session_interrupt": "escape",
     "session_compact": "<leader>c",
+    "session_child_first": "<leader>down",
     "session_child_cycle": "<leader>right",
     "session_child_cycle_reverse": "<leader>left",
     "session_parent": "<leader>up",
@@ -52,6 +53,7 @@ HopCoderX ima listu veza tipki koje možete prilagoditi preko HopCoderX konfigur
     "model_cycle_favorite": "none",
     "model_cycle_favorite_reverse": "none",
     "variant_cycle": "ctrl+t",
+    "variant_list": "none",
     "command_list": "ctrl+p",
     "agent_list": "<leader>a",
     "agent_cycle": "tab",
@@ -107,19 +109,21 @@ HopCoderX ima listu veza tipki koje možete prilagoditi preko HopCoderX konfigur
 
 ## Leader tipka
 
-HopCoderX koristi `leader` (vodeću) tipku za većinu povezivanja tipki. Ovo izbjegava sukobe u vašem terminalu.
+OpenCode koristi `leader` (vodeću) tipku za većinu povezivanja tipki. Ovo izbjegava sukobe u vašem terminalu.
+
 Prema zadanim postavkama, `ctrl+x` je vodeća tipka i većina radnji zahtijeva da prvo pritisnete vodeću tipku, a zatim i prečicu. Na primjer, da biste započeli novu sesiju, prvo pritisnite `ctrl+x`, a zatim pritisnite `n`.
+
 Ne morate koristiti vodeću tipku za svoje veze tipki, ali preporučujemo da to učinite.
 
 ---
 
 ## Onemogućavanje prečica tipki
 
-Možete onemogućiti spajanje tipki dodavanjem ključa u svoju konfiguraciju s vrijednošću "none".
+Možete onemogućiti spajanje tipki dodavanjem ključa u `tui.json` s vrijednošću "none".
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "session_compact": "none"
   }
@@ -130,7 +134,7 @@ Možete onemogućiti spajanje tipki dodavanjem ključa u svoju konfiguraciju s v
 
 ## Prečice za radnu površinu
 
-Unos prompta aplikacije HopCoderX za desktop podržava uobičajene prečice u stilu Readline/Emacs za uređivanje teksta. One su ugrađene i trenutno se ne mogu konfigurirati putem `HopCoderX.json`.
+Unos prompta aplikacije OpenCode za desktop podržava uobičajene prečice u stilu Readline/Emacs za uređivanje teksta. One su ugrađene i trenutno se ne mogu konfigurirati putem `opencode.json`.
 
 | Prečica  | Akcija                                           |
 | -------- | ------------------------------------------------ |

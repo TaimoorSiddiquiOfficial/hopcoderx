@@ -2,13 +2,25 @@ import { MetaProvider, Title, Meta } from "@solidjs/meta"
 import { Router } from "@solidjs/router"
 import { FileRoutes } from "@solidjs/start/router"
 import { Suspense } from "solid-js"
-import { Favicon } from "@hopcoderx/ui/favicon"
-import { Font } from "@hopcoderx/ui/font"
+import { Favicon } from "@opencode-ai/ui/favicon"
+import { Font } from "@opencode-ai/ui/font"
 import "@ibm/plex/css/ibm-plex.css"
 import "./app.css"
 import { LanguageProvider } from "~/context/language"
-import { I18nProvider } from "~/context/i18n"
+import { I18nProvider, useI18n } from "~/context/i18n"
 import { strip } from "~/lib/language"
+
+function AppMeta() {
+  const i18n = useI18n()
+  return (
+    <>
+      <Title>opencode</Title>
+      <Meta name="description" content={i18n.t("app.meta.description")} />
+      <Favicon />
+      <Font />
+    </>
+  )
+}
 
 export default function App() {
   return (
@@ -19,10 +31,7 @@ export default function App() {
         <LanguageProvider>
           <I18nProvider>
             <MetaProvider>
-              <Title>HopCoderX</Title>
-              <Meta name="description" content="HopCoderX - The open source coding agent." />
-              <Favicon />
-              <Font />
+              <AppMeta />
               <Suspense>{props.children}</Suspense>
             </MetaProvider>
           </I18nProvider>

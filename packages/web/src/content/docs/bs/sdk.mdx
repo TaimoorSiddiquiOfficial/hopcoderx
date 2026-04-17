@@ -1,13 +1,13 @@
 ---
 title: SDK
-description: Type-safe JS klijent za HopCoderX server.
+description: Type-safe JS klijent za opencode server.
 ---
 
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-HopCoderX JS/TS SDK pruza type-safe klijent za interakciju sa serverom.
-Koristite ga za izradu integracija i programsko upravljanje HopCoderX-om.
+opencode JS/TS SDK pruza type-safe klijent za interakciju sa serverom.
+Koristite ga za izradu integracija i programsko upravljanje opencode-om.
 
 [Saznajte vise](/docs/server) kako server radi. Za primjere pogledajte [projects](/docs/ecosystem#projects) koje je napravila zajednica.
 
@@ -18,19 +18,19 @@ Koristite ga za izradu integracija i programsko upravljanje HopCoderX-om.
 Instalirajte SDK sa npm-a:
 
 ```bash
-npm install @HopCoderX-ai/sdk
+npm install @opencode-ai/sdk
 ```
 
 ---
 
 ## Kreiranje klijenta
 
-Kreirajte instancu HopCoderX:
+Kreirajte instancu opencode:
 
 ```javascript
-import { createHopCoderX } from "@HopCoderX-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const { client } = await createHopCoderX()
+const { client } = await createOpencode()
 ```
 
 Ovo pokrece i server i klijent
@@ -49,12 +49,12 @@ Ovo pokrece i server i klijent
 
 ## Konfiguracija
 
-Mozete proslijediti konfiguracijski objekat za prilagodavanje ponasanja. Instanca i dalje ucitava `HopCoderX.json`, ali konfiguraciju mozete nadjacati ili dodati inline:
+Mozete proslijediti konfiguracijski objekat za prilagodavanje ponasanja. Instanca i dalje ucitava `opencode.json`, ali konfiguraciju mozete nadjacati ili dodati inline:
 
 ```javascript
-import { createHopCoderX } from "@HopCoderX-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const HopCoderX = await createHopCoderX({
+const opencode = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,19 +62,19 @@ const HopCoderX = await createHopCoderX({
   },
 })
 
-console.log(`Server running at ${HopCoderX.server.url}`)
+console.log(`Server running at ${opencode.server.url}`)
 
-HopCoderX.server.close()
+opencode.server.close()
 ```
 
 ## Samo klijent
 
-Ako vec imate pokrenutu HopCoderX instancu, mozete napraviti klijentsku instancu i povezati se na nju:
+Ako vec imate pokrenutu opencode instancu, mozete napraviti klijentsku instancu i povezati se na nju:
 
 ```javascript
-import { createHopCoderXClient } from "@HopCoderX-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
-const client = createHopCoderXClient({
+const client = createOpencodeClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -96,7 +96,7 @@ const client = createHopCoderXClient({
 SDK ukljucuje TypeScript definicije za sve API tipove. Uvezite ih direktno:
 
 ```typescript
-import type { Session, Message, Part } from "@HopCoderX-ai/sdk"
+import type { Session, Message, Part } from "@opencode-ai/sdk"
 ```
 
 Svi tipovi su generisani iz OpenAPI specifikacije servera i dostupni u <a href={typesUrl}>types datoteci</a>.
@@ -114,6 +114,78 @@ try {
   console.error("Failed to get session:", (error as Error).message)
 }
 ```
+
+---
+
+## Strukturirani izlaz
+
+Možete zatražiti strukturirani JSON izlaz od modela specificiranjem `format` sa JSON šemom. Model će koristiti `StructuredOutput` alat da vrati validirani JSON koji odgovara vašoj šemi.
+
+### Osnovna upotreba
+
+```typescript
+const result = await client.session.prompt({
+  path: { id: sessionId },
+  body: {
+    parts: [{ type: "text", text: "Research Anthropic and provide company info" }],
+    format: {
+      type: "json_schema",
+      schema: {
+        type: "object",
+        properties: {
+          company: { type: "string", description: "Company name" },
+          founded: { type: "number", description: "Year founded" },
+          products: {
+            type: "array",
+            items: { type: "string" },
+            description: "Main products",
+          },
+        },
+        required: ["company", "founded"],
+      },
+    },
+  },
+})
+
+// Access the structured output
+console.log(result.data.info.structured_output)
+// { company: "Anthropic", founded: 2021, products: ["Claude", "Claude API"] }
+```
+
+### Tipovi formata izlaza
+
+| Tip           | Opis                                                                |
+| ------------- | ------------------------------------------------------------------- |
+| `text`        | Default. Standardni tekstualni odgovor (nema strukturiranog izlaza) |
+| `json_schema` | Vraća validirani JSON koji odgovara pruženoj šemi                   |
+
+### Format JSON šeme
+
+Kada koristite `type: 'json_schema'`, navedite:
+
+| Polje        | Tip             | Opis                                                        |
+| ------------ | --------------- | ----------------------------------------------------------- |
+| `type`       | `'json_schema'` | Obavezno. Određuje JSON schema način rada                   |
+| `schema`     | `object`        | Obavezno. JSON Schema objekt koji definira strukturu izlaza |
+| `retryCount` | `number`        | Opcionalno. Broj ponovnih pokušaja validacije (default: 2)  |
+
+### Rukovanje greškama
+
+Ako model ne uspije proizvesti validan strukturirani izlaz nakon svih ponovnih pokušaja, odgovor će uključivati `StructuredOutputError`:
+
+```typescript
+if (result.data.info.error?.name === "StructuredOutputError") {
+  console.error("Failed to produce structured output:", result.data.info.error.message)
+  console.error("Attempts:", result.data.info.error.retries)
+}
+```
+
+### Najbolje prakse
+
+1. **Navedite jasne opise** u svojstvima vaše šeme kako biste pomogli modelu da razumije koje podatke treba izdvojiti
+2. **Koristite `required`** da odredite koja polja moraju biti prisutna
+3. **Držite šeme fokusiranim** - složene ugniježđene šeme modelu mogu biti teže za ispravno popunjavanje
+4. **Postavite odgovarajući `retryCount`** - povećajte za složene šeme, smanjite za jednostavne
 
 ---
 
@@ -226,27 +298,27 @@ const { providers, default: defaults } = await client.config.providers()
 
 ### Sesije
 
-| Metoda                                                     | Opis                               | Napomene                                                                                                                                       |
-| ---------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `session.list()`                                           | List sessions                      | Returns <a href={typesUrl}><code>Session[]</code></a>                                                                                          |
-| `session.get({ path })`                                    | Get session                        | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `session.children({ path })`                               | List child sessions                | Returns <a href={typesUrl}><code>Session[]</code></a>                                                                                          |
-| `session.create({ body })`                                 | Create session                     | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `session.delete({ path })`                                 | Delete session                     | Returns `boolean`                                                                                                                              |
-| `session.update({ path, body })`                           | Update session properties          | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `session.init({ path, body })`                             | Analyze app and create `AGENTS.md` | Returns `boolean`                                                                                                                              |
-| `session.abort({ path })`                                  | Abort a running session            | Returns `boolean`                                                                                                                              |
-| `session.share({ path })`                                  | Share session                      | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `session.unshare({ path })`                                | Unshare session                    | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `session.summarize({ path, body })`                        | Summarize session                  | Returns `boolean`                                                                                                                              |
-| `session.messages({ path })`                               | List messages in a session         | Returns `{ info: `<a href={typesUrl}><code>Message</code></a>`, parts: `<a href={typesUrl}><code>Part[]</code></a>`}[]`                        |
-| `session.message({ path })`                                | Get message details                | Returns `{ info: `<a href={typesUrl}><code>Message</code></a>`, parts: `<a href={typesUrl}><code>Part[]</code></a>`}`                          |
-| `session.prompt({ path, body })`                           | Send prompt message                | `body.noReply: true` returns UserMessage (context only). Default returns <a href={typesUrl}><code>AssistantMessage</code></a> with AI response |
-| `session.command({ path, body })`                          | Send command to session            | Returns `{ info: `<a href={typesUrl}><code>AssistantMessage</code></a>`, parts: `<a href={typesUrl}><code>Part[]</code></a>`}`                 |
-| `session.shell({ path, body })`                            | Run a shell command                | Returns <a href={typesUrl}><code>AssistantMessage</code></a>                                                                                   |
-| `session.revert({ path, body })`                           | Revert a message                   | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `session.unrevert({ path })`                               | Restore reverted messages          | Returns <a href={typesUrl}><code>Session</code></a>                                                                                            |
-| `postSessionByIdPermissionsByPermissionId({ path, body })` | Respond to a permission request    | Returns `boolean`                                                                                                                              |
+| Metoda                                                     | Opis                               | Napomene                                                                                                                                                                                                                   |
+| ---------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `session.list()`                                           | List sessions                      | Returns <a href={typesUrl}><code>Session[]</code></a>                                                                                                                                                                      |
+| `session.get({ path })`                                    | Get session                        | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `session.children({ path })`                               | List child sessions                | Returns <a href={typesUrl}><code>Session[]</code></a>                                                                                                                                                                      |
+| `session.create({ body })`                                 | Create session                     | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `session.delete({ path })`                                 | Delete session                     | Returns `boolean`                                                                                                                                                                                                          |
+| `session.update({ path, body })`                           | Update session properties          | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `session.init({ path, body })`                             | Analyze app and create `AGENTS.md` | Returns `boolean`                                                                                                                                                                                                          |
+| `session.abort({ path })`                                  | Abort a running session            | Returns `boolean`                                                                                                                                                                                                          |
+| `session.share({ path })`                                  | Share session                      | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `session.unshare({ path })`                                | Unshare session                    | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `session.summarize({ path, body })`                        | Summarize session                  | Returns `boolean`                                                                                                                                                                                                          |
+| `session.messages({ path })`                               | List messages in a session         | Returns `{ info: `<a href={typesUrl}><code>Message</code></a>`, parts: `<a href={typesUrl}><code>Part[]</code></a>`}[]`                                                                                                    |
+| `session.message({ path })`                                | Get message details                | Returns `{ info: `<a href={typesUrl}><code>Message</code></a>`, parts: `<a href={typesUrl}><code>Part[]</code></a>`}`                                                                                                      |
+| `session.prompt({ path, body })`                           | Send prompt message                | `body.noReply: true` returns UserMessage (context only). Default returns <a href={typesUrl}><code>AssistantMessage</code></a> with AI response. Supports `body.outputFormat` for [structured output](#strukturirani-izlaz) |
+| `session.command({ path, body })`                          | Send command to session            | Returns `{ info: `<a href={typesUrl}><code>AssistantMessage</code></a>`, parts: `<a href={typesUrl}><code>Part[]</code></a>`}`                                                                                             |
+| `session.shell({ path, body })`                            | Run a shell command                | Returns <a href={typesUrl}><code>AssistantMessage</code></a>                                                                                                                                                               |
+| `session.revert({ path, body })`                           | Revert a message                   | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `session.unrevert({ path })`                               | Restore reverted messages          | Returns <a href={typesUrl}><code>Session</code></a>                                                                                                                                                                        |
+| `postSessionByIdPermissionsByPermissionId({ path, body })` | Respond to a permission request    | Returns `boolean`                                                                                                                                                                                                          |
 
 ---
 
@@ -304,7 +376,7 @@ await client.session.prompt({
 ```javascript
 // Search and read files
 const textResults = await client.find.text({
-  query: { pattern: "function.*HopCoderX" },
+  query: { pattern: "function.*opencode" },
 })
 
 const files = await client.find.files({

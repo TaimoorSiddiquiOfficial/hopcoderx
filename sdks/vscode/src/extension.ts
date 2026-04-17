@@ -1,39 +1,17 @@
 // This method is called when your extension is deactivated
-export function deactivate() {
-  ghost?.dispose()
-}
+export function deactivate() {}
 
 import * as vscode from "vscode"
-import { GhostDaemon } from "./ghost/daemon"
-import { GhostCompletionProvider } from "./ghost/provider"
-import * as ghostConfig from "./ghost/config"
 
-const TERMINAL_NAME = "HopCoderX"
-let ghost: GhostDaemon | undefined
+const TERMINAL_NAME = "opencode"
 
 export function activate(context: vscode.ExtensionContext) {
-  // Ghost-coder inline completion daemon
-  const cfg = ghostConfig.read()
-  ghost = new GhostDaemon()
-
-  const provider = new GhostCompletionProvider(ghost, cfg.debounceMs)
-  context.subscriptions.push(
-    vscode.languages.registerInlineCompletionItemProvider({ pattern: "**" }, provider),
-    ghost,
-  )
-
-  const toggleGhostCmd = vscode.commands.registerCommand("HopCoderX.toggleGhostCoder", () => {
-    ghost!.toggle()
-    const state = ghost!.active ? "enabled" : "disabled"
-    vscode.window.showInformationMessage(`Ghost-coder ${state}`)
-  })
-
-  let openNewTerminalDisposable = vscode.commands.registerCommand("HopCoderX.openNewTerminal", async () => {
+  const openNewTerminalDisposable = vscode.commands.registerCommand("opencode.openNewTerminal", async () => {
     await openTerminal()
   })
 
-  let openTerminalDisposable = vscode.commands.registerCommand("HopCoderX.openTerminal", async () => {
-    // An HopCoderX terminal already exists => focus it
+  const openTerminalDisposable = vscode.commands.registerCommand("opencode.openTerminal", async () => {
+    // An opencode terminal already exists => focus it
     const existingTerminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME)
     if (existingTerminal) {
       existingTerminal.show()
@@ -43,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     await openTerminal()
   })
 
-  let addFilepathDisposable = vscode.commands.registerCommand("HopCoderX.addFilepathToTerminal", async () => {
+  let addFilepathDisposable = vscode.commands.registerCommand("opencode.addFilepathToTerminal", async () => {
     const fileRef = getActiveFile()
     if (!fileRef) {
       return
@@ -56,13 +34,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (terminal.name === TERMINAL_NAME) {
       // @ts-ignore
-      const port = terminal.creationOptions.env?.["_EXTENSION_HOPCODERX_PORT"]
+      const port = terminal.creationOptions.env?.["_EXTENSION_OPENCODE_PORT"]
       port ? await appendPrompt(parseInt(port), fileRef) : terminal.sendText(fileRef, false)
       terminal.show()
     }
   })
 
-  context.subscriptions.push(toggleGhostCmd, openTerminalDisposable, addFilepathDisposable)
+  context.subscriptions.push(openNewTerminalDisposable, openTerminalDisposable, addFilepathDisposable)
 
   async function openTerminal() {
     // Create a new terminal in split screen
@@ -78,13 +56,13 @@ export function activate(context: vscode.ExtensionContext) {
         preserveFocus: false,
       },
       env: {
-        _EXTENSION_HOPCODERX_PORT: port.toString(),
-        HOPCODERX_CALLER: "vscode",
+        _EXTENSION_OPENCODE_PORT: port.toString(),
+        OPENCODE_CALLER: "vscode",
       },
     })
 
     terminal.show()
-    terminal.sendText(`HopCoderX --port ${port}`)
+    terminal.sendText(`opencode --port ${port}`)
 
     const fileRef = getActiveFile()
     if (!fileRef) {
@@ -100,14 +78,13 @@ export function activate(context: vscode.ExtensionContext) {
         await fetch(`http://localhost:${port}/app`)
         connected = true
         break
-      } catch (e) {}
+      } catch {}
 
       tries--
     } while (tries > 0)
 
     // If connected, append the prompt to the terminal
     if (connected) {
-      ghost?.setHopCoderXPort(port)
       await appendPrompt(port, `In ${fileRef}`)
       terminal.show()
     }

@@ -6,17 +6,23 @@ import { Elements, PaymentElement, useStripe, useElements, AddressElement } from
 import { PlanID, plans } from "../common"
 import { getActor, useAuthSession } from "~/context/auth"
 import { withActor } from "~/context/auth.withActor"
-import { Actor } from "@hopcoderx/console-core/actor.js"
-import { and, Database, eq, isNull } from "@hopcoderx/console-core/drizzle/index.js"
-import { WorkspaceTable } from "@hopcoderx/console-core/schema/workspace.sql.js"
-import { UserTable } from "@hopcoderx/console-core/schema/user.sql.js"
+import { Actor } from "@opencode-ai/console-core/actor.js"
+import { and, Database, eq, isNull } from "@opencode-ai/console-core/drizzle/index.js"
+import { WorkspaceTable } from "@opencode-ai/console-core/schema/workspace.sql.js"
+import { UserTable } from "@opencode-ai/console-core/schema/user.sql.js"
 import { createList } from "solid-list"
 import { Modal } from "~/component/modal"
-import { BillingTable } from "@hopcoderx/console-core/schema/billing.sql.js"
-import { Billing } from "@hopcoderx/console-core/billing.js"
+import { BillingTable } from "@opencode-ai/console-core/schema/billing.sql.js"
+import { Billing } from "@opencode-ai/console-core/billing.js"
 import { useI18n } from "~/context/i18n"
 import { useLanguage } from "~/context/language"
 import { formError } from "~/lib/form-error"
+import { Resource } from "@opencode-ai/console-resource"
+
+const getEnabled = query(async () => {
+  "use server"
+  return Resource.App.stage !== "production"
+}, "black.subscribe.enabled")
 
 const plansMap = Object.fromEntries(plans.map((p) => [p.id, p])) as Record<PlanID, (typeof plans)[number]>
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!)
@@ -269,6 +275,7 @@ export default function BlackSubscribe() {
   const params = useParams()
   const i18n = useI18n()
   const language = useLanguage()
+  const enabled = createAsync(() => getEnabled())
   const planData = plansMap[(params.plan as PlanID) ?? "20"] ?? plansMap["20"]
   const plan = planData.id
 
@@ -291,7 +298,7 @@ export default function BlackSubscribe() {
 
   // Resolve stripe promise once
   createEffect(() => {
-    stripePromise.then((s) => {
+    void stripePromise.then((s) => {
       if (s) setStripe(s)
     })
   })
@@ -359,7 +366,7 @@ export default function BlackSubscribe() {
   }
 
   return (
-    <>
+    <Show when={enabled()}>
       <Title>{i18n.t("black.subscribe.title")}</Title>
       <section data-slot="subscribe-form">
         <div data-slot="form-card">
@@ -472,6 +479,6 @@ export default function BlackSubscribe() {
           <A href={language.route("/legal/terms-of-service")}>{i18n.t("black.finePrint.terms")}</A>
         </p>
       </section>
-    </>
+    </Show>
   )
 }

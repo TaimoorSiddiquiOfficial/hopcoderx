@@ -1,9 +1,9 @@
 import { action, useParams, useAction, createAsync, useSubmission, json } from "@solidjs/router"
 import { createMemo, Match, Show, Switch, createEffect } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Billing } from "@hopcoderx/console-core/billing.js"
+import { Billing } from "@opencode-ai/console-core/billing.js"
 import { withActor } from "~/context/auth.withActor"
-import { IconCreditCard, IconStripe } from "~/component/icon"
+import { IconAlipay, IconCreditCard, IconStripe, IconUpi, IconWechat } from "~/component/icon"
 import styles from "./billing-section.module.css"
 import { createCheckoutUrl, formatBalance, queryBillingInfo } from "../../common"
 import { useI18n } from "~/context/i18n"
@@ -143,7 +143,7 @@ export function BillingSection() {
         <h2>{i18n.t("workspace.billing.title")}</h2>
         <p>
           {i18n.t("workspace.billing.subtitle.beforeLink")}{" "}
-          <a href="mailto:contact@hopcoder.dev">{i18n.t("workspace.billing.contactUs")}</a>{" "}
+          <a href="mailto:contact@anoma.ly">{i18n.t("workspace.billing.contactUs")}</a>{" "}
           {i18n.t("workspace.billing.subtitle.afterLink")}
         </p>
       </div>
@@ -205,6 +205,15 @@ export function BillingSection() {
                     <Match when={billingInfo()?.paymentMethodType === "link"}>
                       <IconStripe style={{ width: "24px", height: "24px" }} />
                     </Match>
+                    <Match when={billingInfo()?.paymentMethodType === "alipay"}>
+                      <IconAlipay style={{ width: "24px", height: "24px" }} />
+                    </Match>
+                    <Match when={billingInfo()?.paymentMethodType === "wechat_pay"}>
+                      <IconWechat style={{ width: "24px", height: "24px" }} />
+                    </Match>
+                    <Match when={billingInfo()?.paymentMethodType === "upi"}>
+                      <IconUpi style={{ width: "auto", height: "16px" }} />
+                    </Match>
                   </Switch>
                 </div>
                 <div data-slot="card-details">
@@ -217,6 +226,12 @@ export function BillingSection() {
                     </Match>
                     <Match when={billingInfo()?.paymentMethodType === "link"}>
                       <span data-slot="type">{i18n.t("workspace.billing.linkedToStripe")}</span>
+                    </Match>
+                    <Match when={billingInfo()?.paymentMethodType === "alipay"}>
+                      <span data-slot="type">{i18n.t("workspace.billing.alipay")}</span>
+                    </Match>
+                    <Match when={billingInfo()?.paymentMethodType === "wechat_pay"}>
+                      <span data-slot="type">{i18n.t("workspace.billing.wechat")}</span>
                     </Match>
                   </Switch>
                 </div>

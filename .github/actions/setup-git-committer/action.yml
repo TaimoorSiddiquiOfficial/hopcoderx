@@ -1,11 +1,11 @@
 name: "Setup Git Committer"
 description: "Create app token and configure git user"
 inputs:
-  hopcoderx-app-id:
-    description: "HopCoderX GitHub App ID"
+  opencode-app-id:
+    description: "OpenCode GitHub App ID"
     required: true
-  hopcoderx-app-secret:
-    description: "HopCoderX GitHub App private key"
+  opencode-app-secret:
+    description: "OpenCode GitHub App private key"
     required: true
 outputs:
   token:
@@ -21,8 +21,8 @@ runs:
       id: apptoken
       uses: actions/create-github-app-token@v2
       with:
-        app-id: ${{ inputs.hopcoderx-app-id }}
-        private-key: ${{ inputs.hopcoderx-app-secret }}
+        app-id: ${{ inputs.opencode-app-id }}
+        private-key: ${{ inputs.opencode-app-secret }}
         owner: ${{ github.repository_owner }}
 
     - name: Configure git user

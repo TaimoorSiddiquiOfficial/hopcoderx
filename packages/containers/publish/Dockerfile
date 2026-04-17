@@ -1,4 +1,4 @@
-ARG REGISTRY=ghcr.io/taimoorsiddiquiofficial
+ARG REGISTRY=ghcr.io/anomalyco
 FROM ${REGISTRY}/build/bun-node:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive

@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://hopcoderx.dev">
+  <a href="https://opencode.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="HopCoderX logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
     </picture>
   </a>
 </p>
 <p align="center">Открытый AI-агент для программирования.</p>
 <p align="center">
-  <a href="https://hopcoderx.dev/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/HopCoderX-ai"><img alt="npm" src="https://img.shields.io/npm/v/HopCoderX-ai?style=flat-square" /></a>
-  <a href="https://github.com/TaimoorSiddiquiOfficial/hopcoderx/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/TaimoorSiddiquiOfficial/hopcoderx/publish.yml?style=flat-square&branch=main" /></a>
+  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
+  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -27,15 +27,19 @@
   <a href="README.ja.md">日本語</a> |
   <a href="README.pl.md">Polski</a> |
   <a href="README.ru.md">Русский</a> |
+  <a href="README.bs.md">Bosanski</a> |
   <a href="README.ar.md">العربية</a> |
   <a href="README.no.md">Norsk</a> |
   <a href="README.br.md">Português (Brasil)</a> |
   <a href="README.th.md">ไทย</a> |
   <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a>
+  <a href="README.uk.md">Українська</a> |
+  <a href="README.bn.md">বাংলা</a> |
+  <a href="README.gr.md">Ελληνικά</a> |
+  <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://hopcoderx.dev)
+[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
 
 ---
 
@@ -43,18 +47,18 @@
 
 ```bash
 # YOLO
-curl -fsSL https://hopcoderx.dev/install | bash
+curl -fsSL https://opencode.ai/install | bash
 
 # Менеджеры пакетов
-npm i -g HopCoderX-ai@latest        # или bun/pnpm/yarn
-scoop install HopCoderX             # Windows
-choco install HopCoderX             # Windows
-brew install TaimoorSiddiquiOfficial/tap/hopcoderx # macOS и Linux (рекомендуем, всегда актуально)
-brew install HopCoderX              # macOS и Linux (официальная формула brew, обновляется реже)
-sudo pacman -S HopCoderX            # Arch Linux (Stable)
-paru -S HopCoderX-bin               # Arch Linux (Latest from AUR)
-mise use -g HopCoderX               # любая ОС
-nix run nixpkgs#HopCoderX           # или github:TaimoorSiddiquiOfficial/hopcoderx для самой свежей ветки dev
+npm i -g opencode-ai@latest        # или bun/pnpm/yarn
+scoop install opencode             # Windows
+choco install opencode             # Windows
+brew install anomalyco/tap/opencode # macOS и Linux (рекомендуем, всегда актуально)
+brew install opencode              # macOS и Linux (официальная формула brew, обновляется реже)
+sudo pacman -S opencode            # Arch Linux (Stable)
+paru -S opencode-bin               # Arch Linux (Latest from AUR)
+mise use -g opencode               # любая ОС
+nix run nixpkgs#opencode           # или github:anomalyco/opencode для самой свежей ветки dev
 ```
 
 > [!TIP]
@@ -62,40 +66,40 @@ nix run nixpkgs#HopCoderX           # или github:TaimoorSiddiquiOfficial/hopc
 
 ### Десктопное приложение (BETA)
 
-HopCoderX также доступен как десктопное приложение. Скачайте его со [страницы релизов](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) или с [hopcoderx.dev/download](https://hopcoderx.dev/download).
+OpenCode также доступен как десктопное приложение. Скачайте его со [страницы релизов](https://github.com/anomalyco/opencode/releases) или с [opencode.ai/download](https://opencode.ai/download).
 
 | Платформа             | Загрузка                              |
 | --------------------- | ------------------------------------- |
-| macOS (Apple Silicon) | `HopCoderX-desktop-darwin-aarch64.dmg` |
-| macOS (Intel)         | `HopCoderX-desktop-darwin-x64.dmg`     |
-| Windows               | `HopCoderX-desktop-windows-x64.exe`    |
+| macOS (Apple Silicon) | `opencode-desktop-darwin-aarch64.dmg` |
+| macOS (Intel)         | `opencode-desktop-darwin-x64.dmg`     |
+| Windows               | `opencode-desktop-windows-x64.exe`    |
 | Linux                 | `.deb`, `.rpm` или AppImage           |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask HopCoderX-desktop
+brew install --cask opencode-desktop
 # Windows (Scoop)
-scoop bucket add extras; scoop install extras/HopCoderX-desktop
+scoop bucket add extras; scoop install extras/opencode-desktop
 ```
 
 #### Каталог установки
 
 Скрипт установки выбирает путь установки в следующем порядке приоритета:
 
-1. `$HOPCODERX_INSTALL_DIR` - Пользовательский каталог установки
+1. `$OPENCODE_INSTALL_DIR` - Пользовательский каталог установки
 2. `$XDG_BIN_DIR` - Путь, совместимый со спецификацией XDG Base Directory
 3. `$HOME/bin` - Стандартный каталог пользовательских бинарников (если существует или можно создать)
-4. `$HOME/.HopCoderX/bin` - Fallback по умолчанию
+4. `$HOME/.opencode/bin` - Fallback по умолчанию
 
 ```bash
 # Примеры
-HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://hopcoderx.dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
+OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
 ```
 
 ### Agents
 
-В HopCoderX есть два встроенных агента, между которыми можно переключаться клавишей `Tab`.
+В OpenCode есть два встроенных агента, между которыми можно переключаться клавишей `Tab`.
 
 - **build** - По умолчанию, агент с полным доступом для разработки
 - **plan** - Агент только для чтения для анализа и изучения кода
@@ -106,19 +110,19 @@ XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
 Также включен сабагент **general** для сложных поисков и многошаговых задач.
 Он используется внутренне и может быть вызван в сообщениях через `@general`.
 
-Подробнее об [agents](https://hopcoderx.dev/docs/agents).
+Подробнее об [agents](https://opencode.ai/docs/agents).
 
 ### Документация
 
-Больше информации о том, как настроить HopCoderX: [**наши docs**](https://hopcoderx.dev/docs).
+Больше информации о том, как настроить OpenCode: [**наши docs**](https://opencode.ai/docs).
 
 ### Вклад
 
-Если вы хотите внести вклад в HopCoderX, прочитайте [contributing docs](./CONTRIBUTING.md) перед тем, как отправлять pull request.
+Если вы хотите внести вклад в OpenCode, прочитайте [contributing docs](./CONTRIBUTING.md) перед тем, как отправлять pull request.
 
-### Разработка на базе HopCoderX
+### Разработка на базе OpenCode
 
-Если вы делаете проект, связанный с HopCoderX, и используете "HopCoderX" как часть имени (например, "HopCoderX-dashboard" или "HopCoderX-mobile"), добавьте примечание в README, чтобы уточнить, что проект не создан командой HopCoderX и не аффилирован с нами.
+Если вы делаете проект, связанный с OpenCode, и используете "opencode" как часть имени (например, "opencode-dashboard" или "opencode-mobile"), добавьте примечание в README, чтобы уточнить, что проект не создан командой OpenCode и не аффилирован с нами.
 
 ### FAQ
 
@@ -127,11 +131,11 @@ XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
 По возможностям это очень похоже на Claude Code. Вот ключевые отличия:
 
 - 100% open source
-- Не привязано к одному провайдеру. Мы рекомендуем модели из [HopCoderX Bdr](https://hopcoderx.dev/bdr); но HopCoderX можно использовать с Claude, OpenAI, Google или даже локальными моделями. По мере развития моделей разрыв будет сокращаться, а цены падать, поэтому важна независимость от провайдера.
+- Не привязано к одному провайдеру. Мы рекомендуем модели из [OpenCode Zen](https://opencode.ai/zen); но OpenCode можно использовать с Claude, OpenAI, Google или даже локальными моделями. По мере развития моделей разрыв будет сокращаться, а цены падать, поэтому важна независимость от провайдера.
 - Поддержка LSP из коробки
-- Фокус на TUI. HopCoderX построен пользователями neovim и создателями [terminal.shop](https://terminal.shop); мы будем раздвигать границы того, что возможно в терминале.
-- Архитектура клиент/сервер. Например, это позволяет запускать HopCoderX на вашем компьютере, а управлять им удаленно из мобильного приложения. Это значит, что TUI-фронтенд - лишь один из возможных клиентов.
+- Фокус на TUI. OpenCode построен пользователями neovim и создателями [terminal.shop](https://terminal.shop); мы будем раздвигать границы того, что возможно в терминале.
+- Архитектура клиент/сервер. Например, это позволяет запускать OpenCode на вашем компьютере, а управлять им удаленно из мобильного приложения. Это значит, что TUI-фронтенд - лишь один из возможных клиентов.
 
 ---
 
-**Присоединяйтесь к нашему сообществу** [Discord](https://discord.gg/HopCoderX) | [X.com](https://x.com/HopCoderX)
+**Присоединяйтесь к нашему сообществу** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)

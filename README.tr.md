@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://hopcoderx.dev">
+  <a href="https://opencode.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="HopCoderX logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
     </picture>
   </a>
 </p>
 <p align="center">Açık kaynaklı yapay zeka kodlama asistanı.</p>
 <p align="center">
-  <a href="https://hopcoderx.dev/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/HopCoderX-ai"><img alt="npm" src="https://img.shields.io/npm/v/HopCoderX-ai?style=flat-square" /></a>
-  <a href="https://github.com/TaimoorSiddiquiOfficial/hopcoderx/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/TaimoorSiddiquiOfficial/hopcoderx/publish.yml?style=flat-square&branch=main" /></a>
+  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
+  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -27,15 +27,19 @@
   <a href="README.ja.md">日本語</a> |
   <a href="README.pl.md">Polski</a> |
   <a href="README.ru.md">Русский</a> |
+  <a href="README.bs.md">Bosanski</a> |
   <a href="README.ar.md">العربية</a> |
   <a href="README.no.md">Norsk</a> |
   <a href="README.br.md">Português (Brasil)</a> |
   <a href="README.th.md">ไทย</a> |
   <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a>
+  <a href="README.uk.md">Українська</a> |
+  <a href="README.bn.md">বাংলা</a> |
+  <a href="README.gr.md">Ελληνικά</a> |
+  <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![HopCoderX Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://hopcoderx.dev)
+[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
 
 ---
 
@@ -43,18 +47,18 @@
 
 ```bash
 # YOLO
-curl -fsSL https://hopcoderx.dev/install | bash
+curl -fsSL https://opencode.ai/install | bash
 
 # Paket yöneticileri
-npm i -g HopCoderX-ai@latest        # veya bun/pnpm/yarn
-scoop install HopCoderX             # Windows
-choco install HopCoderX             # Windows
-brew install TaimoorSiddiquiOfficial/tap/hopcoderx # macOS ve Linux (önerilir, her zaman güncel)
-brew install HopCoderX              # macOS ve Linux (resmi brew formülü, daha az güncellenir)
-sudo pacman -S HopCoderX            # Arch Linux (Stable)
-paru -S HopCoderX-bin               # Arch Linux (Latest from AUR)
-mise use -g HopCoderX               # Tüm işletim sistemleri
-nix run nixpkgs#HopCoderX           # veya en güncel geliştirme dalı için github:TaimoorSiddiquiOfficial/hopcoderx
+npm i -g opencode-ai@latest        # veya bun/pnpm/yarn
+scoop install opencode             # Windows
+choco install opencode             # Windows
+brew install anomalyco/tap/opencode # macOS ve Linux (önerilir, her zaman güncel)
+brew install opencode              # macOS ve Linux (resmi brew formülü, daha az güncellenir)
+sudo pacman -S opencode            # Arch Linux (Stable)
+paru -S opencode-bin               # Arch Linux (Latest from AUR)
+mise use -g opencode               # Tüm işletim sistemleri
+nix run nixpkgs#opencode           # veya en güncel geliştirme dalı için github:anomalyco/opencode
 ```
 
 > [!TIP]
@@ -62,40 +66,40 @@ nix run nixpkgs#HopCoderX           # veya en güncel geliştirme dalı için gi
 
 ### Masaüstü Uygulaması (BETA)
 
-HopCoderX ayrıca masaüstü uygulaması olarak da mevcuttur. Doğrudan [sürüm sayfasından](https://github.com/TaimoorSiddiquiOfficial/hopcoderx/releases) veya [hopcoderx.dev/download](https://hopcoderx.dev/download) adresinden indirebilirsiniz.
+OpenCode ayrıca masaüstü uygulaması olarak da mevcuttur. Doğrudan [sürüm sayfasından](https://github.com/anomalyco/opencode/releases) veya [opencode.ai/download](https://opencode.ai/download) adresinden indirebilirsiniz.
 
 | Platform              | İndirme                               |
 | --------------------- | ------------------------------------- |
-| macOS (Apple Silicon) | `HopCoderX-desktop-darwin-aarch64.dmg` |
-| macOS (Intel)         | `HopCoderX-desktop-darwin-x64.dmg`     |
-| Windows               | `HopCoderX-desktop-windows-x64.exe`    |
+| macOS (Apple Silicon) | `opencode-desktop-darwin-aarch64.dmg` |
+| macOS (Intel)         | `opencode-desktop-darwin-x64.dmg`     |
+| Windows               | `opencode-desktop-windows-x64.exe`    |
 | Linux                 | `.deb`, `.rpm` veya AppImage          |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask HopCoderX-desktop
+brew install --cask opencode-desktop
 # Windows (Scoop)
-scoop bucket add extras; scoop install extras/HopCoderX-desktop
+scoop bucket add extras; scoop install extras/opencode-desktop
 ```
 
 #### Kurulum Dizini (Installation Directory)
 
 Kurulum betiği (install script), kurulum yolu (installation path) için aşağıdaki öncelik sırasını takip eder:
 
-1. `$HOPCODERX_INSTALL_DIR` - Özel kurulum dizini
+1. `$OPENCODE_INSTALL_DIR` - Özel kurulum dizini
 2. `$XDG_BIN_DIR` - XDG Base Directory Specification uyumlu yol
 3. `$HOME/bin` - Standart kullanıcı binary dizini (varsa veya oluşturulabiliyorsa)
-4. `$HOME/.HopCoderX/bin` - Varsayılan yedek konum
+4. `$HOME/.opencode/bin` - Varsayılan yedek konum
 
 ```bash
 # Örnekler
-HOPCODERX_INSTALL_DIR=/usr/local/bin curl -fsSL https://hopcoderx.dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://hopcoderx.dev/install | bash
+OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
 ```
 
 ### Ajanlar
 
-HopCoderX, `Tab` tuşuyla aralarında geçiş yapabileceğiniz iki yerleşik (built-in) ajan içerir.
+OpenCode, `Tab` tuşuyla aralarında geçiş yapabileceğiniz iki yerleşik (built-in) ajan içerir.
 
 - **build** - Varsayılan, geliştirme çalışmaları için tam erişimli ajan
 - **plan** - Analiz ve kod keşfi için salt okunur ajan
@@ -106,19 +110,19 @@ HopCoderX, `Tab` tuşuyla aralarında geçiş yapabileceğiniz iki yerleşik (bu
 Ayrıca, karmaşık aramalar ve çok adımlı görevler için bir **genel** alt ajan bulunmaktadır.
 Bu dahili olarak kullanılır ve mesajlarda `@general` ile çağrılabilir.
 
-[Ajanlar](https://hopcoderx.dev/docs/agents) hakkında daha fazla bilgi edinin.
+[Ajanlar](https://opencode.ai/docs/agents) hakkında daha fazla bilgi edinin.
 
 ### Dokümantasyon
 
-HopCoderX'u nasıl yapılandıracağınız hakkında daha fazla bilgi için [**dokümantasyonumuza göz atın**](https://hopcoderx.dev/docs).
+OpenCode'u nasıl yapılandıracağınız hakkında daha fazla bilgi için [**dokümantasyonumuza göz atın**](https://opencode.ai/docs).
 
 ### Katkıda Bulunma
 
-HopCoderX'a katkıda bulunmak istiyorsanız, lütfen bir pull request göndermeden önce [katkıda bulunma dokümanlarımızı](./CONTRIBUTING.md) okuyun.
+OpenCode'a katkıda bulunmak istiyorsanız, lütfen bir pull request göndermeden önce [katkıda bulunma dokümanlarımızı](./CONTRIBUTING.md) okuyun.
 
-### HopCoderX Üzerine Geliştirme
+### OpenCode Üzerine Geliştirme
 
-HopCoderX ile ilgili bir proje üzerinde çalışıyorsanız ve projenizin adının bir parçası olarak "HopCoderX" kullanıyorsanız (örneğin, "HopCoderX-dashboard" veya "HopCoderX-mobile"), lütfen README dosyanıza projenin HopCoderX ekibi tarafından geliştirilmediğini ve bizimle hiçbir şekilde bağlantılı olmadığını belirten bir not ekleyin.
+OpenCode ile ilgili bir proje üzerinde çalışıyorsanız ve projenizin adının bir parçası olarak "opencode" kullanıyorsanız (örneğin, "opencode-dashboard" veya "opencode-mobile"), lütfen README dosyanıza projenin OpenCode ekibi tarafından geliştirilmediğini ve bizimle hiçbir şekilde bağlantılı olmadığını belirten bir not ekleyin.
 
 ### SSS
 
@@ -127,11 +131,11 @@ HopCoderX ile ilgili bir proje üzerinde çalışıyorsanız ve projenizin adın
 Yetenekler açısından Claude Code'a çok benzer. İşte temel farklar:
 
 - %100 açık kaynak
-- Herhangi bir sağlayıcıya bağlı değil. [HopCoderX Bdr](https://hopcoderx.dev/bdr) üzerinden sunduğumuz modelleri önermekle birlikte; HopCoderX, Claude, OpenAI, Google veya hatta yerel modellerle kullanılabilir. Modeller geliştikçe aralarındaki farklar kapanacak ve fiyatlar düşecek, bu nedenle sağlayıcıdan bağımsız olmak önemlidir.
+- Herhangi bir sağlayıcıya bağlı değil. [OpenCode Zen](https://opencode.ai/zen) üzerinden sunduğumuz modelleri önermekle birlikte; OpenCode, Claude, OpenAI, Google veya hatta yerel modellerle kullanılabilir. Modeller geliştikçe aralarındaki farklar kapanacak ve fiyatlar düşecek, bu nedenle sağlayıcıdan bağımsız olmak önemlidir.
 - Kurulum gerektirmeyen hazır LSP desteği
-- TUI odaklı yaklaşım. HopCoderX, neovim kullanıcıları ve [terminal.shop](https://terminal.shop)'un geliştiricileri tarafından geliştirilmektedir; terminalde olabileceklerin sınırlarını zorlayacağız.
-- İstemci/sunucu (client/server) mimarisi. Bu, örneğin HopCoderX'un bilgisayarınızda çalışması ve siz onu bir mobil uygulamadan uzaktan yönetmenizi sağlar. TUI arayüzü olası istemcilerden sadece biridir.
+- TUI odaklı yaklaşım. OpenCode, neovim kullanıcıları ve [terminal.shop](https://terminal.shop)'un geliştiricileri tarafından geliştirilmektedir; terminalde olabileceklerin sınırlarını zorlayacağız.
+- İstemci/sunucu (client/server) mimarisi. Bu, örneğin OpenCode'un bilgisayarınızda çalışması ve siz onu bir mobil uygulamadan uzaktan yönetmenizi sağlar. TUI arayüzü olası istemcilerden sadece biridir.
 
 ---
 
-**Topluluğumuza katılın** [Discord](https://discord.gg/HopCoderX) | [X.com](https://x.com/HopCoderX)
+**Topluluğumuza katılın** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)

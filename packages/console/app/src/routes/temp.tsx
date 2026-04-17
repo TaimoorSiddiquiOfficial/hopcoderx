@@ -27,7 +27,7 @@ export default function Home() {
       const callback = () => {
         const text = button.textContent
         if (text) {
-          navigator.clipboard.writeText(text)
+          void navigator.clipboard.writeText(text)
           button.setAttribute("data-copied", "")
           setTimeout(() => {
             button.removeAttribute("data-copied")
@@ -47,11 +47,11 @@ export default function Home() {
 
       <div data-component="content">
         <section data-component="top">
-          <img data-slot="logo light" src={logoLight} alt="HopCoderX logo light" />
-          <img data-slot="logo dark" src={logoDark} alt="HopCoderX logo dark" />
+          <img data-slot="logo light" src={logoLight} alt={i18n.t("temp.logoLightAlt")} />
+          <img data-slot="logo dark" src={logoDark} alt={i18n.t("temp.logoDarkAlt")} />
           <h1 data-slot="title">{i18n.t("temp.hero.title")}</h1>
           <div data-slot="login">
-            <a href="/auth">{i18n.t("temp.bdr")}</a>
+            <a href="/auth">{i18n.t("temp.zen")}</a>
           </div>
         </section>
 
@@ -60,14 +60,14 @@ export default function Home() {
             <a href={language.route("/docs")}>{i18n.t("temp.getStarted")}</a>
           </div>
           <div data-slot="center">
-            <a href="/auth">{i18n.t("temp.bdr")}</a>
+            <a href="/auth">{i18n.t("temp.zen")}</a>
           </div>
           <div data-slot="right">
             <button data-copy data-slot="command">
               <span>
                 <span>curl -fsSL </span>
                 <span data-slot="protocol">https://</span>
-                <span data-slot="highlight">hopcoderx.dev/install</span>
+                <span data-slot="highlight">opencode.ai/install</span>
                 <span> | bash</span>
               </span>
               <CopyStatus />
@@ -84,9 +84,9 @@ export default function Home() {
               <strong>{i18n.t("home.what.lsp.title")}</strong> {i18n.t("home.what.lsp.body")}
             </li>
             <li>
-              <strong>{i18n.t("temp.bdr")}</strong> {i18n.t("temp.feature.bdr.beforeLink")}{" "}
-              <a href={language.route("/docs/bdr")}>{i18n.t("temp.feature.bdr.link")}</a>{" "}
-              {i18n.t("temp.feature.bdr.afterLink")} <label>{i18n.t("home.banner.badge")}</label>
+              <strong>{i18n.t("temp.zen")}</strong> {i18n.t("temp.feature.zen.beforeLink")}{" "}
+              <a href={language.route("/docs/zen")}>{i18n.t("temp.feature.zen.link")}</a>{" "}
+              {i18n.t("temp.feature.zen.afterLink")} <label>{i18n.t("home.banner.badge")}</label>
             </li>
             <li>
               <strong>{i18n.t("home.what.multiSession.title")}</strong> {i18n.t("home.what.multiSession.body")}
@@ -113,7 +113,7 @@ export default function Home() {
             <h3 data-component="title">npm</h3>
             <button data-copy data-slot="button">
               <span>
-                npm install -g <strong>HopCoderX-ai</strong>
+                npm install -g <strong>opencode-ai</strong>
               </span>
               <CopyStatus />
             </button>
@@ -122,7 +122,7 @@ export default function Home() {
             <h3 data-component="title">bun</h3>
             <button data-copy data-slot="button">
               <span>
-                bun install -g <strong>HopCoderX-ai</strong>
+                bun install -g <strong>opencode-ai</strong>
               </span>
               <CopyStatus />
             </button>
@@ -131,7 +131,7 @@ export default function Home() {
             <h3 data-component="title">homebrew</h3>
             <button data-copy data-slot="button">
               <span>
-                brew install <strong>HopCoderX</strong>
+                brew install <strong>opencode</strong>
               </span>
               <CopyStatus />
             </button>
@@ -140,7 +140,7 @@ export default function Home() {
             <h3 data-component="title">paru</h3>
             <button data-copy data-slot="button">
               <span>
-                paru -S <strong>HopCoderX-bin</strong>
+                paru -S <strong>opencode-bin</strong>
               </span>
               <CopyStatus />
             </button>
@@ -158,13 +158,13 @@ export default function Home() {
 
         <footer data-component="footer">
           <div data-slot="cell">
-            <a href="https://x.com/HopCoderX">{i18n.t("footer.x")}</a>
+            <a href="https://x.com/opencode">{i18n.t("footer.x")}</a>
           </div>
           <div data-slot="cell">
-            <a href="https://github.com/TaimoorSiddiquiOfficial/hopcoderx">{i18n.t("footer.github")}</a>
+            <a href="https://github.com/anomalyco/opencode">{i18n.t("footer.github")}</a>
           </div>
           <div data-slot="cell">
-            <a href="https://hopcoderx.dev/discord">{i18n.t("footer.discord")}</a>
+            <a href="https://opencode.ai/discord">{i18n.t("footer.discord")}</a>
           </div>
         </footer>
       </div>

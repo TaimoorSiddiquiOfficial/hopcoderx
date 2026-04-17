@@ -1,21 +1,15 @@
 import { Component, Show } from "solid-js"
-import { useDialog } from "@hopcoderx/ui/context/dialog"
+import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { popularProviders, useProviders } from "@/hooks/use-providers"
-import { Dialog } from "@hopcoderx/ui/dialog"
-import { List } from "@hopcoderx/ui/list"
-import { Tag } from "@hopcoderx/ui/tag"
-import { ProviderIcon } from "@hopcoderx/ui/provider-icon"
-import { iconNames, type IconName } from "@hopcoderx/ui/icons/provider"
+import { Dialog } from "@opencode-ai/ui/dialog"
+import { List } from "@opencode-ai/ui/list"
+import { Tag } from "@opencode-ai/ui/tag"
+import { ProviderIcon } from "@opencode-ai/ui/provider-icon"
 import { DialogConnectProvider } from "./dialog-connect-provider"
 import { useLanguage } from "@/context/language"
 import { DialogCustomProvider } from "./dialog-custom-provider"
 
 const CUSTOM_ID = "_custom"
-
-function icon(id: string): IconName {
-  if (iconNames.includes(id as IconName)) return id as IconName
-  return "synthetic"
-}
 
 export const DialogSelectProvider: Component = () => {
   const dialog = useDialog()
@@ -29,6 +23,7 @@ export const DialogSelectProvider: Component = () => {
     if (id === "anthropic") return language.t("dialog.provider.anthropic.note")
     if (id === "openai") return language.t("dialog.provider.openai.note")
     if (id.startsWith("github-copilot")) return language.t("dialog.provider.copilot.note")
+    if (id === "opencode-go") return language.t("dialog.provider.opencodeGo.tagline")
   }
 
   return (
@@ -68,15 +63,21 @@ export const DialogSelectProvider: Component = () => {
       >
         {(i) => (
           <div class="px-1.25 w-full flex items-center gap-x-3">
-            <ProviderIcon data-slot="list-item-extra-icon" id={icon(i.id)} />
+            <ProviderIcon data-slot="list-item-extra-icon" id={i.id} />
             <span>{i.name}</span>
+            <Show when={i.id === "opencode"}>
+              <div class="text-14-regular text-text-weak">{language.t("dialog.provider.opencode.tagline")}</div>
+            </Show>
             <Show when={i.id === CUSTOM_ID}>
               <Tag>{language.t("settings.providers.tag.custom")}</Tag>
             </Show>
-            <Show when={i.id === "hopcoderx"}>
+            <Show when={i.id === "opencode"}>
               <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
             </Show>
             <Show when={note(i.id)}>{(value) => <div class="text-14-regular text-text-weak">{value()}</div>}</Show>
+            <Show when={i.id === "opencode-go"}>
+              <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
+            </Show>
           </div>
         )}
       </List>

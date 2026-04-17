@@ -1,4 +1,4 @@
-import { Resource } from "@hopcoderx/console-resource"
+import { Resource } from "@opencode-ai/console-resource"
 import type { TraceItem } from "@cloudflare/workers-types"
 
 export default {
@@ -10,10 +10,14 @@ export default {
 
       const url = new URL(event.event.request.url)
       if (
-        url.pathname !== "/bdr/v1/chat/completions" &&
-        url.pathname !== "/bdr/v1/messages" &&
-        url.pathname !== "/bdr/v1/responses" &&
-        !url.pathname.startsWith("/bdr/v1/models/")
+        url.pathname !== "/zen/v1/chat/completions" &&
+        url.pathname !== "/zen/v1/messages" &&
+        url.pathname !== "/zen/v1/responses" &&
+        !url.pathname.startsWith("/zen/v1/models/") &&
+        url.pathname !== "/zen/go/v1/chat/completions" &&
+        url.pathname !== "/zen/go/v1/messages" &&
+        url.pathname !== "/zen/go/v1/responses" &&
+        !url.pathname.startsWith("/zen/go/v1/models/")
       )
         return
 
@@ -45,7 +49,7 @@ export default {
       events.push({ time, data: { ...data, event_type: "completions" } })
       console.log(JSON.stringify(data, null, 2))
 
-      const ret = await fetch("https://api.honeycomb.io/1/batch/bdr", {
+      const ret = await fetch("https://api.honeycomb.io/1/batch/zen", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

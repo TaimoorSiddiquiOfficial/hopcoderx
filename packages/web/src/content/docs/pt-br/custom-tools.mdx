@@ -1,9 +1,9 @@
 ---
 title: Ferramentas Personalizadas
-description: Crie ferramentas que o LLM pode chamar no HopCoderX.
+description: Crie ferramentas que o LLM pode chamar no opencode.
 ---
 
-Ferramentas personalizadas são funções que você cria e que o LLM pode chamar durante as conversas. Elas funcionam junto com as [ferramentas integradas](/docs/tools) do HopCoderX, como `read`, `write` e `bash`.
+Ferramentas personalizadas são funções que você cria e que o LLM pode chamar durante as conversas. Elas funcionam junto com as [ferramentas integradas](/docs/tools) do opencode, como `read`, `write` e `bash`.
 
 ---
 
@@ -17,8 +17,8 @@ As ferramentas são definidas como arquivos **TypeScript** ou **JavaScript**. No
 
 Elas podem ser definidas:
 
-- Localmente, colocando-as no diretório `.HopCoderX/tools/` do seu projeto.
-- Ou globalmente, colocando-as em `~/.config/HopCoderX/tools/`.
+- Localmente, colocando-as no diretório `.opencode/tools/` do seu projeto.
+- Ou globalmente, colocando-as em `~/.config/opencode/tools/`.
 
 ---
 
@@ -26,8 +26,8 @@ Elas podem ser definidas:
 
 A maneira mais fácil de criar ferramentas é usando o helper `tool()`, que fornece segurança de tipo e validação.
 
-```ts title=".HopCoderX/tools/database.ts" {1}
-import { tool } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/tools/database.ts" {1}
+import { tool } from "@opencode-ai/plugin"
 
 export default tool({
   description: "Consultar o banco de dados do projeto",
@@ -49,8 +49,8 @@ O **nome do arquivo** se torna o **nome da ferramenta**. O acima cria uma ferram
 
 Você também pode exportar várias ferramentas de um único arquivo. Cada exportação se torna **uma ferramenta separada** com o nome **`<filename>_<exportname>`**:
 
-```ts title=".HopCoderX/tools/math.ts"
-import { tool } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/tools/math.ts"
+import { tool } from "@opencode-ai/plugin"
 
 export const add = tool({
   description: "Adicionar dois números",
@@ -76,6 +76,32 @@ export const multiply = tool({
 ```
 
 Isso cria duas ferramentas: `math_add` e `math_multiply`.
+
+---
+
+#### Colisões de nome com ferramentas integradas
+
+Ferramentas personalizadas são chaveadas pelo nome da ferramenta. Se uma ferramenta personalizada usar o mesmo nome que uma ferramenta integrada, a ferramenta personalizada tem precedência.
+
+Por exemplo, este arquivo substitui a ferramenta `bash` integrada:
+
+```ts title=".opencode/tools/bash.ts"
+import { tool } from "@opencode-ai/plugin"
+
+export default tool({
+  description: "Restricted bash wrapper",
+  args: {
+    command: tool.schema.string(),
+  },
+  async execute(args) {
+    return `blocked: ${args.command}`
+  },
+})
+```
+
+:::note
+Prefira nomes únicos, a menos que você queira intencionalmente substituir uma ferramenta integrada. Se você quiser desabilitar uma ferramenta integrada, mas não substituí-la, use [permissões](/docs/permissions).
+:::
 
 ---
 
@@ -112,8 +138,8 @@ export default {
 
 As ferramentas recebem contexto sobre a sessão atual:
 
-```ts title=".HopCoderX/tools/project.ts" {8}
-import { tool } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/tools/project.ts" {8}
+import { tool } from "@opencode-ai/plugin"
 
 export default tool({
   description: "Obter informações do projeto",
@@ -126,7 +152,7 @@ export default tool({
 })
 ```
 
-Use `context.directory` para o diretório de trabalho da sessão.  
+Use `context.directory` para o diretório de trabalho da sessão.
 Use `context.worktree` para a raiz do worktree do git.
 
 ---
@@ -139,7 +165,7 @@ Você pode escrever suas ferramentas em qualquer linguagem que desejar. Aqui est
 
 Primeiro, crie a ferramenta como um script Python:
 
-```python title=".HopCoderX/tools/add.py"
+```python title=".opencode/tools/add.py"
 import sys
 
 a = int(sys.argv[1])
@@ -149,8 +175,8 @@ print(a + b)
 
 Em seguida, crie a definição da ferramenta que a invoca:
 
-```ts title=".HopCoderX/tools/python-add.ts" {10}
-import { tool } from "@HopCoderX-ai/plugin"
+```ts title=".opencode/tools/python-add.ts" {10}
+import { tool } from "@opencode-ai/plugin"
 import path from "path"
 
 export default tool({
@@ -160,7 +186,7 @@ export default tool({
     b: tool.schema.number().describe("Segundo número"),
   },
   async execute(args, context) {
-    const script = path.join(context.worktree, ".HopCoderX/tools/add.py")
+    const script = path.join(context.worktree, ".opencode/tools/add.py")
     const result = await Bun.$`python3 ${script} ${args.a} ${args.b}`.text()
     return result.trim()
   },

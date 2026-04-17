@@ -16,9 +16,9 @@ app
     openAPIRouteHandler(app, {
       documentation: {
         info: {
-          title: "HopCoderX Enterprise API",
+          title: "Opencode Enterprise API",
           version: "1.0.0",
-          description: "HopCoderX Enterprise API endpoints",
+          description: "Opencode Enterprise API endpoints",
         },
         openapi: "3.1.1",
       },
@@ -108,6 +108,7 @@ app
     validator("param", z.object({ shareID: z.string() })),
     async (c) => {
       const { shareID } = c.req.valid("param")
+      c.header("Cache-Control", "public, max-age=30, s-maxage=300, stale-while-revalidate=86400")
       return c.json(await Share.data(shareID))
     },
   )

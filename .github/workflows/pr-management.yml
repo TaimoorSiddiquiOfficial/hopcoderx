@@ -6,14 +6,13 @@ on:
 
 jobs:
   check-duplicates:
-    if: vars.HOPCODERX_APP_ID != ''
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
       pull-requests: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -21,7 +20,7 @@ jobs:
         id: team-check
         run: |
           LOGIN="${{ github.event.pull_request.user.login }}"
-          if [ "$LOGIN" = "hopcoderx-agent[bot]" ] || grep -qxF "$LOGIN" .github/TEAM_MEMBERS; then
+          if [ "$LOGIN" = "opencode-agent[bot]" ] || grep -qxF "$LOGIN" .github/TEAM_MEMBERS; then
             echo "is_team=true" >> "$GITHUB_OUTPUT"
             echo "Skipping: $LOGIN is a team member or bot"
           else
@@ -36,9 +35,9 @@ jobs:
         if: steps.team-check.outputs.is_team != 'true'
         run: bun install
 
-      - name: Install hopcoderx
+      - name: Install opencode
         if: steps.team-check.outputs.is_team != 'true'
-        run: curl -fsSL https://hopcoderx.ai/install | bash
+        run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Build prompt
         if: steps.team-check.outputs.is_team != 'true'
@@ -60,7 +59,7 @@ jobs:
       - name: Check for duplicate PRs
         if: steps.team-check.outputs.is_team != 'true'
         env:
-          HOPCODERX_API_KEY: ${{ secrets.HOPCODERX_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |

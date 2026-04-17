@@ -1,19 +1,19 @@
 ---
 title: Sunucu
-description: HopCoderX sunucusuyla HTTP uzerinden etkilesin.
+description: opencode sunucusuyla HTTP uzerinden etkilesin.
 ---
 
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-`HopCoderX serve` komutu, HopCoderX istemcisinin kullanabileceği bir OpenAPI endpoint'i açan headless bir HTTP sunucusu çalıştırır.
+`opencode serve` komutu, opencode istemcisinin kullanabileceği bir OpenAPI endpoint'i açan headless bir HTTP sunucusu çalıştırır.
 
 ---
 
 ### Kullanım
 
 ```bash
-HopCoderX serve [--port <number>] [--hostname <string>] [--cors <origin>]
+opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 ```
 
 #### Seçenekler
@@ -23,39 +23,39 @@ HopCoderX serve [--port <number>] [--hostname <string>] [--cors <origin>]
 | `--port`        | Dinlenecek bağlantı noktası                    | `4096`           |
 | `--hostname`    | Dinlenecek ana bilgisayar adı                  | `127.0.0.1`      |
 | `--mdns`        | mDNS keşfini etkinleştir                       | `false`          |
-| `--mdns-domain` | mDNS hizmeti için özel alan adı                | `HopCoderX.local` |
+| `--mdns-domain` | mDNS hizmeti için özel alan adı                | `opencode.local` |
 | `--cors`        | İzin verilecek ek tarayıcı kaynakları (origin) | `[]`             |
 
 `--cors` birden fazla kez geçilebilir:
 
 ```bash
-HopCoderX serve --cors http://localhost:5173 --cors https://app.example.com
+opencode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
 
 ---
 
 ### Kimlik Doğrulama
 
-Sunucuyu HTTP temel kimlik doğrulama (basic auth) ile korumak için `HOPCODERX_SERVER_PASSWORD` ayarlayın. Kullanıcı adı varsayılan olarak `HopCoderX` değeridir; değiştirmek isterseniz `HOPCODERX_SERVER_USERNAME` ayarlayabilirsiniz. Bu ayar hem `HopCoderX serve` hem de `HopCoderX web` için geçerlidir.
+Sunucuyu HTTP temel kimlik doğrulama (basic auth) ile korumak için `OPENCODE_SERVER_PASSWORD` ayarlayın. Kullanıcı adı varsayılan olarak `opencode` değeridir; değiştirmek isterseniz `OPENCODE_SERVER_USERNAME` ayarlayabilirsiniz. Bu ayar hem `opencode serve` hem de `opencode web` için geçerlidir.
 
 ```bash
-HOPCODERX_SERVER_PASSWORD=your-password HopCoderX serve
+OPENCODE_SERVER_PASSWORD=your-password opencode serve
 ```
 
 ---
 
 ### Nasıl çalışır
 
-`HopCoderX` çalıştırdığınızda hem TUI hem de sunucu başlar. TUI, sunucuyla konuşan istemci tarafıdır.
+`opencode` çalıştırdığınızda hem TUI hem de sunucu başlar. TUI, sunucuyla konuşan istemci tarafıdır.
 Sunucu bir OpenAPI 3.1 spesifikasyon uç noktası açar. Bu uç nokta [SDK](/docs/sdk) üretiminde de kullanılır.
 
 :::tip
-HopCoderX ile programatik etkileşim için HopCoderX sunucusunu kullanın.
+opencode ile programatik etkileşim için opencode sunucusunu kullanın.
 :::
 
-Bu mimari, HopCoderX'un birden fazla istemciyi desteklemesini ve programatik kullanımları mümkün kılmasını sağlar.
+Bu mimari, opencode'un birden fazla istemciyi desteklemesini ve programatik kullanımları mümkün kılmasını sağlar.
 
-`HopCoderX serve` ile bağımsız bir sunucu başlatabilirsiniz. HopCoderX TUI açıksa, `HopCoderX serve` yeni bir sunucu başlatır.
+`opencode serve` ile bağımsız bir sunucu başlatabilirsiniz. opencode TUI açıksa, `opencode serve` yeni bir sunucu başlatır.
 
 ---
 
@@ -63,7 +63,7 @@ Bu mimari, HopCoderX'un birden fazla istemciyi desteklemesini ve programatik kul
 
 TUI başlarken rastgele bir port ve hostname atanır. Bunun yerine `--hostname` ve `--port` [bayraklarını](/docs/cli) verebilirsiniz.
 
-[`/tui`](#tui) uç noktası sunucu üzerinden TUI'yi sürmek için kullanılabilir. Örneğin bir istemi önceden doldurabilir veya çalıştırabilirsiniz. Bu kurulum HopCoderX [IDE](/docs/ide) eklentileri tarafından kullanılır.
+[`/tui`](#tui) uç noktası sunucu üzerinden TUI'yi sürmek için kullanılabilir. Örneğin bir istemi önceden doldurabilir veya çalıştırabilirsiniz. Bu kurulum opencode [IDE](/docs/ide) eklentileri tarafından kullanılır.
 
 ---
 
@@ -81,7 +81,7 @@ http://<hostname>:<port>/doc
 
 ## API'ler
 
-HopCoderX sunucusu aşağıdaki API'leri sunar.
+opencode sunucusu aşağıdaki API'leri sunar.
 
 ---
 

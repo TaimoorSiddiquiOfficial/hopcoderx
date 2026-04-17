@@ -1,13 +1,13 @@
 ---
 title: SDK
-description: Typowany klient JS dla serwera HopCoderX.
+description: Typowany klient JS dla serwera OpenCode.
 ---
 
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-Pakiet SDK JS/TS HopCoderX zapewnia klienta z bezpiecznym typowaniem (type-safe) do interakcji z serwerem.
-Użyj go do budowania integracji i programowej kontroli HopCoderX.
+Pakiet SDK JS/TS OpenCode zapewnia klienta z bezpiecznym typowaniem (type-safe) do interakcji z serwerem.
+Użyj go do budowania integracji i programowej kontroli OpenCode.
 
 [Dowiedz się więcej](/docs/server) o działaniu serwera. Przykłady znajdziesz w [projektach](/docs/ecosystem#projects) stworzonych przez społeczność.
 
@@ -18,19 +18,19 @@ Użyj go do budowania integracji i programowej kontroli HopCoderX.
 Zainstaluj pakiet SDK z npm:
 
 ```bash
-npm install @HopCoderX-ai/sdk
+npm install @opencode-ai/sdk
 ```
 
 ---
 
 ## Tworzenie klienta
 
-Utwórz instancję HopCoderX:
+Utwórz instancję OpenCode:
 
 ```javascript
-import { createHopCoderX } from "@HopCoderX-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const { client } = await createHopCoderX()
+const { client } = await createOpencode()
 ```
 
 Spowoduje to uruchomienie zarówno serwera, jak i klienta.
@@ -49,12 +49,12 @@ Spowoduje to uruchomienie zarówno serwera, jak i klienta.
 
 ## Konfiguracja
 
-Można przekazać obiekt konfiguracyjny, aby dostosować zachowanie. Instancja nadal pobiera `HopCoderX.json`, ale możesz zastąpić lub dodać konfigurację bezpośrednio:
+Można przekazać obiekt konfiguracyjny, aby dostosować zachowanie. Instancja nadal pobiera `opencode.json`, ale możesz zastąpić lub dodać konfigurację bezpośrednio:
 
 ```javascript
-import { createHopCoderX } from "@HopCoderX-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const HopCoderX = await createHopCoderX({
+const opencode = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,19 +62,19 @@ const HopCoderX = await createHopCoderX({
   },
 })
 
-console.log(`Server running at ${HopCoderX.server.url}`)
+console.log(`Server running at ${opencode.server.url}`)
 
-HopCoderX.server.close()
+opencode.server.close()
 ```
 
 ## Tylko klient
 
-Jeśli masz już działającą instancję HopCoderX, możesz utworzyć instancję klienta, aby się z nią połączyć:
+Jeśli masz już działającą instancję OpenCode, możesz utworzyć instancję klienta, aby się z nią połączyć:
 
 ```javascript
-import { createHopCoderXClient } from "@HopCoderX-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
-const client = createHopCoderXClient({
+const client = createOpencodeClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -96,7 +96,7 @@ const client = createHopCoderXClient({
 Zestaw SDK zawiera definicje TypeScript dla wszystkich typów API. Zaimportuj je bezpośrednio:
 
 ```typescript
-import type { Session, Message, Part } from "@HopCoderX-ai/sdk"
+import type { Session, Message, Part } from "@opencode-ai/sdk"
 ```
 
 Wszystkie typy są generowane na podstawie specyfikacji OpenAPI serwera i dostępne w <a href={typesUrl}>pliku typów</a>.
@@ -114,6 +114,78 @@ try {
   console.error("Failed to get session:", (error as Error).message)
 }
 ```
+
+---
+
+## Ustrukturyzowane Dane Wyjściowe
+
+Możesz zażądać ustrukturyzowanych danych wyjściowych JSON od modelu, określając `format` za pomocą schematu JSON. Model użyje narzędzia `StructuredOutput`, aby zwrócić zweryfikowany kod JSON pasujący do Twojego schematu.
+
+### Podstawowe użycie
+
+```typescript
+const result = await client.session.prompt({
+  path: { id: sessionId },
+  body: {
+    parts: [{ type: "text", text: "Research Anthropic and provide company info" }],
+    format: {
+      type: "json_schema",
+      schema: {
+        type: "object",
+        properties: {
+          company: { type: "string", description: "Company name" },
+          founded: { type: "number", description: "Year founded" },
+          products: {
+            type: "array",
+            items: { type: "string" },
+            description: "Main products",
+          },
+        },
+        required: ["company", "founded"],
+      },
+    },
+  },
+})
+
+// Access the structured output
+console.log(result.data.info.structured_output)
+// { company: "Anthropic", founded: 2021, products: ["Claude", "Claude API"] }
+```
+
+### Typy formatu wyjściowego
+
+| Typ           | Opis                                                                      |
+| ------------- | ------------------------------------------------------------------------- |
+| `text`        | Domyślny. Standardowa odpowiedź tekstowa (brak ustrukturyzowanych danych) |
+| `json_schema` | Zwraca zweryfikowany JSON pasujący do dostarczonego schematu              |
+
+### Format JSON Schema
+
+Używając `type: 'json_schema'`, podaj:
+
+| Pole         | Typ             | Opis                                                         |
+| ------------ | --------------- | ------------------------------------------------------------ |
+| `type`       | `'json_schema'` | Wymagane. Określa tryb schematu JSON                         |
+| `schema`     | `object`        | Wymagane. Obiekt JSON Schema definiujący strukturę wyjściową |
+| `retryCount` | `number`        | Opcjonalne. Liczba ponownych prób walidacji (domyślnie: 2)   |
+
+### Obsługa błędów
+
+Jeśli model nie wygeneruje prawidłowych ustrukturyzowanych danych wyjściowych po wszystkich próbach, odpowiedź będzie zawierać `StructuredOutputError`:
+
+```typescript
+if (result.data.info.error?.name === "StructuredOutputError") {
+  console.error("Failed to produce structured output:", result.data.info.error.message)
+  console.error("Attempts:", result.data.info.error.retries)
+}
+```
+
+### Najlepsze praktyki
+
+1. **Podawaj jasne opisy** we właściwościach schematu, aby pomóc modelowi zrozumieć, jakie dane wyodrębnić
+2. **Używaj `required`**, aby określić, które pola muszą być obecne
+3. **Zachowaj schematy skoncentrowane** - złożone zagnieżdżone schematy mogą być trudniejsze dla modelu do poprawnego wypełnienia
+4. **Ustaw odpowiedni `retryCount`** - zwiększ dla złożonych schematów, zmniejsz dla prostych
 
 ---
 
@@ -304,7 +376,7 @@ await client.session.prompt({
 ```javascript
 // Search and read files
 const textResults = await client.find.text({
-  query: { pattern: "function.*HopCoderX" },
+  query: { pattern: "function.*opencode" },
 })
 
 const files = await client.find.files({

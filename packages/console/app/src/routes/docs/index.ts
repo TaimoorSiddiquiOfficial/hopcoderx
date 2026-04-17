@@ -1,12 +1,12 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { Resource } from "@hopcoderx/console-resource"
-import { docs, localeFromRequest, tag } from "~/lib/language"
+import { Resource } from "@opencode-ai/console-resource"
+import { cookie, docs, localeFromRequest, tag } from "~/lib/language"
 
 async function handler(evt: APIEvent) {
   const req = evt.request.clone()
   const url = new URL(req.url)
   const locale = localeFromRequest(req)
-  const host = Resource.App.stage === "production" ? "docs.hopcoderx.dev" : "docs.dev.hopcoderx.dev"
+  const host = Resource.App.stage === "production" ? "docs.opencode.ai" : "docs.dev.opencode.ai"
   const targetUrl = `https://${host}${docs(locale, url.pathname)}${url.search}`
 
   const headers = new Headers(req.headers)
@@ -17,7 +17,9 @@ async function handler(evt: APIEvent) {
     headers,
     body: req.body,
   })
-  return response
+  const next = new Response(response.body, response)
+  next.headers.append("set-cookie", cookie(locale))
+  return next
 }
 
 export const GET = handler

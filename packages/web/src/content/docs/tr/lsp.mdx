@@ -1,15 +1,15 @@
 ---
 title: LSP Sunucuları
-description: HopCoderX, LSP sunucularınızla bütünleşir.
+description: OpenCode, LSP sunucularınızla bütünleşir.
 ---
 
-HopCoderX, LLM'in kod tabanınızla etkileşime girmesine yardımcı olmak için Dil Sunucusu Protokolünüzle (LSP) bütünleşir. LLM'ye geri bildirim sağlamak için tanılamayı kullanır.
+OpenCode, LLM'in kod tabanınızla etkileşime girmesine yardımcı olmak için Dil Sunucusu Protokolünüzle (LSP) bütünleşir. LLM'ye geri bildirim sağlamak için tanılamayı kullanır.
 
 ---
 
 ## Yerleşik
 
-HopCoderX, popüler diller için çeşitli yerleşik LSP sunucularıyla birlikte gelir:
+OpenCode, popüler diller için çeşitli yerleşik LSP sunucularıyla birlikte gelir:
 
 | LSP Sunucu         | Uzantılar                                                           | Gereksinimler                                                         |
 | ------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -27,6 +27,7 @@ HopCoderX, popüler diller için çeşitli yerleşik LSP sunucularıyla birlikte
 | gopls              | .go                                                                 | `go` komutu mevcut                                                    |
 | hls                | .hs, .lhs                                                           | `haskell-language-server-wrapper` komutu mevcut                       |
 | jdtls              | .java                                                               | `Java SDK (version 21+)` kurulu                                       |
+| julials            | .jl                                                                 | `julia` ve `LanguageServer.jl` kurulu                                 |
 | kotlin-ls          | .kt, .kts                                                           | Kotlin projeleri için otomatik kurulumlar                             |
 | lua-ls             | .lua                                                                | Lua projeleri için otomatik kurulumlar                                |
 | nixd               | .nix                                                                | `nixd` komutu mevcut                                                  |
@@ -49,14 +50,14 @@ HopCoderX, popüler diller için çeşitli yerleşik LSP sunucularıyla birlikte
 Yukarıdaki dosya uzantılarından biri tespit edildiğinde ve gereksinimler karşılandığında LSP sunucuları otomatik olarak etkinleştirilir.
 
 :::note
-`HOPCODERX_DISABLE_LSP_DOWNLOAD` ortam değişkenini `true` olarak ayarlayarak otomatik LSP sunucu indirmelerini devre dışı bırakabilirsiniz.
+`OPENCODE_DISABLE_LSP_DOWNLOAD` ortam değişkenini `true` olarak ayarlayarak otomatik LSP sunucu indirmelerini devre dışı bırakabilirsiniz.
 :::
 
 ---
 
 ## Nasıl Çalışır?
 
-HopCoderX bir dosyayı açtığında:
+opencode bir dosyayı açtığında:
 
 1. Dosya uzantısını tüm etkin LSP sunucularına göre kontrol eder.
 2. Henüz çalışmıyorsa uygun LSP sunucusunu başlatır.
@@ -65,11 +66,11 @@ HopCoderX bir dosyayı açtığında:
 
 ## Yapılandırma
 
-LSP sunucularını, HopCoderX yapılandırmanızdaki `lsp` bölümü aracılığıyla özelleştirebilirsiniz.
+LSP sunucularını, opencode yapılandırmanızdaki `lsp` bölümü aracılığıyla özelleştirebilirsiniz.
 
-```json title="HopCoderX.json"
+```json title="opencode.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {}
 }
 ```
@@ -92,9 +93,9 @@ Bazı örneklere bakalım.
 
 LSP sunucusunu başlatırken ortam değişkenlerini ayarlamak için `env` özelliğini kullanın:
 
-```json title="HopCoderX.json" {5-7}
+```json title="opencode.json" {5-7}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "rust": {
       "env": {
@@ -111,9 +112,9 @@ LSP sunucusunu başlatırken ortam değişkenlerini ayarlamak için `env` özell
 
 Başlatma seçeneklerini LSP sunucusuna iletmek için `initialization` özelliğini kullanın. Bunlar LSP `initialize` isteği sırasında gönderilen sunucuya özel ayarlardır:
 
-```json title="HopCoderX.json" {5-9}
+```json title="opencode.json" {5-9}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "initialization": {
@@ -136,18 +137,18 @@ Başlatma seçenekleri LSP sunucusuna göre değişir. Mevcut seçenekler için 
 
 **tüm** LSP sunucularını genel olarak devre dışı bırakmak için `lsp`'yi `false` olarak ayarlayın:
 
-```json title="HopCoderX.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": false
 }
 ```
 
 **Belirli** bir LSP sunucusunu devre dışı bırakmak için `disabled`'yi `true` olarak ayarlayın:
 
-```json title="HopCoderX.json" {5}
+```json title="opencode.json" {5}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "disabled": true
@@ -162,9 +163,9 @@ Başlatma seçenekleri LSP sunucusuna göre değişir. Mevcut seçenekler için 
 
 Komutu ve dosya uzantılarını belirterek özel LSP sunucuları ekleyebilirsiniz:
 
-```json title="HopCoderX.json" {4-7}
+```json title="opencode.json" {4-7}
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "custom-lsp": {
       "command": ["custom-lsp-server", "--stdio"],
@@ -182,7 +183,7 @@ Komutu ve dosya uzantılarını belirterek özel LSP sunucuları ekleyebilirsini
 
 PHP Intelephense, bir lisans anahtarı aracılığıyla premium özellikler sunar. Anahtarı (yalnızca) şu adresteki bir metin dosyasına yerleştirerek bir lisans anahtarı sağlayabilirsiniz:
 
-- MacOS/Linux'ta: `$HOME/intelephense/license.txt`
+- macOS/Linux'ta: `$HOME/intelephense/license.txt`
 - Windows'ta: `%USERPROFILE%/intelephense/license.txt`
 
 Dosya, ek içerik olmadan yalnızca lisans anahtarını içermelidir.

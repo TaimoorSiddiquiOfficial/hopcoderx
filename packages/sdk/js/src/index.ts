@@ -1,16 +1,16 @@
 export * from "./client.js"
 export * from "./server.js"
 
-import { createHopCoderXClient } from "./client.js"
-import { createHopCoderXServer } from "./server.js"
+import { createOpencodeClient } from "./client.js"
+import { createOpencodeServer } from "./server.js"
 import type { ServerOptions } from "./server.js"
 
-export async function createHopCoderX(options?: ServerOptions) {
-  const server = await createHopCoderXServer({
+export async function createOpencode(options?: ServerOptions) {
+  const server = await createOpencodeServer({
     ...options,
   })
 
-  const client = createHopCoderXClient({
+  const client = createOpencodeClient({
     baseUrl: server.url,
   })
 

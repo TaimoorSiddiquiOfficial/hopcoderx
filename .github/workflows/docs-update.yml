@@ -10,15 +10,15 @@ env:
 
 jobs:
   update-docs:
-    if: github.repository == 'sst/hopcoderx'
-    runs-on: ubuntu-latest
+    if: github.repository == 'sst/opencode'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       id-token: write
       contents: write
       pull-requests: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch full history to access commits
 
@@ -41,13 +41,13 @@ jobs:
             } >> $GITHUB_OUTPUT
           fi
 
-      - name: Run hopcoderx
+      - name: Run opencode
         if: steps.commits.outputs.has_commits == 'true'
-        uses: sst/hopcoderx/github@latest
+        uses: sst/opencode/github@latest
         env:
-          HOPCODERX_API_KEY: ${{ secrets.HOPCODERX_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
-          model: hopcoderx/gpt-5.2
+          model: opencode/gpt-5.2
           agent: docs
           prompt: |
             Review the following commits from the last ${{ env.LOOKBACK_HOURS }} hours and identify any new features that may need documentation.

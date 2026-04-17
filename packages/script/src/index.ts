@@ -1,4 +1,5 @@
-import { $, semver } from "bun"
+import { $ } from "bun"
+import semver from "semver"
 import path from "path"
 
 const rootPkgPath = path.resolve(import.meta.dir, "../../../package.json")
@@ -17,54 +18,43 @@ if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {
 }
 
 const env = {
-  HOPCODERX_CHANNEL: process.env["HOPCODERX_CHANNEL"],
-  HOPCODERX_BUMP: process.env["HOPCODERX_BUMP"],
-  HOPCODERX_VERSION: process.env["HOPCODERX_VERSION"],
-  HOPCODERX_RELEASE: process.env["HOPCODERX_RELEASE"],
+  OPENCODE_CHANNEL: process.env["OPENCODE_CHANNEL"],
+  OPENCODE_BUMP: process.env["OPENCODE_BUMP"],
+  OPENCODE_VERSION: process.env["OPENCODE_VERSION"],
+  OPENCODE_RELEASE: process.env["OPENCODE_RELEASE"],
 }
 const CHANNEL = await (async () => {
-  if (env.HOPCODERX_CHANNEL) return env.HOPCODERX_CHANNEL
-  if (env.HOPCODERX_BUMP) return "latest"
-  if (env.HOPCODERX_VERSION && !env.HOPCODERX_VERSION.startsWith("0.0.0-")) return "latest"
+  if (env.OPENCODE_CHANNEL) return env.OPENCODE_CHANNEL
+  if (env.OPENCODE_BUMP) return "latest"
+  if (env.OPENCODE_VERSION && !env.OPENCODE_VERSION.startsWith("0.0.0-")) return "latest"
   return await $`git branch --show-current`.text().then((x) => x.trim())
 })()
 const IS_PREVIEW = CHANNEL !== "latest"
 
 const VERSION = await (async () => {
-  if (env.HOPCODERX_VERSION) return env.HOPCODERX_VERSION
+  if (env.OPENCODE_VERSION) return env.OPENCODE_VERSION
   if (IS_PREVIEW) return `0.0.0-${CHANNEL}-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")}`
-  const version = await fetch("https://registry.npmjs.org/hopcoderx-ai/latest")
+  const version = await fetch("https://registry.npmjs.org/opencode-ai/latest")
     .then((res) => {
-      if (!res.ok) return null
+      if (!res.ok) throw new Error(res.statusText)
       return res.json()
     })
-    .then((data: any) => data?.version)
-    .catch(() => null)
-  if (!version) return "1.0.0"
+    .then((data: any) => data.version)
   const [major, minor, patch] = version.split(".").map((x: string) => Number(x) || 0)
-  const t = env.HOPCODERX_BUMP?.toLowerCase()
+  const t = env.OPENCODE_BUMP?.toLowerCase()
   if (t === "major") return `${major + 1}.0.0`
   if (t === "minor") return `${major}.${minor + 1}.0`
   return `${major}.${minor}.${patch + 1}`
 })()
 
+const bot = ["actions-user", "opencode", "opencode-agent[bot]"]
+const teamPath = path.resolve(import.meta.dir, "../../../.github/TEAM_MEMBERS")
 const team = [
-  "actions-user",
-  "hopcoderx",
-  "rekram1-node",
-  "thdxr",
-  "kommander",
-  "jayair",
-  "fwang",
-  "MrMushrooooom",
-  "adamdotdevin",
-  "iamdavidhill",
-  "Brendonovich",
-  "nexxeln",
-  "Hona",
-  "jlongster",
-  "hopcoderx-agent[bot]",
-  "R44VC0RP",
+  ...(await Bun.file(teamPath)
+    .text()
+    .then((x) => x.split(/\r?\n/).map((x) => x.trim()))
+    .then((x) => x.filter((x) => x && !x.startsWith("#")))),
+  ...bot,
 ]
 
 export const Script = {
@@ -78,10 +68,10 @@ export const Script = {
     return IS_PREVIEW
   },
   get release(): boolean {
-    return !!env.HOPCODERX_RELEASE
+    return !!env.OPENCODE_RELEASE
   },
   get team() {
     return team
   },
 }
-console.log(`HopCoderX script`, JSON.stringify(Script, null, 2))
+console.log(`opencode script`, JSON.stringify(Script, null, 2))

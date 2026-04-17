@@ -3,11 +3,11 @@ title: Tastenkombinationen
 description: Passen Sie Ihre Tastenkombinationen an.
 ---
 
-HopCoderX verfügt über eine Liste von Tastenkombinationen, die Sie über die HopCoderX-Konfiguration anpassen können.
+OpenCode verfügt über eine Liste von Tastenkombinationen, die Sie über `tui.json` anpassen können.
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "leader": "ctrl+x",
     "app_exit": "ctrl+c,ctrl+d,<leader>q",
@@ -28,6 +28,7 @@ HopCoderX verfügt über eine Liste von Tastenkombinationen, die Sie über die H
     "session_unshare": "none",
     "session_interrupt": "escape",
     "session_compact": "<leader>c",
+    "session_child_first": "<leader>down",
     "session_child_cycle": "<leader>right",
     "session_child_cycle_reverse": "<leader>left",
     "session_parent": "<leader>up",
@@ -52,6 +53,7 @@ HopCoderX verfügt über eine Liste von Tastenkombinationen, die Sie über die H
     "model_cycle_favorite": "none",
     "model_cycle_favorite_reverse": "none",
     "variant_cycle": "ctrl+t",
+    "variant_list": "none",
     "command_list": "ctrl+p",
     "agent_list": "<leader>a",
     "agent_cycle": "tab",
@@ -107,7 +109,7 @@ HopCoderX verfügt über eine Liste von Tastenkombinationen, die Sie über die H
 
 ## Leader Key
 
-HopCoderX verwendet für die meisten Keybinds einen `leader`-Schlüssel. Dies vermeidet Konflikte in Ihrem Terminal.
+OpenCode verwendet für die meisten Keybinds einen `leader`-Schlüssel. Dies vermeidet Konflikte in Ihrem Terminal.
 
 Standardmäßig ist `ctrl+x` der Leader Key und bei den meisten Aktionen müssen Sie zuerst den Leader Key und dann die Tastenkombination drücken. Um beispielsweise eine neue Sitzung zu starten, drücken Sie zuerst `ctrl+x` und dann `n`.
 
@@ -117,11 +119,11 @@ Sie müssen für Ihre Keybinds keinen Leader Key verwenden, wir empfehlen jedoch
 
 ## Keybind deaktivieren
 
-Sie können eine Keybind deaktivieren, indem Sie den Schlüssel mit dem Wert „none“ zu Ihrer Konfiguration hinzufügen.
+Sie können eine Keybind deaktivieren, indem Sie den Schlüssel mit dem Wert „none“ zu `tui.json` hinzufügen.
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "session_compact": "none"
   }
@@ -132,7 +134,7 @@ Sie können eine Keybind deaktivieren, indem Sie den Schlüssel mit dem Wert „
 
 ## Desktop-Prompt-Shortcuts
 
-Die Eingabeaufforderungseingabe der HopCoderX-Desktop-App unterstützt gängige Readline/Emacs-style-Verknüpfungen zum Bearbeiten von Text. Diese sind integriert und derzeit nicht über `HopCoderX.json` konfigurierbar.
+Die Eingabeaufforderungseingabe der OpenCode-Desktop-App unterstützt gängige Readline/Emacs-style-Verknüpfungen zum Bearbeiten von Text. Diese sind integriert und derzeit nicht über `opencode.json` konfigurierbar.
 
 | Keybind  | Aktion                                                |
 | -------- | ----------------------------------------------------- |

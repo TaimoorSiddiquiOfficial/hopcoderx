@@ -1,28 +1,28 @@
 ---
 title: الويب
-description: استخدام HopCoderX في متصفحك.
+description: استخدام OpenCode في متصفحك.
 ---
 
-يمكن تشغيل HopCoderX كتطبيق ويب داخل متصفحك، ليمنحك تجربة البرمجة القوية بالذكاء الاصطناعي نفسها دون الحاجة إلى terminal.
+يمكن تشغيل OpenCode كتطبيق ويب داخل متصفحك، ليمنحك تجربة البرمجة القوية بالذكاء الاصطناعي نفسها دون الحاجة إلى terminal.
 
-![HopCoderX Web - جلسة جديدة](../../../assets/web/web-homepage-new-session.png)
+![OpenCode Web - جلسة جديدة](../../../assets/web/web-homepage-new-session.png)
 
 ## البدء
 
 ابدأ تشغيل واجهة الويب عبر تنفيذ:
 
 ```bash
-HopCoderX web
+opencode web
 ```
 
-يؤدي ذلك إلى تشغيل خادم محلي على `127.0.0.1` بمنفذ عشوائي متاح، ويفتح HopCoderX تلقائيا في المتصفح الافتراضي لديك.
+يؤدي ذلك إلى تشغيل خادم محلي على `127.0.0.1` بمنفذ عشوائي متاح، ويفتح OpenCode تلقائيا في المتصفح الافتراضي لديك.
 
 :::caution
-إذا لم يتم تعيين `HOPCODERX_SERVER_PASSWORD` فسيكون الخادم دون حماية. هذا مناسب للاستخدام المحلي، لكنه يجب أن يكون مُعينا عند إتاحة الوصول عبر الشبكة.
+إذا لم يتم تعيين `OPENCODE_SERVER_PASSWORD` فسيكون الخادم دون حماية. هذا مناسب للاستخدام المحلي، لكنه يجب أن يكون مُعينا عند إتاحة الوصول عبر الشبكة.
 :::
 
 :::tip[مستخدمو Windows]
-لأفضل تجربة، شغّل `HopCoderX web` من [WSL](/docs/windows-wsl) بدلا من PowerShell. يضمن ذلك وصولا صحيحا إلى نظام الملفات وتكاملا أفضل مع terminal.
+لأفضل تجربة، شغّل `opencode web` من [WSL](/docs/windows-wsl) بدلا من PowerShell. يضمن ذلك وصولا صحيحا إلى نظام الملفات وتكاملا أفضل مع terminal.
 :::
 
 ---
@@ -33,21 +33,21 @@ HopCoderX web
 
 ### المنفذ
 
-افتراضيا، يختار HopCoderX منفذا متاحا. يمكنك تحديد منفذ:
+افتراضيا، يختار OpenCode منفذا متاحا. يمكنك تحديد منفذ:
 
 ```bash
-HopCoderX web --port 4096
+opencode web --port 4096
 ```
 
 ### اسم المضيف
 
-افتراضيا، يرتبط الخادم بـ `127.0.0.1` (للاستخدام المحلي فقط). لجعل HopCoderX متاحا على شبكتك:
+افتراضيا، يرتبط الخادم بـ `127.0.0.1` (للاستخدام المحلي فقط). لجعل OpenCode متاحا على شبكتك:
 
 ```bash
-HopCoderX web --hostname 0.0.0.0
+opencode web --hostname 0.0.0.0
 ```
 
-عند استخدام `0.0.0.0` سيعرض HopCoderX كلا من عناوين الوصول المحلي وعناوين الشبكة:
+عند استخدام `0.0.0.0` سيعرض OpenCode كلا من عناوين الوصول المحلي وعناوين الشبكة:
 
 ```
   Local access:       http://localhost:4096
@@ -59,15 +59,15 @@ HopCoderX web --hostname 0.0.0.0
 فعّل mDNS لجعل خادمك قابلا للاكتشاف على الشبكة المحلية:
 
 ```bash
-HopCoderX web --mdns
+opencode web --mdns
 ```
 
-يضبط ذلك تلقائيا اسم المضيف إلى `0.0.0.0` ويعلن عن الخادم باسم `HopCoderX.local`.
+يضبط ذلك تلقائيا اسم المضيف إلى `0.0.0.0` ويعلن عن الخادم باسم `opencode.local`.
 
 يمكنك تخصيص اسم نطاق mDNS لتشغيل عدة نسخ على الشبكة نفسها:
 
 ```bash
-HopCoderX web --mdns --mdns-domain myproject.local
+opencode web --mdns --mdns-domain myproject.local
 ```
 
 ### CORS
@@ -75,36 +75,36 @@ HopCoderX web --mdns --mdns-domain myproject.local
 للسماح بنطاقات إضافية عبر CORS (مفيد للواجهات الأمامية المخصصة):
 
 ```bash
-HopCoderX web --cors https://example.com
+opencode web --cors https://example.com
 ```
 
 ### المصادقة
 
-لحماية الوصول، عيّن كلمة مرور عبر متغير البيئة `HOPCODERX_SERVER_PASSWORD`:
+لحماية الوصول، عيّن كلمة مرور عبر متغير البيئة `OPENCODE_SERVER_PASSWORD`:
 
 ```bash
-HOPCODERX_SERVER_PASSWORD=secret HopCoderX web
+OPENCODE_SERVER_PASSWORD=secret opencode web
 ```
 
-اسم المستخدم الافتراضي هو `HopCoderX`، ويمكن تغييره عبر `HOPCODERX_SERVER_USERNAME`.
+اسم المستخدم الافتراضي هو `opencode`، ويمكن تغييره عبر `OPENCODE_SERVER_USERNAME`.
 
 ---
 
 ## استخدام واجهة الويب
 
-بعد التشغيل، تتيح لك واجهة الويب الوصول إلى جلسات HopCoderX الخاصة بك.
+بعد التشغيل، تتيح لك واجهة الويب الوصول إلى جلسات OpenCode الخاصة بك.
 
 ### الجلسات
 
 اعرض جلساتك وأدرها من الصفحة الرئيسية. يمكنك رؤية الجلسات النشطة وبدء جلسات جديدة.
 
-![HopCoderX Web - جلسة نشطة](../../../assets/web/web-homepage-active-session.png)
+![OpenCode Web - جلسة نشطة](../../../assets/web/web-homepage-active-session.png)
 
 ### حالة الخادم
 
 انقر على "See Servers" لعرض الخوادم المتصلة وحالتها.
 
-![HopCoderX Web - See Servers (عرض الخوادم)](../../../assets/web/web-homepage-see-servers.png)
+![OpenCode Web - See Servers (عرض الخوادم)](../../../assets/web/web-homepage-see-servers.png)
 
 ---
 
@@ -114,10 +114,10 @@ HOPCODERX_SERVER_PASSWORD=secret HopCoderX web
 
 ```bash
 # ابدأ خادم الويب
-HopCoderX web --port 4096
+opencode web --port 4096
 
 # في محطة طرفية أخرى، اربط TUI
-HopCoderX attach http://localhost:4096
+opencode attach http://localhost:4096
 ```
 
 يتيح لك ذلك استخدام واجهة الويب وterminal في الوقت نفسه، مع مشاركة الجلسات والحالة نفسها.
@@ -126,7 +126,7 @@ HopCoderX attach http://localhost:4096
 
 ## ملف الإعدادات
 
-يمكنك أيضا ضبط إعدادات الخادم داخل ملف الإعدادات `HopCoderX.json`:
+يمكنك أيضا ضبط إعدادات الخادم داخل ملف الإعدادات `opencode.json`:
 
 ```json
 {

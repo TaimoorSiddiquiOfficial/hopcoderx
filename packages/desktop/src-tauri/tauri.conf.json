@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "HopCoderX Dev",
-  "identifier": "dev.hopcoder.desktop.dev",
-  "mainBinaryName": "HopCoderX",
+  "productName": "OpenCode Dev",
+  "identifier": "ai.opencode.desktop.dev",
+  "mainBinaryName": "OpenCode",
   "version": "../package.json",
   "build": {
     "beforeDevCommand": "bun run dev",
@@ -33,7 +33,7 @@
     ],
     "active": true,
     "targets": ["deb", "rpm", "dmg", "nsis", "app"],
-    "externalBin": ["sidecars/HopCoderX-cli"],
+    "externalBin": ["sidecars/opencode-cli"],
     "linux": {
       "rpm": {
         "compression": {
@@ -45,6 +45,10 @@
       "entitlements": "./entitlements.plist"
     },
     "windows": {
+      "signCommand": {
+        "cmd": "powershell",
+        "args": ["-ExecutionPolicy", "Bypass", "-File", "../../../script/sign-windows.ps1", "%1"]
+      },
       "nsis": {
         "installerIcon": "icons/dev/icon.ico",
         "headerImage": "assets/nsis-header.bmp",
@@ -55,7 +59,7 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["HopCoderX"]
+        "schemes": ["opencode"]
       }
     }
   }

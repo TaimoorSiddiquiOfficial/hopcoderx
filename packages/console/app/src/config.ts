@@ -3,27 +3,27 @@
  */
 export const config = {
   // Base URL
-  baseUrl: "https://hopcoderx.dev",
+  baseUrl: "https://opencode.ai",
 
   // GitHub
   github: {
-    repoUrl: "https://github.com/TaimoorSiddiquiOfficial/hopcoderx",
+    repoUrl: "https://github.com/anomalyco/opencode",
     starsFormatted: {
-      compact: "100K",
-      full: "100,000",
+      compact: "140K",
+      full: "140,000",
     },
   },
 
   // Social links
   social: {
-    twitter: "https://x.com/HopCoderX",
-    discord: "https://discord.gg/HopCoderX",
+    twitter: "https://x.com/opencode",
+    discord: "https://discord.gg/opencode",
   },
 
   // Static stats (used on landing page)
   stats: {
-    contributors: "700",
-    commits: "9,000",
-    monthlyUsers: "2.5M",
+    contributors: "850",
+    commits: "11,000",
+    monthlyUsers: "6.5M",
   },
 } as const

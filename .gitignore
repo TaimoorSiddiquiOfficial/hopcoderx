@@ -18,8 +18,6 @@ ts-dist
 refs
 Session.vim
 /opencode.json
-*.tgz
-/hopcoderx.json
 a.out
 target
 .scripts
@@ -27,15 +25,7 @@ target
 
 # Local dev files
 opencode-dev
+UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
-
-# Local reference docs (not for version control)
-SYSTEMS.md
-Research.md
-Updates.md
-deep-research-report-hopcoderx.md
-
-# Bun temp build artifacts
-*.tmp/

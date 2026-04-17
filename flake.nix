@@ -1,5 +1,5 @@
 {
-  description = "HopCoderX development flake";
+  description = "OpenCode development flake";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -37,16 +37,16 @@
             node_modules = final.callPackage ./nix/node_modules.nix {
               inherit rev;
             };
-            hopcoderx = final.callPackage ./nix/hopcoderx.nix {
+            opencode = final.callPackage ./nix/opencode.nix {
               inherit node_modules;
             };
             desktop = final.callPackage ./nix/desktop.nix {
-              inherit hopcoderx;
+              inherit opencode;
             };
           in
           {
-            inherit hopcoderx;
-            hopcoderx-desktop = desktop;
+            inherit opencode;
+            opencode-desktop = desktop;
           };
       };
 
@@ -56,16 +56,16 @@
           node_modules = pkgs.callPackage ./nix/node_modules.nix {
             inherit rev;
           };
-          hopcoderx = pkgs.callPackage ./nix/hopcoderx.nix {
+          opencode = pkgs.callPackage ./nix/opencode.nix {
             inherit node_modules;
           };
           desktop = pkgs.callPackage ./nix/desktop.nix {
-            inherit hopcoderx;
+            inherit opencode;
           };
         in
         {
-          default = hopcoderx;
-          inherit hopcoderx desktop;
+          default = opencode;
+          inherit opencode desktop;
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {
             hash = pkgs.lib.fakeHash;

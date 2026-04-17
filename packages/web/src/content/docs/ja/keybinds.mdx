@@ -3,11 +3,11 @@ title: キーバインド
 description: キーバインドをカスタマイズします。
 ---
 
-HopCoderX には、HopCoderX 設定を通じてカスタマイズできるキーバインドのリストがあります。
+OpenCode には、`tui.json` を通じてカスタマイズできるキーバインドのリストがあります。
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "leader": "ctrl+x",
     "app_exit": "ctrl+c,ctrl+d,<leader>q",
@@ -28,6 +28,7 @@ HopCoderX には、HopCoderX 設定を通じてカスタマイズできるキー
     "session_unshare": "none",
     "session_interrupt": "escape",
     "session_compact": "<leader>c",
+    "session_child_first": "<leader>down",
     "session_child_cycle": "<leader>right",
     "session_child_cycle_reverse": "<leader>left",
     "session_parent": "<leader>up",
@@ -52,6 +53,7 @@ HopCoderX には、HopCoderX 設定を通じてカスタマイズできるキー
     "model_cycle_favorite": "none",
     "model_cycle_favorite_reverse": "none",
     "variant_cycle": "ctrl+t",
+    "variant_list": "none",
     "command_list": "ctrl+p",
     "agent_list": "<leader>a",
     "agent_cycle": "tab",
@@ -107,7 +109,7 @@ HopCoderX には、HopCoderX 設定を通じてカスタマイズできるキー
 
 ## リーダーキー
 
-HopCoderX は、ほとんどのキーバインドに `leader` キーを使用します。これにより、ターミナルでの競合が回避されます。
+OpenCode は、ほとんどのキーバインドに `leader` キーを使用します。これにより、ターミナルでの競合が回避されます。
 
 デフォルトでは、`ctrl+x` がリーダーキーであり、ほとんどの操作では、最初にリーダーキーを押してからショートカットを押す必要があります。たとえば、新しいセッションを開始するには、まず `ctrl+x` を押してから、`n` を押します。
 
@@ -117,11 +119,11 @@ HopCoderX は、ほとんどのキーバインドに `leader` キーを使用し
 
 ## キーバインドを無効にする
 
-キーバインドを無効にするには、値「none」を指定してキーを構成に追加します。
+キーバインドを無効にするには、値「none」を指定してキーを `tui.json` に追加します。
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "session_compact": "none"
   }
@@ -132,7 +134,7 @@ HopCoderX は、ほとんどのキーバインドに `leader` キーを使用し
 
 ## デスクトッププロンプトのショートカット
 
-HopCoderX デスクトップアプリのプロンプト入力は、テキストを編集するための一般的な Readline/Emacs スタイルのショートカットをサポートしています。これらは組み込みであり、現在 `HopCoderX.json` を介して構成することはできません。
+OpenCode デスクトップアプリのプロンプト入力は、テキストを編集するための一般的な Readline/Emacs スタイルのショートカットをサポートしています。これらは組み込みであり、現在 `opencode.json` を介して構成することはできません。
 
 | ショートカット | アクション                                        |
 | -------------- | ------------------------------------------------- |

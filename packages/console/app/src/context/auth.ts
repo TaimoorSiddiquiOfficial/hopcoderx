@@ -1,17 +1,18 @@
 import { getRequestEvent } from "solid-js/web"
-import { and, Database, eq, inArray, isNull, sql } from "@hopcoderx/console-core/drizzle/index.js"
-import { UserTable } from "@hopcoderx/console-core/schema/user.sql.js"
+import { and, Database, eq, inArray, isNull, sql } from "@opencode-ai/console-core/drizzle/index.js"
+import { UserTable } from "@opencode-ai/console-core/schema/user.sql.js"
 import { redirect } from "@solidjs/router"
-import { Actor } from "@hopcoderx/console-core/actor.js"
+import { Actor } from "@opencode-ai/console-core/actor.js"
 
 import { createClient } from "@openauthjs/openauth/client"
-import { useSession } from "vinxi/http"
 
 export const AuthClient = createClient({
   clientID: "app",
   issuer: import.meta.env.VITE_AUTH_URL,
 })
-import { Resource } from "@hopcoderx/console-resource"
+
+import { useSession } from "@solidjs/start/http"
+import { Resource } from "@opencode-ai/console-resource"
 
 export interface AuthSession {
   account?: Record<
@@ -26,7 +27,7 @@ export interface AuthSession {
 
 export function useAuthSession() {
   return useSession<AuthSession>({
-    password: Resource.BDR_SESSION_SECRET.value,
+    password: Resource.ZEN_SESSION_SECRET.value,
     name: "auth",
     maxAge: 60 * 60 * 24 * 365,
     cookie: {
@@ -44,7 +45,7 @@ export const getActor = async (workspace?: string): Promise<Actor.Info> => {
   evt.locals.actor = (async () => {
     const auth = await useAuthSession()
     if (!workspace) {
-      const account: NonNullable<AuthSession["account"]> = auth.data.account ?? {}
+      const account = auth.data.account ?? {}
       const current = account[auth.data.current ?? ""]
       if (current) {
         return {
@@ -57,7 +58,7 @@ export const getActor = async (workspace?: string): Promise<Actor.Info> => {
       }
       if (Object.keys(account).length > 0) {
         const current = Object.values(account)[0]
-        await auth.update((val: AuthSession) => ({
+        await auth.update((val) => ({
           ...val,
           current: current.id,
         }))

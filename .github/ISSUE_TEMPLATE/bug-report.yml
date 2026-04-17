@@ -20,10 +20,10 @@ body:
       required: false
 
   - type: input
-    id: hopcoderx-version
+    id: opencode-version
     attributes:
-      label: HopCoderX version
-      description: What version of HopCoderX are you using?
+      label: OpenCode version
+      description: What version of OpenCode are you using?
     validations:
       required: false
 

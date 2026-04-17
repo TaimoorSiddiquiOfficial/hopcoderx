@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
-import { Script } from "@hopcoderx/script"
+import { Script } from "@opencode-ai/script"
 import { $ } from "bun"
-import path from "path"
+import { fileURLToPath } from "url"
 
-const dir = path.resolve(import.meta.dir, "..")
+const dir = fileURLToPath(new URL("..", import.meta.url))
 process.chdir(dir)
 
 const pkg = (await import("../package.json").then((m) => m.default)) as {
@@ -15,7 +15,7 @@ function transformExports(exports: Record<string, string | object>) {
   for (const [key, value] of Object.entries(exports)) {
     if (typeof value === "object" && value !== null) {
       transformExports(value as Record<string, string | object>)
-    } else if (typeof value === "string" && value.startsWith("./src/")) {
+    } else if (typeof value === "string") {
       const file = value.replace("./src/", "./dist/").replace(".ts", "")
       exports[key] = {
         import: file + ".js",

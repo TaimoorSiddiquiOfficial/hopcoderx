@@ -3,11 +3,11 @@ title: Tastebindinger
 description: Tilpass tastebindingene dine.
 ---
 
-HopCoderX har en liste over tastebindinger som du kan tilpasse gjennom HopCoderX-konfigurasjonen.
+OpenCode har en liste over tastebindinger som du kan tilpasse gjennom `tui.json`.
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "leader": "ctrl+x",
     "app_exit": "ctrl+c,ctrl+d,<leader>q",
@@ -28,6 +28,7 @@ HopCoderX har en liste over tastebindinger som du kan tilpasse gjennom HopCoderX
     "session_unshare": "none",
     "session_interrupt": "escape",
     "session_compact": "<leader>c",
+    "session_child_first": "<leader>down",
     "session_child_cycle": "<leader>right",
     "session_child_cycle_reverse": "<leader>left",
     "session_parent": "<leader>up",
@@ -52,6 +53,7 @@ HopCoderX har en liste over tastebindinger som du kan tilpasse gjennom HopCoderX
     "model_cycle_favorite": "none",
     "model_cycle_favorite_reverse": "none",
     "variant_cycle": "ctrl+t",
+    "variant_list": "none",
     "command_list": "ctrl+p",
     "agent_list": "<leader>a",
     "agent_cycle": "tab",
@@ -107,7 +109,7 @@ HopCoderX har en liste over tastebindinger som du kan tilpasse gjennom HopCoderX
 
 ## Leader-tast
 
-HopCoderX bruker en `leader`-tast for de fleste tastebindinger. Dette unngår konflikter i terminalen din.
+OpenCode bruker en `leader`-tast for de fleste tastebindinger. Dette unngår konflikter i terminalen din.
 
 Som standard er `ctrl+x` ledertasten, og de fleste handlinger krever at du først trykker på ledertasten og deretter snarveien. For å starte en ny økt, trykker du for eksempel først `ctrl+x` og deretter `n`.
 
@@ -117,11 +119,11 @@ Du trenger ikke å bruke en ledertast for tastebindingene dine, men vi anbefaler
 
 ## Deaktivering av tastebindinger
 
-Du kan deaktivere en tastebinding ved å legge til tasten til konfigurasjonen med verdien "none".
+Du kan deaktivere en tastebinding ved å legge til tasten til `tui.json` med en verdi på "none".
 
-```json title="HopCoderX.json"
+```json title="tui.json"
 {
-  "$schema": "https://hopcoderx.dev/config.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "session_compact": "none"
   }
@@ -132,7 +134,7 @@ Du kan deaktivere en tastebinding ved å legge til tasten til konfigurasjonen me
 
 ## Snarveier i skrivebordsappen
 
-Prompt-feltet for HopCoderX-skrivebordsappen støtter vanlige snarveier i Readline/Emacs-stil for redigering av tekst. Disse er innebygd og foreløpig ikke konfigurerbare via `HopCoderX.json`.
+Prompt-feltet for OpenCode-skrivebordsappen støtter vanlige snarveier i Readline/Emacs-stil for redigering av tekst. Disse er innebygd og foreløpig ikke konfigurerbare via `opencode.json`.
 
 | Snarvei  | Handling                                 |
 | -------- | ---------------------------------------- |

@@ -1,30 +1,30 @@
 ---
 title: CLI
-description: HopCoderX CLI-alternativer og kommandoer.
+description: OpenCode CLI-alternativer og kommandoer.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-HopCoderX CLI starter som standard [TUI](/docs/tui) når den kjøres uten noen argumenter.
+OpenCode CLI starter som standard [TUI](/docs/tui) når den kjøres uten noen argumenter.
 
 ```bash
-HopCoderX
+opencode
 ```
 
-Men den godtar også kommandoer som dokumentert på denne siden. Dette lar deg samhandle med HopCoderX programmatisk.
+Men den godtar også kommandoer som dokumentert på denne siden. Dette lar deg samhandle med OpenCode programmatisk.
 
 ```bash
-HopCoderX run "Explain how closures work in JavaScript"
+opencode run "Explain how closures work in JavaScript"
 ```
 
 ---
 
 ### tui
 
-Start HopCoderX-terminalbrukergrensesnittet.
+Start OpenCode-terminalbrukergrensesnittet.
 
 ```bash
-HopCoderX [project]
+opencode [project]
 ```
 
 #### Flagg
@@ -44,36 +44,36 @@ HopCoderX [project]
 
 ## Kommandoer
 
-HopCoderX CLI har også følgende kommandoer.
+OpenCode CLI har også følgende kommandoer.
 
 ---
 
 ### agent
 
-Administrer agenter for HopCoderX.
+Administrer agenter for OpenCode.
 
 ```bash
-HopCoderX agent [command]
+opencode agent [command]
 ```
 
 ---
 
 ### attach
 
-Koble en terminal til en allerede kjørende HopCoderX-backend-server startet via `serve` eller `web` kommandoer.
+Koble en terminal til en allerede kjørende OpenCode-backend-server startet via `serve` eller `web` kommandoer.
 
 ```bash
-HopCoderX attach [url]
+opencode attach [url]
 ```
 
-Dette gjør det mulig å bruke TUI med en ekstern HopCoderX-backend. For eksempel:
+Dette gjør det mulig å bruke TUI med en ekstern OpenCode-backend. For eksempel:
 
 ```bash
 # Start the backend server for web/mobile access
-HopCoderX web --port 4096 --hostname 0.0.0.0
+opencode web --port 4096 --hostname 0.0.0.0
 
 # In another terminal, attach the TUI to the running backend
-HopCoderX attach http://10.20.30.40:4096
+opencode attach http://10.20.30.40:4096
 ```
 
 #### Flagg
@@ -90,7 +90,7 @@ HopCoderX attach http://10.20.30.40:4096
 Opprett en ny agent med tilpasset konfigurasjon.
 
 ```bash
-HopCoderX agent create
+opencode agent create
 ```
 
 Denne kommandoen vil veilede deg gjennom å lage en ny agent med en tilpasset systemmelding og verktøykonfigurasjon.
@@ -102,7 +102,7 @@ Denne kommandoen vil veilede deg gjennom å lage en ny agent med en tilpasset sy
 List opp alle tilgjengelige agenter.
 
 ```bash
-HopCoderX agent list
+opencode agent list
 ```
 
 ---
@@ -112,20 +112,20 @@ HopCoderX agent list
 Kommando for administrasjon av påloggingsinformasjon og innlogging for leverandører.
 
 ```bash
-HopCoderX auth [command]
+opencode auth [command]
 ```
 
 ---
 
 #### login
 
-HopCoderX drives av leverandørlisten på [Models.dev](https://models.dev), så du kan bruke `HopCoderX auth login` til å konfigurere API-nøkler for enhver leverandør du vil bruke. Dette er lagret i `~/.local/share/HopCoderX/auth.json`.
+OpenCode drives av leverandørlisten på [Models.dev](https://models.dev), så du kan bruke `opencode auth login` til å konfigurere API-nøkler for enhver leverandør du vil bruke. Dette er lagret i `~/.local/share/opencode/auth.json`.
 
 ```bash
-HopCoderX auth login
+opencode auth login
 ```
 
-Når HopCoderX starter opp, laster den leverandørene fra filen med påloggingsinformasjon. Og hvis det er noen nøkler definert i miljøene dine eller en `.env`-fil i prosjektet ditt.
+Når OpenCode starter opp, laster den leverandørene fra filen med påloggingsinformasjon. Og hvis det er noen nøkler definert i miljøene dine eller en `.env`-fil i prosjektet ditt.
 
 ---
 
@@ -134,13 +134,13 @@ Når HopCoderX starter opp, laster den leverandørene fra filen med påloggingsi
 Viser alle de autentiserte leverandørene som er lagret i filen med påloggingsinformasjon.
 
 ```bash
-HopCoderX auth list
+opencode auth list
 ```
 
 Eller bruk kortversjonen.
 
 ```bash
-HopCoderX auth ls
+opencode auth ls
 ```
 
 ---
@@ -150,7 +150,7 @@ HopCoderX auth ls
 Logger deg ut av en leverandør ved å fjerne den fra filen med påloggingsinformasjon.
 
 ```bash
-HopCoderX auth logout
+opencode auth logout
 ```
 
 ---
@@ -160,7 +160,7 @@ HopCoderX auth logout
 Administrer GitHub-agenten for depotautomatisering.
 
 ```bash
-HopCoderX github [command]
+opencode github [command]
 ```
 
 ---
@@ -170,7 +170,7 @@ HopCoderX github [command]
 Installer GitHub-agenten i depotet ditt.
 
 ```bash
-HopCoderX github install
+opencode github install
 ```
 
 Dette setter opp den nødvendige GitHub Actions-arbeidsflyten og veileder deg gjennom konfigurasjonsprosessen. [Finn ut mer](/docs/github).
@@ -182,7 +182,7 @@ Dette setter opp den nødvendige GitHub Actions-arbeidsflyten og veileder deg gj
 Kjør GitHub-agenten. Dette brukes vanligvis i GitHub Actions.
 
 ```bash
-HopCoderX github run
+opencode github run
 ```
 
 ##### Flagg
@@ -199,7 +199,7 @@ HopCoderX github run
 Administrer Model Context Protocol-servere.
 
 ```bash
-HopCoderX mcp [command]
+opencode mcp [command]
 ```
 
 ---
@@ -209,7 +209,7 @@ HopCoderX mcp [command]
 Legg til en MCP-server til konfigurasjonen.
 
 ```bash
-HopCoderX mcp add
+opencode mcp add
 ```
 
 Denne kommandoen vil veilede deg gjennom å legge til enten en lokal eller ekstern MCP-server.
@@ -221,13 +221,13 @@ Denne kommandoen vil veilede deg gjennom å legge til enten en lokal eller ekste
 Liste alle konfigurerte MCP-servere og deres tilkoblingsstatus.
 
 ```bash
-HopCoderX mcp list
+opencode mcp list
 ```
 
 Eller bruk den korte versjonen.
 
 ```bash
-HopCoderX mcp ls
+opencode mcp ls
 ```
 
 ---
@@ -237,7 +237,7 @@ HopCoderX mcp ls
 Autentiser med en OAuth-aktivert MCP-server.
 
 ```bash
-HopCoderX mcp auth [name]
+opencode mcp auth [name]
 ```
 
 Hvis du ikke oppgir et servernavn, blir du bedt om å velge blant tilgjengelige OAuth-kompatible servere.
@@ -245,13 +245,13 @@ Hvis du ikke oppgir et servernavn, blir du bedt om å velge blant tilgjengelige 
 Du kan også liste opp OAuth-kompatible servere og deres autentiseringsstatus.
 
 ```bash
-HopCoderX mcp auth list
+opencode mcp auth list
 ```
 
 Eller bruk den korte versjonen.
 
 ```bash
-HopCoderX mcp auth ls
+opencode mcp auth ls
 ```
 
 ---
@@ -261,7 +261,7 @@ HopCoderX mcp auth ls
 Fjern OAuth-påloggingsinformasjon for en MCP-server.
 
 ```bash
-HopCoderX mcp logout [name]
+opencode mcp logout [name]
 ```
 
 ---
@@ -271,7 +271,7 @@ HopCoderX mcp logout [name]
 Feilsøk OAuth-tilkoblingsproblemer for en MCP-server.
 
 ```bash
-HopCoderX mcp debug <name>
+opencode mcp debug <name>
 ```
 
 ---
@@ -281,7 +281,7 @@ HopCoderX mcp debug <name>
 List opp alle tilgjengelige modeller fra konfigurerte leverandører.
 
 ```bash
-HopCoderX models [provider]
+opencode models [provider]
 ```
 
 Denne kommandoen viser alle modeller som er tilgjengelige på tvers av dine konfigurerte leverandører i formatet `provider/model`.
@@ -291,7 +291,7 @@ Dette er nyttig for å finne ut det eksakte modellnavnet som skal brukes i [din 
 Du kan eventuelt sende en leverandør ID for å filtrere modeller etter den leverandøren.
 
 ```bash
-HopCoderX models anthropic
+opencode models anthropic
 ```
 
 #### Flagg
@@ -301,36 +301,36 @@ HopCoderX models anthropic
 | `--refresh` | Oppdater modellbufferen fra models.dev                              |
 | `--verbose` | Bruk mer detaljert modellutdata (inkluderer metadata som kostnader) |
 
-Bruk `--refresh`-flagget for å oppdatere den bufrede modelllisten. Dette er nyttig når nye modeller er lagt til en leverandør og du vil se dem i HopCoderX.
+Bruk `--refresh`-flagget for å oppdatere den bufrede modelllisten. Dette er nyttig når nye modeller er lagt til en leverandør og du vil se dem i OpenCode.
 
 ```bash
-HopCoderX models --refresh
+opencode models --refresh
 ```
 
 ---
 
 ### run
 
-Kjør HopCoderX i ikke-interaktiv modus ved å sende en melding direkte.
+Kjør OpenCode i ikke-interaktiv modus ved å sende en melding direkte.
 
 ```bash
-HopCoderX run [message..]
+opencode run [message..]
 ```
 
 Dette er nyttig for skripting, automatisering eller når du vil ha et raskt svar uten å starte hele TUI. For eksempel.
 
-```bash "HopCoderX run"
-HopCoderX run Explain the use of context in Go
+```bash "opencode run"
+opencode run Explain the use of context in Go
 ```
 
-Du kan også koble til en kjørende `HopCoderX serve`-forekomst for å unngå MCP-serveres kaldstarttid ved hver kjøring:
+Du kan også koble til en kjørende `opencode serve`-forekomst for å unngå MCP-serveres kaldstarttid ved hver kjøring:
 
 ```bash
 # Start a headless server in one terminal
-HopCoderX serve
+opencode serve
 
 # In another terminal, run commands that attach to it
-HopCoderX run --attach http://localhost:4096 "Explain async/await in JavaScript"
+opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 ```
 
 #### Flagg
@@ -347,20 +347,20 @@ HopCoderX run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | `--file`     | `-f` | Fil(er) som skal legges ved meldingen                                    |
 | `--format`   |      | Format: standard (formatert) eller json (rå JSON hendelser)              |
 | `--title`    |      | Tittel for økten (bruker avkortet ledetekst hvis ingen verdi er oppgitt) |
-| `--attach`   |      | Koble til en kjørende HopCoderX-server (f.eks. http://localhost:4096)     |
+| `--attach`   |      | Koble til en kjørende OpenCode-server (f.eks. http://localhost:4096)     |
 | `--port`     |      | Port for den lokale serveren (standard til tilfeldig port)               |
 
 ---
 
 ### serve
 
-Start en headless HopCoderX-server for API-tilgang. Sjekk ut [server-dokumentene](/docs/server) for hele HTTP-grensesnittet.
+Start en headless OpenCode-server for API-tilgang. Sjekk ut [server-dokumentene](/docs/server) for hele HTTP-grensesnittet.
 
 ```bash
-HopCoderX serve
+opencode serve
 ```
 
-Dette starter en HTTP-server som gir API tilgang til HopCoderX-funksjonalitet uten TUI-grensesnittet. Sett `HOPCODERX_SERVER_PASSWORD` for å aktivere HTTP grunnleggende autentisering (brukernavn er standard til `HopCoderX`).
+Dette starter en HTTP-server som gir API tilgang til OpenCode-funksjonalitet uten TUI-grensesnittet. Sett `OPENCODE_SERVER_PASSWORD` for å aktivere HTTP grunnleggende autentisering (brukernavn er standard til `opencode`).
 
 #### Flagg
 
@@ -375,20 +375,20 @@ Dette starter en HTTP-server som gir API tilgang til HopCoderX-funksjonalitet ut
 
 ### session
 
-Administrer HopCoderX-økter.
+Administrer OpenCode-økter.
 
 ```bash
-HopCoderX session [command]
+opencode session [command]
 ```
 
 ---
 
 #### list
 
-List opp alle HopCoderX-økter.
+List opp alle OpenCode-økter.
 
 ```bash
-HopCoderX session list
+opencode session list
 ```
 
 ##### Flagg
@@ -402,10 +402,10 @@ HopCoderX session list
 
 ### stats
 
-Vis tokenbruk og kostnadsstatistikk for HopCoderX-øktene dine.
+Vis tokenbruk og kostnadsstatistikk for OpenCode-øktene dine.
 
 ```bash
-HopCoderX stats
+opencode stats
 ```
 
 #### Flagg
@@ -424,7 +424,7 @@ HopCoderX stats
 Eksporter øktdata som JSON.
 
 ```bash
-HopCoderX export [sessionID]
+opencode export [sessionID]
 ```
 
 Hvis du ikke gir en økt ID, blir du bedt om å velge fra tilgjengelige økter.
@@ -433,30 +433,30 @@ Hvis du ikke gir en økt ID, blir du bedt om å velge fra tilgjengelige økter.
 
 ### import
 
-Importer øktdata fra en JSON-fil eller en HopCoderX share-URL.
+Importer øktdata fra en JSON-fil eller en OpenCode share-URL.
 
 ```bash
-HopCoderX import <file>
+opencode import <file>
 ```
 
-Du kan importere fra en lokal fil eller en HopCoderX share-URL.
+Du kan importere fra en lokal fil eller en OpenCode share-URL.
 
 ```bash
-HopCoderX import session.json
-HopCoderX import https://opncd.ai/s/abc123
+opencode import session.json
+opencode import https://opncd.ai/s/abc123
 ```
 
 ---
 
 ### web
 
-Start en headless HopCoderX-server med et webgrensesnitt.
+Start en headless OpenCode-server med et webgrensesnitt.
 
 ```bash
-HopCoderX web
+opencode web
 ```
 
-Dette starter en HTTP-server og åpner en nettleser for å få tilgang til HopCoderX via et nettgrensesnitt. Sett `HOPCODERX_SERVER_PASSWORD` for å aktivere HTTP grunnleggende autentisering (brukernavn er standard til `HopCoderX`).
+Dette starter en HTTP-server og åpner en nettleser for å få tilgang til OpenCode via et nettgrensesnitt. Sett `OPENCODE_SERVER_PASSWORD` for å aktivere HTTP grunnleggende autentisering (brukernavn er standard til `opencode`).
 
 #### Flagg
 
@@ -474,7 +474,7 @@ Dette starter en HTTP-server og åpner en nettleser for å få tilgang til HopCo
 Start en ACP (Agent Client Protocol) server.
 
 ```bash
-HopCoderX acp
+opencode acp
 ```
 
 Denne kommandoen starter en ACP-server som kommuniserer via stdin/stdout ved å bruke nd-JSON.
@@ -491,10 +491,10 @@ Denne kommandoen starter en ACP-server som kommuniserer via stdin/stdout ved å 
 
 ### uninstall
 
-Avinstaller HopCoderX og fjern alle relaterte filer.
+Avinstaller OpenCode og fjern alle relaterte filer.
 
 ```bash
-HopCoderX uninstall
+opencode uninstall
 ```
 
 #### Flagg
@@ -510,22 +510,22 @@ HopCoderX uninstall
 
 ### upgrade
 
-Oppdaterer HopCoderX til siste versjon eller en spesifikk versjon.
+Oppdaterer OpenCode til siste versjon eller en spesifikk versjon.
 
 ```bash
-HopCoderX upgrade [target]
+opencode upgrade [target]
 ```
 
 For å oppgradere til siste versjon.
 
 ```bash
-HopCoderX upgrade
+opencode upgrade
 ```
 
 For å oppgradere til en bestemt versjon.
 
 ```bash
-HopCoderX upgrade v0.1.48
+opencode upgrade v0.1.48
 ```
 
 #### Flagg
@@ -538,7 +538,7 @@ HopCoderX upgrade v0.1.48
 
 ## Globale flagg
 
-HopCoderX CLI bruker følgende globale flagg.
+OpenCode CLI bruker følgende globale flagg.
 
 | Flagg          | Kort | Beskrivelse                         |
 | -------------- | ---- | ----------------------------------- |
@@ -551,34 +551,34 @@ HopCoderX CLI bruker følgende globale flagg.
 
 ## Miljøvariabler
 
-HopCoderX kan konfigureres ved hjelp av miljøvariabler.
+OpenCode kan konfigureres ved hjelp av miljøvariabler.
 
 | Variabel                              | Type   | Beskrivelse                                                           |
 | ------------------------------------- | ------ | --------------------------------------------------------------------- |
-| `HOPCODERX_AUTO_SHARE`                 | boolsk | Del økter automatisk                                                  |
-| `HOPCODERX_GIT_BASH_PATH`              | streng | Bane til Git Bash-kjørbar på Windows                                  |
-| `HOPCODERX_CONFIG`                     | streng | Bane til konfigurasjonsfil                                            |
-| `HOPCODERX_CONFIG_DIR`                 | streng | Bane til konfigurasjonskatalog                                        |
-| `HOPCODERX_CONFIG_CONTENT`             | streng | Innebygd json-konfigurasjonsinnhold                                   |
-| `HOPCODERX_DISABLE_AUTOUPDATE`         | boolsk | Deaktiver automatiske oppdateringskontroller                          |
-| `HOPCODERX_DISABLE_PRUNE`              | boolsk | Deaktiver beskjæring av gamle data                                    |
-| `HOPCODERX_DISABLE_TERMINAL_TITLE`     | boolsk | Deaktiver automatiske terminaltitteloppdateringer                     |
-| `HOPCODERX_PERMISSION`                 | streng | Innebygd json-tillatelseskonfigurasjon                                |
-| `HOPCODERX_DISABLE_DEFAULT_PLUGINS`    | boolsk | Deaktiver standard plugins                                            |
-| `HOPCODERX_DISABLE_LSP_DOWNLOAD`       | boolsk | Deaktiver automatiske LSP servernedlastinger                          |
-| `HOPCODERX_ENABLE_EXPERIMENTAL_MODELS` | boolsk | Aktiver eksperimentelle modeller                                      |
-| `HOPCODERX_DISABLE_AUTOCOMPACT`        | boolsk | Deaktiver automatisk kontekstkomprimering                             |
-| `HOPCODERX_DISABLE_CLAUDE_CODE`        | boolsk | Deaktiver lesing fra `.claude` (spørsmål + ferdigheter)               |
-| `HOPCODERX_DISABLE_CLAUDE_CODE_PROMPT` | boolsk | Deaktiver lesing `~/.claude/CLAUDE.md`                                |
-| `HOPCODERX_DISABLE_CLAUDE_CODE_SKILLS` | boolsk | Deaktiver innlasting av `.claude/skills`                              |
-| `HOPCODERX_DISABLE_MODELS_FETCH`       | boolsk | Deaktiver henting av modeller fra eksterne kilder                     |
-| `HOPCODERX_FAKE_VCS`                   | streng | Falsk VCS-leverandør for testformål                                   |
-| `HOPCODERX_DISABLE_FILETIME_CHECK`     | boolsk | Deaktiver filtidskontroll for optimalisering                          |
-| `HOPCODERX_CLIENT`                     | streng | Klientidentifikator (standard til `cli`)                              |
-| `HOPCODERX_ENABLE_EXA`                 | boolsk | Aktiver Exa-nettsøkeverktøy                                           |
-| `HOPCODERX_SERVER_PASSWORD`            | streng | Aktiver grunnleggende autentisering for `serve`/`web`                 |
-| `HOPCODERX_SERVER_USERNAME`            | streng | Overstyr grunnleggende autentiseringsbrukernavn (standard `HopCoderX`) |
-| `HOPCODERX_MODELS_URL`                 | streng | Egendefinert URL for henting av modellkonfigurasjon                   |
+| `OPENCODE_AUTO_SHARE`                 | boolsk | Del økter automatisk                                                  |
+| `OPENCODE_GIT_BASH_PATH`              | streng | Bane til Git Bash-kjørbar på Windows                                  |
+| `OPENCODE_CONFIG`                     | streng | Bane til konfigurasjonsfil                                            |
+| `OPENCODE_TUI_CONFIG`                 | streng | Bane til TUI-konfigurasjonsfil                                        |
+| `OPENCODE_CONFIG_DIR`                 | streng | Bane til konfigurasjonskatalog                                        |
+| `OPENCODE_CONFIG_CONTENT`             | streng | Innebygd json-konfigurasjonsinnhold                                   |
+| `OPENCODE_DISABLE_AUTOUPDATE`         | boolsk | Deaktiver automatiske oppdateringskontroller                          |
+| `OPENCODE_DISABLE_PRUNE`              | boolsk | Deaktiver beskjæring av gamle data                                    |
+| `OPENCODE_DISABLE_TERMINAL_TITLE`     | boolsk | Deaktiver automatiske terminaltitteloppdateringer                     |
+| `OPENCODE_PERMISSION`                 | streng | Innebygd json-tillatelseskonfigurasjon                                |
+| `OPENCODE_DISABLE_DEFAULT_PLUGINS`    | boolsk | Deaktiver standard plugins                                            |
+| `OPENCODE_DISABLE_LSP_DOWNLOAD`       | boolsk | Deaktiver automatiske LSP servernedlastinger                          |
+| `OPENCODE_ENABLE_EXPERIMENTAL_MODELS` | boolsk | Aktiver eksperimentelle modeller                                      |
+| `OPENCODE_DISABLE_AUTOCOMPACT`        | boolsk | Deaktiver automatisk kontekstkomprimering                             |
+| `OPENCODE_DISABLE_CLAUDE_CODE`        | boolsk | Deaktiver lesing fra `.claude` (spørsmål + ferdigheter)               |
+| `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT` | boolsk | Deaktiver lesing `~/.claude/CLAUDE.md`                                |
+| `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS` | boolsk | Deaktiver innlasting av `.claude/skills`                              |
+| `OPENCODE_DISABLE_MODELS_FETCH`       | boolsk | Deaktiver henting av modeller fra eksterne kilder                     |
+| `OPENCODE_FAKE_VCS`                   | streng | Falsk VCS-leverandør for testformål                                   |
+| `OPENCODE_CLIENT`                     | streng | Klientidentifikator (standard til `cli`)                              |
+| `OPENCODE_ENABLE_EXA`                 | boolsk | Aktiver Exa-nettsøkeverktøy                                           |
+| `OPENCODE_SERVER_PASSWORD`            | streng | Aktiver grunnleggende autentisering for `serve`/`web`                 |
+| `OPENCODE_SERVER_USERNAME`            | streng | Overstyr grunnleggende autentiseringsbrukernavn (standard `opencode`) |
+| `OPENCODE_MODELS_URL`                 | streng | Egendefinert URL for henting av modellkonfigurasjon                   |
 
 ---
 
@@ -588,16 +588,16 @@ Disse miljøvariablene muliggjør eksperimentelle funksjoner som kan endres elle
 
 | Variabel                                        | Type   | Beskrivelse                                   |
 | ----------------------------------------------- | ------ | --------------------------------------------- |
-| `HOPCODERX_EXPERIMENTAL`                         | boolsk | Aktiver alle eksperimentelle funksjoner       |
-| `HOPCODERX_EXPERIMENTAL_ICON_DISCOVERY`          | boolsk | Aktiver ikonoppdagelse                        |
-| `HOPCODERX_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolsk | Deaktiver kopi ved valg i TUI                 |
-| `HOPCODERX_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | tall   | Standard tidsavbrudd for bash-kommandoer i ms |
-| `HOPCODERX_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | tall   | Maks Output Tokens for LLM-svar               |
-| `HOPCODERX_EXPERIMENTAL_FILEWATCHER`             | boolsk | Aktiver filovervåker for hele dir             |
-| `HOPCODERX_EXPERIMENTAL_OXFMT`                   | boolsk | Aktiver oxfmt formatter                       |
-| `HOPCODERX_EXPERIMENTAL_LSP_TOOL`                | boolsk | Aktiver eksperimentelt LSP-verktøy            |
-| `HOPCODERX_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolsk | Deaktiver filovervåking                       |
-| `HOPCODERX_EXPERIMENTAL_EXA`                     | boolsk | Aktiver eksperimentelle Exa-funksjoner        |
-| `HOPCODERX_EXPERIMENTAL_LSP_TY`                  | boolsk | Aktiver eksperimentell LSP-typekontroll       |
-| `HOPCODERX_EXPERIMENTAL_MARKDOWN`                | boolsk | Aktiver eksperimentelle Markdown-funksjoner   |
-| `HOPCODERX_EXPERIMENTAL_PLAN_MODE`               | boolsk | Aktiver planmodus                             |
+| `OPENCODE_EXPERIMENTAL`                         | boolsk | Aktiver alle eksperimentelle funksjoner       |
+| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | boolsk | Aktiver ikonoppdagelse                        |
+| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolsk | Deaktiver kopi ved valg i TUI                 |
+| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | tall   | Standard tidsavbrudd for bash-kommandoer i ms |
+| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | tall   | Maks Output Tokens for LLM-svar               |
+| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | boolsk | Aktiver filovervåker for hele dir             |
+| `OPENCODE_EXPERIMENTAL_OXFMT`                   | boolsk | Aktiver oxfmt formatter                       |
+| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | boolsk | Aktiver eksperimentelt LSP-verktøy            |
+| `OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolsk | Deaktiver filovervåking                       |
+| `OPENCODE_EXPERIMENTAL_EXA`                     | boolsk | Aktiver eksperimentelle Exa-funksjoner        |
+| `OPENCODE_EXPERIMENTAL_LSP_TY`                  | boolsk | Aktiver TY LSP for python-filer               |
+| `OPENCODE_EXPERIMENTAL_MARKDOWN`                | boolsk | Aktiver eksperimentelle Markdown-funksjoner   |
+| `OPENCODE_EXPERIMENTAL_PLAN_MODE`               | boolsk | Aktiver planmodus                             |

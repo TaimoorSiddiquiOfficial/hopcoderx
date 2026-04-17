@@ -1,12 +1,12 @@
 {
-  "name": "HopCoderX",
-  "displayName": "HopCoderX",
-  "description": "HopCoderX for VS Code",
-  "version": "1.2.10",
+  "name": "opencode",
+  "displayName": "opencode",
+  "description": "opencode for VS Code",
+  "version": "1.4.10",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TaimoorSiddiquiOfficial/hopcoderx"
+    "url": "https://github.com/anomalyco/opencode"
   },
   "license": "MIT",
   "icon": "images/icon.png",
@@ -20,113 +20,59 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "HopCoderX.openTerminal",
-        "title": "Open HopCoderX",
+        "command": "opencode.openTerminal",
+        "title": "Open opencode",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "HopCoderX.openNewTerminal",
-        "title": "Open HopCoderX in new tab",
+        "command": "opencode.openNewTerminal",
+        "title": "Open opencode in new tab",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "HopCoderX.addFilepathToTerminal",
+        "command": "opencode.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
-      },
-      {
-        "command": "HopCoderX.toggleGhostCoder",
-        "title": "HopCoderX: Toggle Ghost-Coder"
       }
     ],
-    "configuration": {
-      "title": "HopCoderX Ghost-Coder",
-      "properties": {
-        "hopcoderx.ghostCoder.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable speculative inline code completions via local models"
-        },
-        "hopcoderx.ghostCoder.endpoint": {
-          "type": "string",
-          "default": "http://localhost:11434/api/generate",
-          "description": "Ollama-compatible model endpoint for completions"
-        },
-        "hopcoderx.ghostCoder.debounceMs": {
-          "type": "number",
-          "default": 150,
-          "minimum": 50,
-          "maximum": 2000,
-          "description": "Debounce delay in ms before requesting a completion"
-        },
-        "hopcoderx.ghostCoder.maxCacheSize": {
-          "type": "number",
-          "default": 256,
-          "minimum": 16,
-          "maximum": 4096,
-          "description": "Maximum number of cached completions"
-        },
-        "hopcoderx.ghostCoder.contextLines": {
-          "type": "number",
-          "default": 50,
-          "minimum": 10,
-          "maximum": 200,
-          "description": "Lines of context sent before and after the cursor"
-        },
-        "hopcoderx.ghostCoder.maxTokens": {
-          "type": "number",
-          "default": 128,
-          "minimum": 16,
-          "maximum": 1024,
-          "description": "Maximum tokens in a completion response"
-        },
-        "hopcoderx.ghostCoder.temperature": {
-          "type": "number",
-          "default": 0.2,
-          "minimum": 0,
-          "maximum": 2,
-          "description": "Sampling temperature for completions"
-        }
-      }
-    },
     "menus": {
       "editor/title": [
         {
-          "command": "HopCoderX.openNewTerminal",
+          "command": "opencode.openNewTerminal",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "HopCoderX.openTerminal",
-        "title": "Run HopCoderX",
+        "command": "opencode.openTerminal",
+        "title": "Run opencode",
         "key": "cmd+escape",
         "mac": "cmd+escape",
         "win": "ctrl+escape",
         "linux": "ctrl+escape"
       },
       {
-        "command": "HopCoderX.openNewTerminal",
-        "title": "Run HopCoderX",
+        "command": "opencode.openNewTerminal",
+        "title": "Run opencode",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
         "win": "ctrl+shift+escape",
         "linux": "ctrl+shift+escape"
       },
       {
-        "command": "HopCoderX.addFilepathToTerminal",
-        "title": "HopCoderX: Insert At-Mentioned",
+        "command": "opencode.addFilepathToTerminal",
+        "title": "opencode: Insert At-Mentioned",
         "key": "cmd+alt+k",
         "mac": "cmd+alt+k",
         "win": "ctrl+alt+K",
