@@ -41,12 +41,20 @@ export function Footer() {
         break
       }
     }
-    if (!contextLimit) contextLimit = 128_000 // sensible fallback
+    if (!contextLimit) contextLimit = 128_000
 
     const percent = Math.min(100, Math.round((totalUsed / contextLimit) * 100))
     const cost = assistantMsgs.reduce((sum, m) => sum + (m.cost ?? 0), 0)
 
-    return { totalUsed, contextLimit, percent, cost }
+    // Burn rate: estimate turns remaining before context exhaustion
+    let turnsLeft: number | undefined
+    if (assistantMsgs.length >= 2 && totalUsed > 0) {
+      const avgPerTurn = totalUsed / assistantMsgs.length
+      const remaining = contextLimit - totalUsed
+      turnsLeft = avgPerTurn > 0 ? Math.floor(remaining / avgPerTurn) : undefined
+    }
+
+    return { totalUsed, contextLimit, percent, cost, turnsLeft }
   })
 
   const tokenColor = createMemo(() => {
@@ -103,6 +111,9 @@ export function Footer() {
                   <span style={{ fg: theme.text }}> {formatTokens(usage().totalUsed)}</span>
                   <span style={{ fg: theme.textMuted }}>/{formatTokens(usage().contextLimit)}</span>
                   <span style={{ fg: tokenColor() }}> {usage().percent}%</span>
+                  <Show when={usage().turnsLeft !== undefined && usage().turnsLeft! < 20}>
+                    <span style={{ fg: usage().turnsLeft! < 5 ? theme.error : theme.warning }}> ~{usage().turnsLeft} turns</span>
+                  </Show>
                   <Show when={usage().cost > 0}>
                     <span style={{ fg: theme.textMuted }}> ${usage().cost.toFixed(4)}</span>
                   </Show>

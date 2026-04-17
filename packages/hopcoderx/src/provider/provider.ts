@@ -62,9 +62,10 @@ export namespace Provider {
   function selectActiveKey(providerID: string, keys: string[]): string | undefined {
     const limits = _keyRateLimits.get(providerID)
     const now = Date.now()
-    // Purge expired entries
+    // Purge expired entries + remove empty provider maps
     if (limits) {
       for (const [k, until] of limits) if (now >= until) limits.delete(k)
+      if (limits.size === 0) _keyRateLimits.delete(providerID)
     }
     return keys.find((k) => !limits?.has(k))
   }

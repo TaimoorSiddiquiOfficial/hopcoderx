@@ -134,5 +134,59 @@ export namespace Telemetry {
     recentSpans.length = 0
     toolStats.clear()
     activeSessions.clear()
+    latencyBreakdown.length = 0
+  }
+
+  // ─── Latency breakdown ──────────────────────────────────────────────────
+
+  interface LatencyEntry {
+    sessionID: string
+    phase: "llm" | "tool" | "db" | "compaction"
+    durationMs: number
+    ts: number
+  }
+
+  const MAX_LATENCY = 500
+  const latencyBreakdown: LatencyEntry[] = []
+
+  /** Record a phase-level latency entry for breakdown analysis. */
+  export function recordLatency(sessionID: string, phase: LatencyEntry["phase"], durationMs: number) {
+    if (latencyBreakdown.length >= MAX_LATENCY) latencyBreakdown.shift()
+    latencyBreakdown.push({ sessionID, phase, durationMs, ts: Date.now() })
+  }
+
+  /** Get latency breakdown summary per phase. */
+  export function latencySummary(sessionID?: string) {
+    const entries = sessionID
+      ? latencyBreakdown.filter(e => e.sessionID === sessionID)
+      : latencyBreakdown
+
+    const phases: Record<string, { count: number; totalMs: number; maxMs: number }> = {}
+    for (const e of entries) {
+      const p = phases[e.phase] ?? { count: 0, totalMs: 0, maxMs: 0 }
+      p.count++
+      p.totalMs += e.durationMs
+      p.maxMs = Math.max(p.maxMs, e.durationMs)
+      phases[e.phase] = p
+    }
+
+    const result: Record<string, { count: number; avgMs: number; maxMs: number; totalMs: number }> = {}
+    for (const [phase, s] of Object.entries(phases)) {
+      result[phase] = {
+        count: s.count,
+        avgMs: s.count ? Math.round(s.totalMs / s.count) : 0,
+        maxMs: s.maxMs,
+        totalMs: s.totalMs,
+      }
+    }
+    return result
+  }
+
+  /** Top N slowest tools by average execution time. */
+  export function slowestTools(n = 5): Array<{ tool: string } & ToolStats> {
+    return Object.entries(metrics().tools)
+      .map(([tool, stats]) => ({ tool, ...stats }))
+      .sort((a, b) => b.avgMs - a.avgMs)
+      .slice(0, n)
   }
 }

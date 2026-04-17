@@ -17,6 +17,7 @@ import { SessionCompaction } from "./compaction"
 import { PermissionNext } from "@/permission/next"
 import { Question } from "@/question"
 import { QuotaTracker } from "@/telemetry/quota"
+import { Telemetry } from "@/telemetry/telemetry"
 
 export namespace SessionProcessor {
   const DOOM_LOOP_THRESHOLD = 3
@@ -32,6 +33,8 @@ export namespace SessionProcessor {
     abort: AbortSignal
   }) {
     const toolcalls: Record<string, MessageV2.ToolPart> = {}
+    // In-memory rolling window for doom-loop detection — avoids DB query per tool call
+    const recentToolCalls: Array<{ tool: string; input: string }> = []
     let snapshot: string | undefined
     let blocked = false
     let attempt = 0
@@ -152,17 +155,16 @@ export namespace SessionProcessor {
                     })
                     toolcalls[value.toolCallId] = part as MessageV2.ToolPart
 
-                    const parts = await MessageV2.parts(input.assistantMessage.id)
-                    const lastThree = parts.slice(-DOOM_LOOP_THRESHOLD)
+                    // Track tool call in-memory for doom-loop detection
+                    const inputKey = JSON.stringify(value.input)
+                    recentToolCalls.push({ tool: value.toolName, input: inputKey })
+                    if (recentToolCalls.length > DOOM_LOOP_THRESHOLD)
+                      recentToolCalls.shift()
 
                     if (
-                      lastThree.length === DOOM_LOOP_THRESHOLD &&
-                      lastThree.every(
-                        (p) =>
-                          p.type === "tool" &&
-                          p.tool === value.toolName &&
-                          p.state.status !== "pending" &&
-                          JSON.stringify(p.state.input) === JSON.stringify(value.input),
+                      recentToolCalls.length === DOOM_LOOP_THRESHOLD &&
+                      recentToolCalls.every(
+                        (r) => r.tool === value.toolName && r.input === inputKey,
                       )
                     ) {
                       // Inject a recovery meta-prompt before asking permission so it lands
@@ -194,6 +196,8 @@ export namespace SessionProcessor {
                 case "tool-result": {
                   const match = toolcalls[value.toolCallId]
                   if (match && match.state.status === "running") {
+                    const toolDuration = Date.now() - match.state.time.start
+                    Telemetry.recordLatency(input.sessionID, "tool", toolDuration)
                     await Session.updatePart({
                       ...match,
                       state: {
