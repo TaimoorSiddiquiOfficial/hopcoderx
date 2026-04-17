@@ -549,6 +549,74 @@ function App() {
       category: "System",
     },
     {
+      title: "Export session",
+      value: "session.export",
+      slash: {
+        name: "export",
+      },
+      category: "Session",
+      onSelect: async (dialog) => {
+        if (route.data.type !== "session") {
+          dialog.clear()
+          return
+        }
+        const sessionID = route.data.sessionID
+        const messages = sync.data.message[sessionID] ?? []
+        const parts = sync.data.part
+        const session = sync.data.session.find((s) => s.id === sessionID)
+        const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)
+        const filename = `hopcoderx-export-${ts}.md`
+        const { writeFileSync } = await import("fs")
+        const { join } = await import("path")
+
+        let md = `# HopCoderX Session Export\n\n`
+        md += `**Session:** ${session?.title ?? sessionID}\n`
+        md += `**Exported:** ${new Date().toISOString()}\n\n---\n\n`
+
+        for (const msg of messages) {
+          const role = msg.role === "user" ? "👤 User" : "🤖 Assistant"
+          md += `## ${role}\n\n`
+
+          const msgParts = parts[msg.id] ?? []
+          if (msg.role === "user") {
+            const textParts = msgParts.filter((p: any) => p.type === "text")
+            for (const p of textParts) md += `${(p as any).content ?? (p as any).text ?? ""}\n\n`
+            if (textParts.length === 0 && "content" in msg) md += `${(msg as any).content}\n\n`
+          } else {
+            for (const p of msgParts) {
+              if ((p as any).type === "text") {
+                md += `${(p as any).text ?? ""}\n\n`
+              } else if ((p as any).type === "tool") {
+                const tool = p as any
+                md += `### 🔧 ${tool.tool} (${tool.state?.status ?? "unknown"})\n`
+                if (tool.state?.title) md += `> ${tool.state.title}\n\n`
+                if (tool.state?.time) {
+                  const dur = (tool.state.time.end ?? Date.now()) - tool.state.time.start
+                  md += `*${dur}ms*\n\n`
+                }
+              }
+            }
+            if ("tokens" in msg && (msg as any).tokens) {
+              const t = (msg as any).tokens
+              md += `*Tokens: ${t.input ?? 0} in / ${t.output ?? 0} out*`
+              if ((msg as any).cost) md += ` | *Cost: $${(msg as any).cost.toFixed(4)}*`
+              md += `\n\n`
+            }
+          }
+          md += `---\n\n`
+        }
+
+        const outPath = join(process.cwd(), filename)
+        writeFileSync(outPath, md, "utf-8")
+        dialog.clear()
+        toast.show({
+          message: `Session exported to ${outPath}`,
+          variant: "success",
+          duration: 5000,
+        })
+      },
+    },
+    {
       title: "Switch theme",
       value: "theme.switch",
       keybind: "theme_list",

@@ -223,6 +223,19 @@ export function Session() {
     }
   })
 
+  // Notify user when auto-compaction fires
+  sdk.event.on("session.compacted", (evt: { properties: { sessionID: string; tokensBefore?: number; tokensAfter?: number } }) => {
+    if (evt.properties.sessionID !== route.sessionID) return
+    const before = evt.properties.tokensBefore
+    const after = evt.properties.tokensAfter
+    const saved = before && after ? ` (recovered ~${Math.round((before - after) / 1000)}K tokens)` : ""
+    toast.show({
+      message: `Context compacted${saved} — conversation summarized to free space`,
+      variant: "info",
+      duration: 6000,
+    })
+  })
+
   let scroll: ScrollBoxRenderable
   let prompt: PromptRef
   const keybind = useKeybind()

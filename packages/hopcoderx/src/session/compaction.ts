@@ -23,6 +23,8 @@ export namespace SessionCompaction {
       "session.compacted",
       z.object({
         sessionID: z.string(),
+        tokensBefore: z.number().optional(),
+        tokensAfter: z.number().optional(),
       }),
     ),
   }
@@ -135,6 +137,12 @@ export namespace SessionCompaction {
     abort: AbortSignal
     auto: boolean
   }) {
+    // Capture pre-compaction token estimate for notification
+    const lastAssistant = [...input.messages].reverse().find(m => m.info.role === "assistant")?.info as MessageV2.Assistant | undefined
+    const tokensBefore = lastAssistant?.tokens
+      ? lastAssistant.tokens.input + lastAssistant.tokens.output
+      : undefined
+
     const userMessage = input.messages.findLast((m) => m.info.id === input.parentID)!.info as MessageV2.User
     const agent = await Agent.get("compaction")
     const model = agent.model
@@ -254,7 +262,10 @@ When constructing the summary, try to stick to this template:
       })
     }
     if (processor.message.error) return "stop"
-    Bus.publish(Event.Compacted, { sessionID: input.sessionID })
+    const tokensAfter = processor.message.tokens
+      ? processor.message.tokens.input + processor.message.tokens.output
+      : undefined
+    Bus.publish(Event.Compacted, { sessionID: input.sessionID, tokensBefore, tokensAfter })
     return "continue"
   }
 

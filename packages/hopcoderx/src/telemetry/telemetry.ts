@@ -135,6 +135,7 @@ export namespace Telemetry {
     toolStats.clear()
     activeSessions.clear()
     latencyBreakdown.length = 0
+    modelPerfEntries.length = 0
   }
 
   // ─── Latency breakdown ──────────────────────────────────────────────────
@@ -188,5 +189,87 @@ export namespace Telemetry {
       .map(([tool, stats]) => ({ tool, ...stats }))
       .sort((a, b) => b.avgMs - a.avgMs)
       .slice(0, n)
+  }
+
+  // ─── Model performance comparison ─────────────────────────────────────────
+
+  interface ModelPerfEntry {
+    providerID: string
+    modelID: string
+    latencyMs: number
+    inputTokens: number
+    outputTokens: number
+    tokensPerSec: number
+    error?: string
+    ts: number
+  }
+
+  const MAX_MODEL_PERF = 200
+  const modelPerfEntries: ModelPerfEntry[] = []
+
+  /** Record a model invocation's performance. */
+  export function recordModelPerf(input: {
+    providerID: string
+    modelID: string
+    latencyMs: number
+    inputTokens: number
+    outputTokens: number
+    error?: string
+  }) {
+    if (modelPerfEntries.length >= MAX_MODEL_PERF) modelPerfEntries.shift()
+    const tokensPerSec = input.latencyMs > 0
+      ? Math.round((input.outputTokens / input.latencyMs) * 1000)
+      : 0
+    modelPerfEntries.push({
+      ...input,
+      tokensPerSec,
+      ts: Date.now(),
+    })
+  }
+
+  export interface ModelPerfSummary {
+    providerID: string
+    modelID: string
+    invocations: number
+    errors: number
+    errorRate: number
+    avgLatencyMs: number
+    p95LatencyMs: number
+    avgTokensPerSec: number
+    totalInputTokens: number
+    totalOutputTokens: number
+  }
+
+  /** Get per-model performance comparison summary. */
+  export function modelPerf(): ModelPerfSummary[] {
+    const map = new Map<string, ModelPerfEntry[]>()
+    for (const e of modelPerfEntries) {
+      const key = `${e.providerID}:${e.modelID}`
+      const arr = map.get(key) ?? []
+      arr.push(e)
+      map.set(key, arr)
+    }
+
+    const results: ModelPerfSummary[] = []
+    for (const [, entries] of map) {
+      const first = entries[0]
+      const errors = entries.filter(e => e.error).length
+      const latencies = entries.map(e => e.latencyMs).sort((a, b) => a - b)
+      const p95idx = Math.min(Math.floor(latencies.length * 0.95), latencies.length - 1)
+      results.push({
+        providerID: first.providerID,
+        modelID: first.modelID,
+        invocations: entries.length,
+        errors,
+        errorRate: entries.length ? errors / entries.length : 0,
+        avgLatencyMs: Math.round(entries.reduce((s, e) => s + e.latencyMs, 0) / entries.length),
+        p95LatencyMs: latencies[p95idx],
+        avgTokensPerSec: Math.round(entries.reduce((s, e) => s + e.tokensPerSec, 0) / entries.length),
+        totalInputTokens: entries.reduce((s, e) => s + e.inputTokens, 0),
+        totalOutputTokens: entries.reduce((s, e) => s + e.outputTokens, 0),
+      })
+    }
+
+    return results.sort((a, b) => b.avgTokensPerSec - a.avgTokensPerSec)
   }
 }

@@ -283,7 +283,13 @@ export const MetaRoutes = lazy(() =>
       }),
       async (c) => {
         const { Telemetry } = await import("../../telemetry/telemetry")
-        return c.json(Telemetry.metrics())
+        const metrics = Telemetry.metrics()
+        return c.json({
+          ...metrics,
+          latency: Telemetry.latencySummary(),
+          slowestTools: Telemetry.slowestTools(5),
+          modelPerf: Telemetry.modelPerf(),
+        })
       },
     ),
 )

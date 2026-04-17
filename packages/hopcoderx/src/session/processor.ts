@@ -58,6 +58,7 @@ export namespace SessionProcessor {
             let currentText: MessageV2.TextPart | undefined
             let reasoningMap: Record<string, MessageV2.ReasoningPart> = {}
             const stream = await LLM.stream(streamInput)
+            let llmStartMs = Date.now()
 
             for await (const value of stream.fullStream) {
               input.abort.throwIfAborted()
@@ -290,6 +291,18 @@ export namespace SessionProcessor {
                     cacheMissTokens: usage.tokens.cache?.write,
                     costUSD: usage.cost,
                   })
+                  // Record model performance for comparison dashboard
+                  const llmDurationMs = Date.now() - llmStartMs
+                  Telemetry.recordModelPerf({
+                    providerID: input.model.providerID,
+                    modelID: input.model.id,
+                    latencyMs: llmDurationMs,
+                    inputTokens: usage.tokens.input,
+                    outputTokens: usage.tokens.output,
+                    error: value.finishReason === "error" ? "stream_error" : undefined,
+                  })
+                  Telemetry.recordLatency(input.sessionID, "llm", llmDurationMs)
+                  llmStartMs = Date.now() // reset for next step
                   if (snapshot) {
                     const patch = await Snapshot.patch(snapshot)
                     if (patch.files.length) {

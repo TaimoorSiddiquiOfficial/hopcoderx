@@ -162,6 +162,70 @@ export function DialogStatus() {
           </For>
         </box>
       </Show>
+      <Show when={sync.data.telemetry}>
+        {(telem) => (
+          <box>
+            <text fg={theme.text} attributes={TextAttributes.BOLD}>Performance</text>
+            <Show when={telem().slowestTools?.length}>
+              <text fg={theme.textMuted}>Slowest tools:</text>
+              <For each={telem().slowestTools?.slice(0, 3) ?? []}>
+                {(t) => (
+                  <box flexDirection="row" gap={1}>
+                    <text flexShrink={0} style={{ fg: t.avgMs > 5000 ? theme.error : t.avgMs > 2000 ? theme.warning : theme.success }}>•</text>
+                    <text fg={theme.text}>
+                      <b>{t.tool}</b>
+                      <span style={{ fg: theme.textMuted }}> avg {formatMs(t.avgMs)} × {t.calls}</span>
+                      <Show when={t.errorRate > 0}>
+                        <span style={{ fg: theme.error }}> {Math.round(t.errorRate * 100)}% err</span>
+                      </Show>
+                    </text>
+                  </box>
+                )}
+              </For>
+            </Show>
+            <Show when={Object.keys(telem().latency ?? {}).length > 0}>
+              <text fg={theme.textMuted}>Latency breakdown:</text>
+              <For each={Object.entries(telem().latency ?? {})}>
+                {([phase, stats]) => (
+                  <box flexDirection="row" gap={1}>
+                    <text flexShrink={0} style={{ fg: theme.text }}>•</text>
+                    <text fg={theme.text}>
+                      <b>{phase}</b>
+                      <span style={{ fg: theme.textMuted }}> avg {formatMs(stats.avgMs)} max {formatMs(stats.maxMs)} × {stats.count}</span>
+                    </text>
+                  </box>
+                )}
+              </For>
+            </Show>
+            <text fg={theme.textMuted}>
+              {Object.keys(telem().tools ?? {}).length} tools tracked, {telem().sessions?.length ?? 0} active sessions
+            </text>
+            <Show when={telem().modelPerf?.length}>
+              <text fg={theme.text} attributes={TextAttributes.BOLD}>Model Performance</text>
+              <For each={telem().modelPerf ?? []}>
+                {(m) => (
+                  <box flexDirection="row" gap={1}>
+                    <text flexShrink={0} style={{ fg: m.errorRate > 0.1 ? theme.error : m.avgTokensPerSec > 50 ? theme.success : theme.warning }}>•</text>
+                    <text fg={theme.text}>
+                      <b>{m.modelID}</b>
+                      <span style={{ fg: theme.textMuted }}> {m.avgTokensPerSec} tok/s avg {formatMs(m.avgLatencyMs)} p95 {formatMs(m.p95LatencyMs)} × {m.invocations}</span>
+                      <Show when={m.errors > 0}>
+                        <span style={{ fg: theme.error }}> {m.errors} err</span>
+                      </Show>
+                    </text>
+                  </box>
+                )}
+              </For>
+            </Show>
+          </box>
+        )}
+      </Show>
     </box>
   )
+}
+
+function formatMs(ms: number): string {
+  if (ms >= 60_000) return (ms / 60_000).toFixed(1) + "m"
+  if (ms >= 1000) return (ms / 1000).toFixed(1) + "s"
+  return Math.round(ms) + "ms"
 }

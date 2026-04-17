@@ -81,6 +81,24 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         maxTokens: number
         utilizationPercent: number
       }
+      telemetry?: {
+        tools: Record<string, { calls: number; errors: number; errorRate: number; avgMs: number; totalMs: number }>
+        sessions: Array<{ sessionID: string; startMs: number; steps: number; toolCalls: number; errors: number }>
+        latency: Record<string, { count: number; avgMs: number; maxMs: number; totalMs: number }>
+        slowestTools: Array<{ tool: string; calls: number; errors: number; errorRate: number; avgMs: number; totalMs: number }>
+        modelPerf?: Array<{
+          providerID: string
+          modelID: string
+          invocations: number
+          errors: number
+          errorRate: number
+          avgLatencyMs: number
+          p95LatencyMs: number
+          avgTokensPerSec: number
+          totalInputTokens: number
+          totalOutputTokens: number
+        }>
+      }
     }>({
       provider_next: {
         all: [],
@@ -448,6 +466,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.provider.auth().then((x) => setStore("provider_auth", reconcile(x.data ?? {}))).catch(() => {}),
             sdk.client.vcs.get().then((x) => setStore("vcs", reconcile(x.data))).catch(() => {}),
             sdk.client.path.get().then((x) => setStore("path", reconcile(x.data!))).catch(() => {}),
+            sdk.client.telemetry.metrics().then((x) => setStore("telemetry", reconcile(x.data as any))).catch(() => {}),
           ]).then(() => {
             setStore("status", "complete")
           }).catch((e) => {
