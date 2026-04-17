@@ -51,4 +51,6 @@ if (refreshGeneratedSdk || !fs.existsSync(generatedSdkPath)) {
 }
 
 await $`rm -rf dist`
+// Delete stale build info so tsc doesn't skip emit when dist is missing
+await $`rm -f tsconfig.tsbuildinfo`
 await $`bun tsc`
