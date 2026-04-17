@@ -1176,6 +1176,7 @@ export function Session() {
             </Match>
           </Switch>
         </Show>
+        <Footer />
       </box>
     </context.Provider>
   )
@@ -1324,18 +1325,30 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
         }}
       </For>
       <Show when={props.message.error && props.message.error.name !== "MessageAbortedError"}>
-        <box
-          border={["left"]}
-          paddingTop={1}
-          paddingBottom={1}
-          paddingLeft={2}
-          marginTop={1}
-          backgroundColor={theme.backgroundPanel}
-          customBorderChars={SplitBorder.customBorderChars}
-          borderColor={theme.error}
-        >
-          <text fg={theme.textMuted}>{props.message.error?.data.message}</text>
-        </box>
+        {(() => {
+          const err = props.message.error!
+          const guidance = createMemo(() => classifyError(err))
+          return (
+            <box
+              border={["left"]}
+              paddingTop={1}
+              paddingBottom={1}
+              paddingLeft={2}
+              marginTop={1}
+              backgroundColor={theme.backgroundPanel}
+              customBorderChars={SplitBorder.customBorderChars}
+              borderColor={theme.error}
+            >
+              <text>
+                <span style={{ fg: theme.error, bold: true }}>{guidance().icon} {guidance().label}</span>
+              </text>
+              <text fg={theme.textMuted}>{err.data.message}</text>
+              <Show when={guidance().hint}>
+                <text fg={theme.warning}>{guidance().hint}</text>
+              </Show>
+            </box>
+          )
+        })()}
       </Show>
       <Switch>
         <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
@@ -2205,4 +2218,40 @@ function filetype(input?: string) {
   const language = LANGUAGE_EXTENSIONS[ext]
   if (["typescriptreact", "javascriptreact", "javascript"].includes(language)) return "typescript"
   return language
+}
+
+function classifyError(error: NonNullable<AssistantMessage["error"]>): {
+  icon: string
+  label: string
+  hint: string
+} {
+  const raw = (error.data as any)?.message
+  const msg = (typeof raw === "string" ? raw : "").toLowerCase()
+  const name = error.name ?? ""
+
+  if (name === "ContextOverflowError" || msg.includes("context") && msg.includes("exceed"))
+    return { icon: "⊘", label: "Context Overflow", hint: "Try /compact to summarize the conversation, or start a new session" }
+
+  if (name === "ProviderAuthError" || msg.includes("auth") || msg.includes("401") || msg.includes("unauthorized") || msg.includes("reauthenticate"))
+    return { icon: "⚿", label: "Authentication Error", hint: "Run /connect to re-authenticate your provider" }
+
+  if (msg.includes("rate") || msg.includes("429") || msg.includes("too many request") || msg.includes("quota"))
+    return { icon: "⏱", label: "Rate Limited", hint: "Wait a moment and retry, or switch providers with /model" }
+
+  if (msg.includes("timeout") || msg.includes("etimedout") || msg.includes("stream read timeout"))
+    return { icon: "⌛", label: "Request Timeout", hint: "The provider is slow — retry or switch models with /model" }
+
+  if (msg.includes("overload") || msg.includes("503") || msg.includes("502") || msg.includes("unavailable"))
+    return { icon: "⚡", label: "Provider Overloaded", hint: "The provider is under heavy load — try again shortly or switch with /model" }
+
+  if (msg.includes("econnrefused") || msg.includes("econnreset") || msg.includes("network") || msg.includes("fetch failed"))
+    return { icon: "⚠", label: "Connection Error", hint: "Check your internet connection and try again" }
+
+  if (name === "MessageOutputLengthError" || msg.includes("output") && msg.includes("length"))
+    return { icon: "✂", label: "Output Too Long", hint: "The response exceeded the model's output limit — try a shorter prompt" }
+
+  if (msg.includes("insufficient_quota") || msg.includes("billing") || msg.includes("credit"))
+    return { icon: "💳", label: "Quota Exceeded", hint: "Add credits at your provider dashboard, or switch to a free model" }
+
+  return { icon: "✗", label: "Error", hint: "" }
 }

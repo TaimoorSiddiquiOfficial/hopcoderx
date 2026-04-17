@@ -5,6 +5,7 @@ import { useDirectory } from "../../context/directory"
 import { useConnected } from "../../component/dialog-model"
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
+import type { AssistantMessage } from "@hopcoderx/sdk/v2"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -20,12 +21,47 @@ export function Footer() {
   const directory = useDirectory()
   const connected = useConnected()
 
+  const tokenUsage = createMemo(() => {
+    if (route.data.type !== "session") return null
+    const messages = sync.data.message[route.data.sessionID] ?? []
+    const assistantMsgs = messages.filter((m): m is AssistantMessage => m.role === "assistant")
+    if (assistantMsgs.length === 0) return null
+
+    const last = assistantMsgs.at(-1)!
+    const totalInput = last.tokens?.input ?? 0
+    const totalOutput = last.tokens?.output ?? 0
+    const totalUsed = totalInput + totalOutput
+
+    // Find model context limit from providers
+    let contextLimit = 0
+    for (const provider of sync.data.provider) {
+      const model = provider.models[last.modelID]
+      if (model?.limit?.context) {
+        contextLimit = model.limit.context
+        break
+      }
+    }
+    if (!contextLimit) contextLimit = 128_000 // sensible fallback
+
+    const percent = Math.min(100, Math.round((totalUsed / contextLimit) * 100))
+    const cost = assistantMsgs.reduce((sum, m) => sum + (m.cost ?? 0), 0)
+
+    return { totalUsed, contextLimit, percent, cost }
+  })
+
+  const tokenColor = createMemo(() => {
+    const usage = tokenUsage()
+    if (!usage) return theme.textMuted
+    if (usage.percent >= 90) return theme.error
+    if (usage.percent >= 70) return theme.warning
+    return theme.success
+  })
+
   const [store, setStore] = createStore({
     welcome: false,
   })
 
   onMount(() => {
-    // Track all timeouts to ensure proper cleanup
     const timeouts: ReturnType<typeof setTimeout>[] = []
 
     function tick() {
@@ -60,6 +96,19 @@ export function Footer() {
             </text>
           </Match>
           <Match when={connected()}>
+            <Show when={tokenUsage()}>
+              {(usage) => (
+                <text>
+                  <span style={{ fg: tokenColor() }}>◉</span>
+                  <span style={{ fg: theme.text }}> {formatTokens(usage().totalUsed)}</span>
+                  <span style={{ fg: theme.textMuted }}>/{formatTokens(usage().contextLimit)}</span>
+                  <span style={{ fg: tokenColor() }}> {usage().percent}%</span>
+                  <Show when={usage().cost > 0}>
+                    <span style={{ fg: theme.textMuted }}> ${usage().cost.toFixed(4)}</span>
+                  </Show>
+                </text>
+              )}
+            </Show>
             <Show when={permissions().length > 0}>
               <text fg={theme.warning}>
                 <span style={{ fg: theme.warning }}>△</span> {permissions().length} Permission
@@ -88,4 +137,10 @@ export function Footer() {
       </box>
     </box>
   )
+}
+
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M"
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K"
+  return String(n)
 }
