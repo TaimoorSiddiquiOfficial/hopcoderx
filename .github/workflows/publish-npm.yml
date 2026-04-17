@@ -51,7 +51,7 @@ env:
 
 jobs:
   resolve-version:
-    if: github.repository == 'anomalyco/opencode'
+    if: github.repository == 'anomalyco/opencode' || github.repository == 'TaimoorSiddiquiOfficial/hopcoderx'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -77,7 +77,7 @@ jobs:
           HOPCODERX_VERSION: ${{ inputs.version }}
 
   bump-versions:
-    if: github.repository == 'anomalyco/opencode'
+    if: github.repository == 'anomalyco/opencode' || github.repository == 'TaimoorSiddiquiOfficial/hopcoderx'
     needs: resolve-version
     runs-on: ubuntu-latest
     env:
@@ -112,7 +112,7 @@ jobs:
           retention-days: 1
 
   build-cli:
-    if: github.repository == 'anomalyco/opencode' && !inputs.skip_cli
+    if: github.repository == 'TaimoorSiddiquiOfficial/hopcoderx' && !inputs.skip_cli
     needs: [resolve-version, bump-versions]
     strategy:
       matrix:
@@ -159,7 +159,7 @@ jobs:
           retention-days: 1
 
   publish-cli:
-    if: github.repository == 'anomalyco/opencode' && !inputs.skip_cli
+    if: github.repository == 'TaimoorSiddiquiOfficial/hopcoderx' && !inputs.skip_cli
     needs: [resolve-version, build-cli]
     runs-on: ubuntu-latest
     env:
@@ -234,7 +234,7 @@ jobs:
           npm publish *.tgz --access public --tag ${{ inputs.channel }} || echo "Failed to publish wrapper, continuing..."
 
   publish-sdk:
-    if: github.repository == 'anomalyco/opencode' && !inputs.skip_sdk
+    if: github.repository == 'TaimoorSiddiquiOfficial/hopcoderx' && !inputs.skip_sdk
     needs: [resolve-version, bump-versions]
     runs-on: ubuntu-latest
     env:
@@ -256,7 +256,7 @@ jobs:
           bun run script/publish.ts
 
   publish-plugin:
-    if: github.repository == 'anomalyco/opencode' && !inputs.skip_plugin
+    if: github.repository == 'TaimoorSiddiquiOfficial/hopcoderx' && !inputs.skip_plugin
     needs: [resolve-version, bump-versions]
     runs-on: ubuntu-latest
     env:
@@ -279,7 +279,7 @@ jobs:
 
   tag-release:
     needs: [resolve-version, publish-cli, publish-sdk, publish-plugin]
-    if: github.repository == 'anomalyco/opencode' && always() && !cancelled() && inputs.channel == 'latest'
+    if: github.repository == 'TaimoorSiddiquiOfficial/hopcoderx' && always() && !cancelled() && inputs.channel == 'latest'
     runs-on: ubuntu-latest
     env:
       HOPCODERX_VERSION: ${{ needs.resolve-version.outputs.version }}
