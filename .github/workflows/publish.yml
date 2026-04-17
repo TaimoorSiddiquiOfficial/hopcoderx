@@ -23,7 +23,12 @@ on:
         required: false
         type: string
 
+# Skip on forks - publish workflow requires npm tokens and secrets only available in upstream
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.version || inputs.bump }}
+
+# Skip entire workflow on forks - requires npm tokens and secrets only available in upstream
+if: ${{ github.repository == 'anomalyco/opencode' }}
 
 permissions:
   id-token: write
