@@ -14,6 +14,7 @@ import { createStore, produce } from "solid-js/store"
 import { useKeybind } from "@tui/context/keybind"
 import { usePromptHistory, type PromptInfo } from "./history"
 import { usePromptStash } from "./stash"
+import { saveDraft, loadDraft, deleteDraft, cleanStaleDrafts } from "./draft"
 import { DialogStash } from "../dialog-stash"
 import { type AutocompleteRef, Autocomplete } from "./autocomplete"
 import { useCommandDialog } from "../dialog-command"
@@ -167,6 +168,60 @@ export function Prompt(props: PromptProps) {
       }
     }
   })
+
+  // Restore draft when switching sessions
+  createEffect(
+    on(
+      () => props.sessionID,
+      async (sessionID) => {
+        if (!sessionID) return
+        const draft = await loadDraft(sessionID)
+        if (draft && draft.input) {
+          setStore("prompt", { input: draft.input, parts: draft.parts ?? [] })
+          setStore("mode", draft.mode ?? "normal")
+          if (!input.isDestroyed) {
+            input.clear()
+            input.insertText(draft.input)
+          }
+        }
+      },
+      { defer: true },
+    ),
+  )
+
+  // Autosave draft every 3 seconds when input changes
+  let draftTimer: ReturnType<typeof setTimeout> | undefined
+  createEffect(
+    on(
+      () => store.prompt.input,
+      (text) => {
+        if (draftTimer) clearTimeout(draftTimer)
+        const sessionID = props.sessionID
+        if (!sessionID) return
+        if (!text || !text.trim()) {
+          // Empty input — delete any existing draft
+          deleteDraft(sessionID)
+          return
+        }
+        draftTimer = setTimeout(() => {
+          saveDraft({
+            sessionID,
+            input: text,
+            parts: store.prompt.parts,
+            mode: store.mode,
+            timestamp: Date.now(),
+          })
+        }, 3000)
+      },
+      { defer: true },
+    ),
+  )
+  onCleanup(() => {
+    if (draftTimer) clearTimeout(draftTimer)
+  })
+
+  // Clean stale drafts once at startup
+  cleanStaleDrafts()
 
   command.register(() => {
     return [
@@ -654,6 +709,8 @@ export function Prompt(props: PromptProps) {
       parts: [],
     })
     setStore("extmarkToPartIndex", new Map())
+    // Clear draft on successful submission
+    if (sessionID) deleteDraft(sessionID)
     props.onSubmit?.()
 
     // temporary hack to make sure the message is sent
@@ -667,6 +724,20 @@ export function Prompt(props: PromptProps) {
     input.clear()
   }
   const exit = useExit()
+
+  // Flush draft to disk on exit
+  const unregisterFlush = exit.onFlush(async () => {
+    const sessionID = props.sessionID
+    if (!sessionID || !store.prompt.input?.trim()) return
+    await saveDraft({
+      sessionID,
+      input: store.prompt.input,
+      parts: store.prompt.parts,
+      mode: store.mode,
+      timestamp: Date.now(),
+    })
+  })
+  onCleanup(unregisterFlush)
 
   function pasteText(text: string, virtualText: string) {
     const currentOffset = input.visualCursor.offset

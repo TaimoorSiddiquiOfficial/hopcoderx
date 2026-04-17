@@ -8,6 +8,8 @@ type Exit = ((reason?: unknown) => Promise<void>) & {
     clear: () => void
     get: () => string | undefined
   }
+  /** Register a callback to flush state before process exit */
+  onFlush: (fn: () => Promise<void>) => () => void
 }
 
 export const { use: useExit, provider: ExitProvider } = createSimpleContext({
@@ -15,6 +17,7 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
   init: (input: { onExit?: () => Promise<void> }) => {
     const renderer = useRenderer()
     let message: string | undefined
+    const flushCallbacks = new Set<() => Promise<void>>()
     const store = {
       set: (value?: string) => {
         const prev = message
@@ -30,6 +33,8 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
     }
     const exit: Exit = Object.assign(
       async (reason?: unknown) => {
+        // Flush registered state (e.g., draft persistence)
+        await Promise.allSettled([...flushCallbacks].map((fn) => fn()))
         // Reset window title before destroying renderer
         renderer.setTerminalTitle("")
         renderer.destroy()
@@ -46,6 +51,12 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
       },
       {
         message: store,
+        onFlush: (fn: () => Promise<void>) => {
+          flushCallbacks.add(fn)
+          return () => {
+            flushCallbacks.delete(fn)
+          }
+        },
       },
     )
     return exit
