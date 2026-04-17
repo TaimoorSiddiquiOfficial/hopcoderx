@@ -1,0 +1,45 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "e8472f19-3c8a-4b9e-a6d5-1f2c3d4e5f6a",
+  "prevIds": ["d2736e43-700f-4e9e-8151-9f2f0d967bc8"],
+  "ddl": [
+    {
+      "name": "control_account",
+      "entityType": "tables"
+    },
+    {
+      "name": "project",
+      "entityType": "tables"
+    },
+    {
+      "name": "message",
+      "entityType": "tables"
+    },
+    {
+      "name": "part",
+      "entityType": "tables"
+    },
+    {
+      "name": "permission",
+      "entityType": "tables"
+    },
+    {
+      "name": "session",
+      "entityType": "tables"
+    },
+    {
+      "name": "todo",
+      "entityType": "tables"
+    },
+    {
+      "name": "session_share",
+      "entityType": "tables"
+    },
+    {
+      "name": "bookmark",
+      "entityType": "tables"
+    }
+  ],
+  "renames": []
+}
