@@ -59,6 +59,10 @@ export namespace Provider {
     return isGpt5OrLater(modelID) && !modelID.startsWith("gpt-5-mini")
   }
 
+  function useLanguageModel(sdk: any) {
+    return sdk.responses === undefined && sdk.chat === undefined
+  }
+
   function googleVertexVars(options: Record<string, any>) {
     const project =
       options["project"] ?? Env.get("GOOGLE_CLOUD_PROJECT") ?? Env.get("GCP_PROJECT") ?? Env.get("GCLOUD_PROJECT")
@@ -151,6 +155,16 @@ export namespace Provider {
       return {
         autoload: false,
         async getModel(sdk: any, modelID: string, _options?: Record<string, any>) {
+          if (useLanguageModel(sdk)) return sdk.languageModel(modelID)
+          return sdk.responses(modelID)
+        },
+        options: {},
+      }
+    },
+    xai: async () => {
+      return {
+        autoload: false,
+        async getModel(sdk: any, modelID: string, _options?: Record<string, any>) {
           return sdk.responses(modelID)
         },
         options: {},
@@ -180,6 +194,7 @@ export namespace Provider {
       return {
         autoload: false,
         async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
+          if (useLanguageModel(sdk)) return sdk.languageModel(modelID)
           if (options?.["useCompletionUrls"]) {
             return sdk.chat(modelID)
           } else {
@@ -194,6 +209,7 @@ export namespace Provider {
       return {
         autoload: false,
         async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
+          if (useLanguageModel(sdk)) return sdk.languageModel(modelID)
           if (options?.["useCompletionUrls"]) {
             return sdk.chat(modelID)
           } else {

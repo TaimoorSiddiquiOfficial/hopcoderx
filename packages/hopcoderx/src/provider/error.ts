@@ -12,13 +12,19 @@ export namespace ProviderError {
     /input token count.*exceeds the maximum/i, // Google (Gemini)
     /maximum prompt length is \d+/i, // xAI (Grok)
     /reduce the length of the messages/i, // Groq
-    /maximum context length is \d+ tokens/i, // OpenRouter, DeepSeek
+    /maximum context length is \d+ tokens/i, // OpenRouter, DeepSeek, vLLM
     /exceeds the limit of \d+/i, // GitHub Copilot
     /exceeds the available context size/i, // llama.cpp server
     /greater than the context length/i, // LM Studio
     /context window exceeds limit/i, // MiniMax
     /exceeded model token limit/i, // Kimi For Coding, Moonshot
     /context[_ ]length[_ ]exceeded/i, // Generic fallback
+    /request entity too large/i, // HTTP 413
+    /context length is only \d+ tokens/i, // vLLM
+    /input length.*exceeds.*context length/i, // vLLM
+    /prompt too long; exceeded (?:max )?context length/i, // Ollama explicit overflow error
+    /too large for model with \d+ maximum context length/i, // Mistral
+    /model_context_window_exceeded/i, // z.ai non-standard finish_reason surfaced as error text
   ]
 
   function isOpenAiErrorRetryable(e: APICallError) {
@@ -75,6 +81,18 @@ export namespace ProviderError {
           return `${msg}: ${errMsg}`
         }
       } catch {}
+
+      // If responseBody is HTML (e.g. from a gateway or proxy error page),
+      // provide a human-readable message instead of dumping raw markup
+      if (/^\s*<!doctype|^\s*<html/i.test(e.responseBody)) {
+        if (e.statusCode === 401) {
+          return "Unauthorized: request was blocked by a gateway or proxy. Your authentication token may be missing or expired — try running `hopcoderx auth login <your provider URL>` to re-authenticate."
+        }
+        if (e.statusCode === 403) {
+          return "Forbidden: request was blocked by a gateway or proxy. You may not have permission to access this resource — check your account and provider settings."
+        }
+        return msg
+      }
 
       return `${msg}: ${e.responseBody}`
     }).trim()
@@ -165,7 +183,8 @@ export namespace ProviderError {
 
   export function parseAPICallError(input: { providerID: string; error: APICallError }): ParsedAPICallError {
     const m = message(input.providerID, input.error)
-    if (isOverflow(m)) {
+    const body = json(input.error.responseBody)
+    if (isOverflow(m) || input.error.statusCode === 413 || body?.error?.code === "context_length_exceeded") {
       return {
         type: "context_overflow",
         message: m,
