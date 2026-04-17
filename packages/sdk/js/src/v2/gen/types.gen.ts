@@ -446,7 +446,7 @@ export type StepFinishPart = {
   sessionID: string
   messageID: string
   type: "step-finish"
-  reason: string
+  reason?: string
   snapshot?: string
   cost: number
   tokens: {

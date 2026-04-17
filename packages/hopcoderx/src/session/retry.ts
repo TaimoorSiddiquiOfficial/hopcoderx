@@ -51,11 +51,17 @@ export namespace SessionRetry {
           }
         }
 
-        return RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1)
+        return addJitter(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1))
       }
     }
 
-    return Math.min(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), RETRY_MAX_DELAY_NO_HEADERS)
+    return Math.min(addJitter(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1)), RETRY_MAX_DELAY_NO_HEADERS)
+  }
+
+  // Add ±15% random jitter to prevent thundering herd on concurrent retries
+  function addJitter(delay: number): number {
+    const jitter = delay * 0.15 * (2 * Math.random() - 1)
+    return Math.max(100, Math.round(delay + jitter))
   }
 
   export function retryable(error: ReturnType<NamedError["toObject"]>) {

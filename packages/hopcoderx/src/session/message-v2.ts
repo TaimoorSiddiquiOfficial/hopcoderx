@@ -240,7 +240,7 @@ export namespace MessageV2 {
 
   export const StepFinishPart = PartBase.extend({
     type: z.literal("step-finish"),
-    reason: z.string(),
+    reason: z.string().optional(),
     snapshot: z.string().optional(),
     cost: z.number(),
     tokens: z.object({

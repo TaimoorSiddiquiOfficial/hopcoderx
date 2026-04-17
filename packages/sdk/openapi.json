@@ -7137,7 +7137,7 @@
             "required": ["input", "output", "reasoning", "cache"]
           }
         },
-        "required": ["id", "sessionID", "messageID", "type", "reason", "cost", "tokens"]
+        "required": ["id", "sessionID", "messageID", "type", "cost", "tokens"]
       },
       "SnapshotPart": {
         "type": "object",
