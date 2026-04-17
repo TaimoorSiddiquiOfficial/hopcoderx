@@ -4,6 +4,7 @@ import fuzzysort from "fuzzysort"
 import { Config } from "../config/config"
 import { mapValues, mergeDeep, omit, pickBy, sortBy } from "remeda"
 import { NoSuchModelError, type Provider as SDK } from "ai"
+import type { LanguageModelV2 } from "@ai-sdk/provider"
 import { Log } from "../util/log"
 import { BunProc } from "../bun"
 import { Plugin } from "../plugin"
@@ -27,7 +28,7 @@ import { createVertex } from "@ai-sdk/google-vertex"
 import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic"
 import { createOpenAI } from "@ai-sdk/openai"
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
-import { createOpenRouter, type LanguageModelV2 } from "@openrouter/ai-sdk-provider"
+import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import { createXai } from "@ai-sdk/xai"
 import { createMistral } from "@ai-sdk/mistral"
 import { createGroq } from "@ai-sdk/groq"
@@ -150,7 +151,7 @@ export namespace Provider {
     })
   }
 
-  const BUNDLED_PROVIDERS: Record<string, (options: any) => SDK> = {
+  const BUNDLED_PROVIDERS: Record<string, (options: any) => any> = {
     "@ai-sdk/amazon-bedrock": createAmazonBedrock,
     "@ai-sdk/anthropic": createAnthropic,
     "@ai-sdk/azure": createAzure,

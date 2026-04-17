@@ -74,7 +74,7 @@ export namespace ProviderTransform {
     if (model.api.id.includes("claude")) {
       return msgs.map((msg) => {
         if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
-          msg.content = msg.content.map((part) => {
+          ;(msg as any).content = (msg.content as any[]).map((part: any) => {
             if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
               return {
                 ...part,
@@ -98,7 +98,7 @@ export namespace ProviderTransform {
         const nextMsg = msgs[i + 1]
 
         if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
-          msg.content = msg.content.map((part) => {
+          ;(msg as any).content = (msg.content as any[]).map((part: any) => {
             if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
               // Mistral requires alphanumeric tool call IDs with exactly 9 characters
               const normalizedId = part.toolCallId
@@ -198,7 +198,7 @@ export namespace ProviderTransform {
       const shouldUseContentOptions = !useMessageLevelOptions && Array.isArray(msg.content) && msg.content.length > 0
 
       if (shouldUseContentOptions) {
-        const lastContent = msg.content[msg.content.length - 1]
+        const lastContent = msg.content[msg.content.length - 1] as any
         if (lastContent && typeof lastContent === "object") {
           lastContent.providerOptions = mergeDeep(lastContent.providerOptions ?? {}, providerOptions)
           continue
@@ -281,7 +281,7 @@ export namespace ProviderTransform {
         return {
           ...msg,
           providerOptions: remap(msg.providerOptions),
-          content: msg.content.map((part) => ({ ...part, providerOptions: remap(part.providerOptions) })),
+          content: msg.content.map((part: any) => ({ ...part, providerOptions: remap(part.providerOptions) })),
         } as typeof msg
       })
     }
