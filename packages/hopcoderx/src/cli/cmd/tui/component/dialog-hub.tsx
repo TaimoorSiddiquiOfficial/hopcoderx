@@ -39,11 +39,18 @@ export function DialogHub() {
 
   const installedMcpNames = createMemo(() => new Set(Object.keys(sync.data.mcp ?? {})))
 
-  // Capture directory at mount time (AsyncLocalStorage context is valid here but may not
-  // propagate into SolidJS reactive scheduler ticks — accessing Instance.directory inside
-  // a reactive computation can throw Context.NotFound, causing the memo to cache undefined).
-  const dir = Instance.directory
+  // Capture directory at mount time. Both the eager access and any downstream
+  // reactive usage must be guarded: SolidJS's devComponent / reactive scheduler
+  // can re-invoke the component function outside the original AsyncLocalStorage
+  // scope, causing Instance.directory to throw "No context found for instance".
+  let dir = ""
+  try {
+    dir = Instance.directory
+  } catch {
+    // Context unavailable in this reactive tick — suggestions will be empty.
+  }
   const suggestions = createMemo((): HubSuggest.Suggestion[] => {
+    if (!dir) return []
     try {
       return HubSuggest.suggest(dir)
     } catch {
