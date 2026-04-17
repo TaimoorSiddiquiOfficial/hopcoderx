@@ -29,6 +29,7 @@
 
 import { handlePanel } from "./panel"
 import { getAllProviderKeys, getSession, getUserByToken, recordUsage, getUsageToday, PLAN_QUOTA, hasUsers } from "./db"
+import { classifyComplexity, resolveModel, type RouteDecision } from "./router"
 
 const PORT = Number(Bun.env.PORT ?? 4999)
 const OLLAMA = (Bun.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, "")
@@ -116,17 +117,35 @@ async function listModels() {
   }
 }
 
+// Smart routing: BDR_SMART_ROUTE=1 to enable (disabled by default for backward compat)
+const SMART_ROUTE = Bun.env.BDR_SMART_ROUTE === "1" || Bun.env.BDR_SMART_ROUTE === "true"
+
 async function chat(req: Request) {
   const body = await req.json()
   const isStream = !!body.stream
   const keys = mergedKeys()
 
+  // Smart routing — classify complexity and override model if enabled
+  let route: RouteDecision | undefined
+  if (SMART_ROUTE && body.messages?.length) {
+    route = classifyComplexity(body.messages)
+    const activeProvider = keys["openrouter"] ? "openrouter"
+      : keys["groq"] ? "groq"
+      : keys["cerebras"] ? "cerebras"
+      : "ollama"
+    const smartModel = resolveModel(route.tier, activeProvider, keys)
+    if (smartModel) {
+      body.model = smartModel
+      console.log(`[smart-route] tier=${route.tier} model=${smartModel} ${route.reason}`)
+    }
+  }
+
   // Mode C: OpenRouter Preset — use @preset/<slug> as model, OR routes internally
   const orKey = keys["openrouter"]
   if (orKey) {
-    // If caller sent a generic model, replace with the preset
-    const model = (body.model as string)?.startsWith("@preset/")
-      ? body.model
+    // Smart-routed models bypass preset override; otherwise use the preset
+    const model = route ? body.model
+      : (body.model as string)?.startsWith("@preset/") ? body.model
       : `@preset/${OPENROUTER_PRESET}`
     const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -226,6 +245,21 @@ Bun.serve({
       return chat(req)
     }
 
+    // Smart route diagnostic endpoint
+    if (req.method === "POST" && path === "/v1/route") {
+      const body = await req.json()
+      if (!body.messages?.length)
+        return Response.json({ error: "Send messages array to test routing" }, { status: 400, headers: CORS })
+      const route = classifyComplexity(body.messages)
+      const keys = mergedKeys()
+      const activeProvider = keys["openrouter"] ? "openrouter"
+        : keys["groq"] ? "groq"
+        : keys["cerebras"] ? "cerebras"
+        : "ollama"
+      const model = resolveModel(route.tier, activeProvider, keys)
+      return Response.json({ ...route, model, provider: activeProvider, smart_route_enabled: SMART_ROUTE }, { headers: CORS })
+    }
+
     // Panel — web UI at /panel (and /panel/*)
     if (path.startsWith("/panel")) {
       return handlePanel(req, path).catch((e: Error) => Response.json({ error: e.message }, { status: 500 }))
@@ -236,7 +270,7 @@ Bun.serve({
       const keys = mergedKeys()
       const mode = keys["openrouter"] ? "openrouter" : PORTKEY ? "portkey" : "ollama"
       const upstream = keys["openrouter"] ? `openrouter/@preset/${OPENROUTER_PRESET}` : PORTKEY ?? OLLAMA
-      return Response.json({ ok: true, mode, upstream, panel: `http://localhost:${PORT}/panel` }, { headers: CORS })
+      return Response.json({ ok: true, mode, upstream, smart_route: SMART_ROUTE, panel: `http://localhost:${PORT}/panel` }, { headers: CORS })
     }
 
     return Response.json({ error: "not_found", path }, { status: 404, headers: CORS })
@@ -255,6 +289,7 @@ console.log(`\n  BDR Local`)
 console.log(`  ─────────────────────────────────────`)
 console.log(`  API    http://localhost:${PORT}/v1`)
 console.log(`  Panel  http://localhost:${PORT}/panel`)
+console.log(`  Smart  ${SMART_ROUTE ? "✓ enabled (BDR_SMART_ROUTE=1)" : "✗ disabled (set BDR_SMART_ROUTE=1 to enable)"}`)
 if (mode === "openrouter") {
   console.log(`  Mode   OpenRouter Preset (@preset/${OPENROUTER_PRESET})`)
   console.log(`  Preset https://openrouter.ai/settings/presets`)
