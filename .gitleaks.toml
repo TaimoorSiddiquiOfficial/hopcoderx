@@ -1,0 +1,41 @@
+# Gitleaks configuration for HopCoderX
+# Excludes false positives in documentation and test files
+
+[allowlist]
+description = "Exclude documentation and test fixtures"
+
+# Exclude documentation files (contain example API keys)
+paths = [
+  "packages/web/src/content/docs/**/*.mdx",
+  "packages/console/docs/**/*.mdx",
+  "**/*.md",
+  "**/*.mdx",
+
+  # Exclude test files with mock credentials
+  "**/*.test.ts",
+  "**/*.test.tsx",
+  "**/test/**/*.ts",
+  "**/test/**/*.tsx",
+  "**/__tests__/**/*.ts",
+  "**/__tests__/**/*.tsx",
+
+  # Exclude type definitions and generated files
+  "**/*.d.ts",
+  "**/types.gen.ts",
+  "**/gen/**/*.ts",
+
+  # Exclude example configuration files
+  "**/*.example",
+  "**/*.sample",
+  "**/example/**/*",
+  "**/examples/**/*",
+]
+
+# Ignore specific patterns that are documentation examples
+regexes = [
+  # Skip generic placeholder patterns
+  "YOUR_API_KEY_HERE",
+  "your-api-key",
+  "xxx",
+  "PLACEHOLDER",
+]
