@@ -237,7 +237,9 @@ export namespace Skill {
 
     // Load built-in skills first (lowest priority — all user/external skills override these)
     if (!Flag.HOPCODERX_DISABLE_BUILTIN_SKILLS && (await Filesystem.isDir(BUILTIN_DIR))) {
-      await scanPattern(SKILL_PATTERN, BUILTIN_DIR, "builtin", BUILTIN_DIR, false, false).catch(() => {})
+      await scanPattern(SKILL_PATTERN, BUILTIN_DIR, "builtin", BUILTIN_DIR, false, false).catch((e: unknown) => {
+        log.warn("failed to scan builtin skills", { error: e })
+      })
     }
 
     // Scan external skill directories (.claude/skills/, .agents/skills/, etc.)

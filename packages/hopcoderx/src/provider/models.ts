@@ -86,7 +86,9 @@ export namespace ModelsDev {
   }
 
   export const Data = lazy(async () => {
-    const result = await Filesystem.readJson(Flag.HOPCODERX_MODELS_PATH ?? filepath).catch(() => {})
+    const result = await Filesystem.readJson(Flag.HOPCODERX_MODELS_PATH ?? filepath).catch((e: unknown) => {
+      log.warn("failed to read models data", { error: e })
+    })
     if (result) return result
     // @ts-ignore
     const snapshot = await import("./models-snapshot")

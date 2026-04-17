@@ -1488,7 +1488,7 @@ export namespace Config {
           await Filesystem.writeJson(path.join(Global.Path.config, "config.json"), result)
           await fs.unlink(legacy)
         })
-        .catch(() => {})
+        .catch((e: unknown) => log.warn("failed to migrate legacy config", { path: legacy, error: e }))
     }
 
     return result
@@ -1578,7 +1578,7 @@ export namespace Config {
       if (!parsed.data.$schema && isFile) {
         parsed.data.$schema = "https://hopcoder.dev/config.json"
         const updated = original.replace(/^\s*\{/, '{\n  "$schema": "https://hopcoder.dev/config.json",')
-        await Bun.write(options.path, updated).catch(() => {})
+        await Bun.write(options.path, updated).catch((e: unknown) => log.warn("failed to write $schema to config", { path: options.path, error: e }))
       }
       const data = parsed.data
       if (data.plugin && isFile) {

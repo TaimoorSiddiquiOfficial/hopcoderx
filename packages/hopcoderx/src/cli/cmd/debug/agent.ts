@@ -95,11 +95,16 @@ function parseToolParams(input?: string) {
     try {
       return JSON.parse(trimmed)
     } catch (jsonError) {
+      // Try to handle JS-style object literals like {key: "val"} by
+      // quoting unquoted keys, rather than using dangerous new Function()
       try {
-        return new Function(`return (${trimmed})`)()
-      } catch (evalError) {
+        const jsonified = trimmed
+          .replace(/(\{|,)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+          .replace(/'/g, '"')
+        return JSON.parse(jsonified)
+      } catch (convertError) {
         throw new Error(
-          `Failed to parse --params. Use JSON or a JS object literal. JSON error: ${jsonError}. Eval error: ${evalError}.`,
+          `Failed to parse --params. Use valid JSON (e.g. '{"key":"value"}'). JSON error: ${jsonError}. Convert error: ${convertError}.`,
         )
       }
     }

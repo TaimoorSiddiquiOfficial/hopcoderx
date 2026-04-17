@@ -8,6 +8,7 @@
 import { Hono } from "hono"
 import { upgradeWebSocket } from "hono/bun"
 import { lazy } from "../../util/lazy"
+import { Log } from "../../util/log"
 import { webchatOnOpen, webchatOnMessage, webchatOnClose } from "../../channels/webchat"
 
 export const ChatRoutes = lazy(() =>
@@ -41,7 +42,10 @@ export const ChatRoutes = lazy(() =>
           onMessage(event) {
             if (!sessionId) return
             const data = typeof event.data === "string" ? event.data : String(event.data)
-            webchatOnMessage(sessionId, data).catch(() => {})
+            webchatOnMessage(sessionId, data).catch((e: unknown) => {
+              const log = Log.create({ service: "chat.ws" })
+              log.warn("webchat message handling failed", { sessionId, error: e })
+            })
           },
           onClose() {
             if (sessionId) webchatOnClose(sessionId)

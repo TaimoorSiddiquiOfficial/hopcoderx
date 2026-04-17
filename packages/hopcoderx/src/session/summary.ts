@@ -8,6 +8,7 @@ import { Snapshot } from "@/snapshot"
 
 import { Storage } from "@/storage/storage"
 import { Bus } from "@/bus"
+import { Log } from "@/util/log"
 
 export namespace SessionSummary {
   function unquoteGitPath(input: string) {
@@ -127,7 +128,10 @@ export namespace SessionSummary {
         }
       })
       const changed = next.some((item, i) => item.file !== diffs[i]?.file)
-      if (changed) Storage.write(["session_diff", input.sessionID], next).catch(() => {})
+      if (changed) Storage.write(["session_diff", input.sessionID], next).catch((e: unknown) => {
+        const log = Log.create({ service: "session.summary" })
+        log.warn("failed to persist session diff", { sessionID: input.sessionID, error: e })
+      })
       return next
     },
   )

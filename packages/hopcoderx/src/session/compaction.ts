@@ -31,8 +31,15 @@ export namespace SessionCompaction {
   // Reduced from 20K to 10K for more aggressive compaction
   const COMPACTION_BUFFER = 10_000
 
-  // Trigger compaction when context reaches this percentage (70% instead of waiting until nearly full)
-  const COMPACTION_THRESHOLD_PERCENTAGE = 0.70
+  // Model-aware compaction thresholds:
+  // - Small context (<32K): compact at 60% to leave room for tool outputs
+  // - Medium context (32K-128K): compact at 70% (balanced)
+  // - Large context (>128K): compact at 80% to maximize context retention
+  function defaultThreshold(contextSize: number): number {
+    if (contextSize <= 32_000) return 0.60
+    if (contextSize <= 128_000) return 0.70
+    return 0.80
+  }
 
   export async function isOverflow(input: { tokens: MessageV2.Assistant["tokens"]; model: Provider.Model }) {
     const config = await Config.get()
@@ -44,8 +51,8 @@ export namespace SessionCompaction {
       input.tokens.total ||
       input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
 
-    // Allow users to customize compaction threshold (default 70%)
-    const threshold = config.compaction?.threshold ?? COMPACTION_THRESHOLD_PERCENTAGE
+    // Allow users to customize compaction threshold, or auto-scale by model context size
+    const threshold = config.compaction?.threshold ?? defaultThreshold(context)
 
     // Check percentage threshold first - trigger compaction at threshold (default 70%)
     const percentageUsed = count / context
