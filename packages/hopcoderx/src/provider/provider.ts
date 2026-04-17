@@ -80,19 +80,23 @@ export namespace Provider {
     return isNaN(val) ? 5000 : val
   }
 
-  // ── SSE stream read timeout ─────────────────────────────────────────────────
+  // ── SSE stream read timeout (adaptive: longer wait for first chunk) ─────────
   function addStreamReadTimeout(body: ReadableStream<Uint8Array>, timeoutMs: number): ReadableStream<Uint8Array> {
     let timer: ReturnType<typeof setTimeout> | undefined
+    let receivedFirstChunk = false
+    // First chunk may take longer due to cold starts, model loading, or thinking
+    const initialTimeoutMs = Math.max(timeoutMs, timeoutMs * 2)
     return body.pipeThrough(
       new TransformStream<Uint8Array, Uint8Array>({
         start(controller) {
           timer = setTimeout(
-            () => controller.error(new Error(`Stream read timeout: no data received for ${timeoutMs}ms`)),
-            timeoutMs,
+            () => controller.error(new Error(`Stream read timeout: no data received for ${initialTimeoutMs}ms (waiting for first chunk)`)),
+            initialTimeoutMs,
           )
         },
         transform(chunk, controller) {
           clearTimeout(timer)
+          receivedFirstChunk = true
           controller.enqueue(chunk)
           timer = setTimeout(
             () => controller.error(new Error(`Stream read timeout: no data received for ${timeoutMs}ms`)),
@@ -1754,12 +1758,13 @@ export namespace Provider {
 
       const customFetch = options["fetch"]
 
-      // Compute stream-read timeout (default 60s; set streamTimeout:false to disable)
+      // Compute stream-read timeout (default 90s; set streamTimeout:false to disable)
+      // First chunk gets 2x this value to handle cold starts and thinking models
       const streamTimeoutMs: number | null = (() => {
         const st = options["streamTimeout"]
         if (st === false) return null
         if (typeof st === "number" && st > 0) return st
-        return 60_000
+        return 90_000
       })()
 
       options["fetch"] = async (input: any, init?: BunFetchRequestInit) => {

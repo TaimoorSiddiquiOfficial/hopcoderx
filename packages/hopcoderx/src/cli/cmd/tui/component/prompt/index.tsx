@@ -525,11 +525,20 @@ export function Prompt(props: PromptProps) {
     },
   ])
 
+  let lastSubmitText = ""
+  let lastSubmitTime = 0
+
   async function submit() {
     if (props.disabled) return
     if (autocomplete?.visible) return
     if (!store.prompt.input) return
     const trimmed = store.prompt.input.trim()
+
+    // Dedup: reject identical submissions within 2 seconds
+    const now = Date.now()
+    if (trimmed === lastSubmitText && now - lastSubmitTime < 2000) return
+    lastSubmitText = trimmed
+    lastSubmitTime = now
     if (trimmed === "exit" || trimmed === "quit" || trimmed === ":q") {
       exit()
       return

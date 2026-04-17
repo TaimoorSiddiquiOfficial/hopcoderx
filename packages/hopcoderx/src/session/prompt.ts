@@ -845,9 +845,12 @@ export namespace SessionPrompt {
     SessionCompaction.prune({ sessionID })
     for await (const item of MessageV2.stream(sessionID)) {
       if (item.info.role === "user") continue
+      // Drain queued callbacks: resolve each and clear so the next loop
+      // iteration processes subsequent queued messages independently
       const queued = state()[sessionID]?.callbacks ?? []
-      for (const q of queued) {
-        q.resolve(item)
+      if (queued.length > 0) {
+        const next = queued.shift()!
+        next.resolve(item)
       }
       return item
     }

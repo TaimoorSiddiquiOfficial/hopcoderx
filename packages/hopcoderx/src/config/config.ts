@@ -1044,13 +1044,13 @@ export namespace Config {
                 .int()
                 .positive()
                 .describe(
-                  "Milliseconds of silence on a streaming response before treating it as stalled and aborting. Default is 60000 (60 s).",
+                  "Milliseconds of silence on a streaming response before treating it as stalled and aborting. Default is 90000 (90 s). The first chunk gets double this timeout to handle cold starts.",
                 ),
               z.literal(false).describe("Disable the SSE stream read timeout entirely."),
             ])
             .optional()
             .describe(
-              "SSE stream read timeout. If no tokens are received for this many milliseconds the stream is aborted. Default is 60000 (60 s). Set to false to disable.",
+              "SSE stream read timeout. If no tokens are received for this many milliseconds the stream is aborted. Default is 90000 (90 s). First chunk gets 2x timeout for cold starts. Set to false to disable.",
             ),
         })
         .catchall(z.any())
