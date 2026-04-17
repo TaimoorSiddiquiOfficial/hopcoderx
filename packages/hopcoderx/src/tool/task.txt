@@ -52,9 +52,9 @@ assistant: Uses the Task tool to launch the code-reviewer agent
 </example>
 
 <example>
-user: "Hello"
+user: "I need tests for this new module"
 <commentary>
-Since the user is greeting, use the greeting-responder agent to respond with a friendly joke
+Since the user needs tests, use the test-generator agent to create comprehensive test coverage
 </commentary>
-assistant: "I'm going to use the Task tool to launch the with the greeting-responder agent"
+assistant: "I'm going to use the Task tool to launch the test-generator agent"
 </example>
