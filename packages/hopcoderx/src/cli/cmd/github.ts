@@ -206,11 +206,7 @@ export const GithubInstallCommand = cmd({
           const app = await getAppInfo()
           await installGitHubApp()
 
-          const providers = await ModelsDev.get().then((p) => {
-            // TODO: add guide for copilot, for now just hide it
-            delete p["github-copilot"]
-            return p
-          })
+          const providers = await ModelsDev.get()
 
           const provider = await promptProvider()
           const model = await promptModel()
@@ -224,6 +220,15 @@ export const GithubInstallCommand = cmd({
             if (provider === "amazon-bedrock") {
               step2 =
                 "Configure OIDC in AWS - https://docs.github.com/en/actions/how-tos/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services"
+            } else if (provider === "github-copilot") {
+              step2 = [
+                "    2. GitHub Copilot is available automatically via GITHUB_TOKEN.",
+                "",
+                "       The `models: read` permission has been added to the workflow.",
+                "       No additional secrets are required.",
+                "",
+                "       Learn more - https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-in-the-command-line",
+              ].join("\n")
             } else {
               step2 = [
                 `    2. Add the following secrets in org or repo (${app.owner}/${app.repo}) settings`,
@@ -368,10 +373,12 @@ export const GithubInstallCommand = cmd({
           }
 
           async function addWorkflowFiles() {
+            const isCopilot = provider === "github-copilot"
             const envStr =
-              provider === "amazon-bedrock"
+              provider === "amazon-bedrock" || isCopilot
                 ? ""
                 : `\n        env:${providers[provider].env.map((e) => `\n          ${e}: \${{ secrets.${e} }}`).join("")}`
+            const modelsPermission = isCopilot ? "\n      models: read" : ""
 
             await Filesystem.write(
               path.join(app.root, WORKFLOW_FILE),
@@ -395,7 +402,7 @@ jobs:
       id-token: write
       contents: read
       pull-requests: read
-      issues: read
+      issues: read${modelsPermission}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

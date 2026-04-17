@@ -1145,6 +1145,12 @@ export namespace Config {
         .record(z.string(), Provider)
         .optional()
         .describe("Custom provider configurations and model overrides"),
+      provider_failover: z
+        .array(z.string())
+        .optional()
+        .describe(
+          "Ordered list of provider IDs to try when the primary provider returns a rate-limit or service-unavailable error",
+        ),
       mcp: z
         .record(
           z.string(),

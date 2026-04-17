@@ -37,7 +37,7 @@ function isRetryableError(e: unknown): boolean {
  */
 export async function getFailoverChain(primaryProviderID: string): Promise<string[]> {
   const config = await Config.get()
-  const chain: string[] = (config as any).provider_failover ?? []
+  const chain: string[] = config.provider_failover ?? []
   if (!Array.isArray(chain) || chain.length === 0) return []
   // Put the primary first (it may not be in the chain), then the rest
   const others = chain.filter((id) => id !== primaryProviderID)
