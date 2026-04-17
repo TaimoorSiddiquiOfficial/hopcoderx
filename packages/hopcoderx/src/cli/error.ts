@@ -3,6 +3,7 @@ import { Config } from "../config/config"
 import { MCP } from "../mcp"
 import { Provider } from "../provider/provider"
 import { UI } from "./ui"
+import { ErrorCode, formatErrorCode } from "./error-codes"
 
 const DOCS = "https://hopcoder.dev/docs"
 
@@ -13,7 +14,7 @@ function suggest(...lines: string[]) {
 export function FormatError(input: unknown) {
   if (MCP.Failed.isInstance(input))
     return [
-      `MCP server "${input.data.name}" failed to connect.`,
+      `${formatErrorCode(ErrorCode.MCP_CONNECTION_FAILED)} MCP server "${input.data.name}" failed to connect.`,
       suggest(
         `Check the server URL and credentials in your hopcoderx.json`,
         `Run: \x1b[1mhopcoderx mcp list\x1b[0m to see configured servers`,
@@ -24,7 +25,7 @@ export function FormatError(input: unknown) {
   if (Provider.ModelNotFoundError.isInstance(input)) {
     const { providerID, modelID, suggestions } = input.data
     return [
-      `Model not found: \x1b[1m${providerID}/${modelID}\x1b[0m`,
+      `${formatErrorCode(ErrorCode.PROVIDER_MODEL_NOT_FOUND)} Model not found: \x1b[1m${providerID}/${modelID}\x1b[0m`,
       suggest(
         ...(Array.isArray(suggestions) && suggestions.length
           ? [`Did you mean: \x1b[36m${suggestions.join("\x1b[0m, \x1b[36m")}\x1b[0m`]
@@ -38,7 +39,7 @@ export function FormatError(input: unknown) {
   }
   if (Provider.InitError.isInstance(input)) {
     return [
-      `Failed to initialize provider \x1b[1m${input.data.providerID}\x1b[0m`,
+      `${formatErrorCode(ErrorCode.PROVIDER_INIT_FAILED)} Failed to initialize provider \x1b[1m${input.data.providerID}\x1b[0m`,
       suggest(
         `Check your API key: \x1b[1mhopcoderx auth ${input.data.providerID}\x1b[0m`,
         `Run: \x1b[1mhopcoderx doctor\x1b[0m to check provider health`,
@@ -48,7 +49,7 @@ export function FormatError(input: unknown) {
   }
   if (Config.JsonError.isInstance(input)) {
     return [
-      `Config file at \x1b[1m${input.data.path}\x1b[0m is not valid JSON(C)` +
+      `${formatErrorCode(ErrorCode.CONFIG_INVALID_JSON)} Config file at \x1b[1m${input.data.path}\x1b[0m is not valid JSON(C)` +
         (input.data.message ? `: ${input.data.message}` : ""),
       suggest(
         `Open the file and check for syntax errors (missing commas, trailing commas, etc.)`,
@@ -59,7 +60,7 @@ export function FormatError(input: unknown) {
   }
   if (Config.ConfigDirectoryTypoError.isInstance(input)) {
     return [
-      `Directory "${input.data.dir}" in ${input.data.path} is not valid.`,
+      `${formatErrorCode(ErrorCode.CONFIG_DIRECTORY_TYPO)} Directory "${input.data.dir}" in ${input.data.path} is not valid.`,
       suggest(
         `Rename it to: \x1b[1m${input.data.suggestion}\x1b[0m`,
         `Or remove it entirely`,
@@ -67,10 +68,11 @@ export function FormatError(input: unknown) {
       ),
     ].join("")
   }
-  if (ConfigMarkdown.FrontmatterError.isInstance(input)) return input.data.message
+  if (ConfigMarkdown.FrontmatterError.isInstance(input))
+    return `${formatErrorCode(ErrorCode.CONFIG_FRONTMATTER_ERROR)} ${input.data.message}`
   if (Config.InvalidError.isInstance(input))
     return [
-      `Configuration is invalid${input.data.path && input.data.path !== "config" ? ` at \x1b[1m${input.data.path}\x1b[0m` : ""}` +
+      `${formatErrorCode(ErrorCode.CONFIG_INVALID_SCHEMA)} Configuration is invalid${input.data.path && input.data.path !== "config" ? ` at \x1b[1m${input.data.path}\x1b[0m` : ""}` +
         (input.data.message ? `: ${input.data.message}` : ""),
       ...(input.data.issues?.map((issue) => "\n  \x1b[33m↳\x1b[0m " + issue.message + " \x1b[2m" + issue.path.join(".") + "\x1b[0m") ?? []),
       suggest(
@@ -83,18 +85,19 @@ export function FormatError(input: unknown) {
 }
 
 export function FormatUnknownError(input: unknown): string {
+  const prefix = formatErrorCode(ErrorCode.UNKNOWN_ERROR)
   if (input instanceof Error) {
-    return input.stack ?? `${input.name}: ${input.message}`
+    return input.stack ?? `${prefix} ${input.name}: ${input.message}`
   }
 
   if (typeof input === "object" && input !== null) {
     try {
-      return JSON.stringify(input, null, 2)
+      return `${prefix} ${JSON.stringify(input, null, 2)}`
     } catch {
-      return "Unexpected error (unserializable)"
+      return `${prefix} Unexpected error (unserializable)`
     }
   }
 
-  return String(input)
+  return `${prefix} ${String(input)}`
 }
 
