@@ -16,6 +16,7 @@ import { Agent } from "../../agent/agent"
 import { Snapshot } from "@/snapshot"
 import { Log } from "../../util/log"
 import { PermissionNext } from "@/permission/next"
+import { Bookmark } from "../../session/bookmark"
 import { errors } from "../error"
 import { lazy } from "../../util/lazy"
 
@@ -1128,6 +1129,103 @@ export const SessionRoutes = lazy(() =>
           checkWorktreeExistence: false,
         })
         return c.json(stats)
+      },
+    )
+    .get(
+      "/:sessionID/bookmarks",
+      describeRoute({
+        summary: "List bookmarks",
+        description: "Get all bookmarked messages for a session.",
+        operationId: "session.bookmark.list",
+        responses: {
+          200: {
+            description: "List of bookmarks",
+            content: {
+              "application/json": {
+                schema: resolver(z.array(Bookmark.Info)),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string(),
+        }),
+      ),
+      async (c) => {
+        const { sessionID } = c.req.valid("param")
+        const bookmarks = await Bookmark.list(sessionID)
+        return c.json(bookmarks)
+      },
+    )
+    .post(
+      "/:sessionID/bookmarks",
+      describeRoute({
+        summary: "Add bookmark",
+        description: "Bookmark a message in a session.",
+        operationId: "session.bookmark.add",
+        responses: {
+          200: {
+            description: "Bookmark created",
+            content: {
+              "application/json": {
+                schema: resolver(Bookmark.Info),
+              },
+            },
+          },
+          ...errors(400),
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string(),
+        }),
+      ),
+      validator(
+        "json",
+        z.object({
+          messageID: z.string(),
+          label: z.string().optional(),
+        }),
+      ),
+      async (c) => {
+        const { sessionID } = c.req.valid("param")
+        const { messageID, label } = c.req.valid("json")
+        const bookmark = await Bookmark.add(sessionID, messageID, label)
+        return c.json(bookmark)
+      },
+    )
+    .delete(
+      "/:sessionID/bookmarks/:bookmarkID",
+      describeRoute({
+        summary: "Remove bookmark",
+        description: "Remove a bookmark by ID.",
+        operationId: "session.bookmark.remove",
+        responses: {
+          200: {
+            description: "Bookmark removed",
+            content: {
+              "application/json": {
+                schema: resolver(z.boolean()),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string(),
+          bookmarkID: z.string(),
+        }),
+      ),
+      async (c) => {
+        const { bookmarkID } = c.req.valid("param")
+        const result = await Bookmark.remove(bookmarkID)
+        return c.json(result)
       },
     ),
 )

@@ -62,6 +62,7 @@ export namespace ContextTiering {
     messages: MessageV2.WithParts[],
     budget = RECENT_TOKEN_BUDGET,
     maxRecent = RECENT_MAX_MESSAGES,
+    pinnedMessageIDs?: Set<string>,
   ): TierResult {
     if (messages.length === 0) {
       return { messages: [], archivedCount: 0, estimatedTokens: 0 }
@@ -88,12 +89,14 @@ export namespace ContextTiering {
 
     for (let i = candidates.length - 1; i >= 0; i--) {
       const msg = candidates[i]
-      if (recent.length >= maxRecent) {
+      // Bookmarked messages are always preserved regardless of budget
+      const isBookmarked = pinnedMessageIDs?.has(msg.info.id) ?? false
+      if (recent.length >= maxRecent && !isBookmarked) {
         archivedCount++
         continue
       }
       const cost = estimateMessage(msg)
-      if (tokens + cost > budget && recent.length > 0) {
+      if (tokens + cost > budget && recent.length > 0 && !isBookmarked) {
         archivedCount++
         continue
       }

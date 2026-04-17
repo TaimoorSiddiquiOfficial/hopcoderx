@@ -86,3 +86,22 @@ export const PermissionTable = sqliteTable("permission", {
   ...Timestamps,
   data: text({ mode: "json" }).notNull().$type<PermissionNext.Ruleset>(),
 })
+
+export const BookmarkTable = sqliteTable(
+  "bookmark",
+  {
+    id: text().primaryKey(),
+    session_id: text()
+      .notNull()
+      .references(() => SessionTable.id, { onDelete: "cascade" }),
+    message_id: text()
+      .notNull()
+      .references(() => MessageTable.id, { onDelete: "cascade" }),
+    label: text(),
+    ...Timestamps,
+  },
+  (table) => [
+    index("bookmark_session_idx").on(table.session_id),
+    index("bookmark_message_idx").on(table.message_id),
+  ],
+)

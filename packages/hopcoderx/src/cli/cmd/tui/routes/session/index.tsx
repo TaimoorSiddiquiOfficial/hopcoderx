@@ -224,7 +224,7 @@ export function Session() {
   })
 
   // Notify user when auto-compaction fires
-  sdk.event.on("session.compacted", (evt: { properties: { sessionID: string; tokensBefore?: number; tokensAfter?: number } }) => {
+  ;(sdk.event.on as any)("session.compacted", (evt: { properties: { sessionID: string; tokensBefore?: number; tokensAfter?: number } }) => {
     if (evt.properties.sessionID !== route.sessionID) return
     const before = evt.properties.tokensBefore
     const after = evt.properties.tokensAfter
@@ -233,6 +233,26 @@ export function Session() {
       message: `Context compacted${saved} — conversation summarized to free space`,
       variant: "info",
       duration: 6000,
+    })
+  })
+
+  // Budget alert toasts from QuotaTracker
+  ;(sdk.event.on as any)("quota.warning", (evt: { properties: { providerID: string; status: { costUSD: number; warning?: string }; reason: string } }) => {
+    const { providerID, status, reason } = evt.properties
+    toast.show({
+      message: reason === "cost_threshold"
+        ? `⚠ Cost alert: $${status.costUSD.toFixed(2)} on ${providerID}`
+        : `⚠ Quota warning on ${providerID}: ${status.warning ?? "approaching limit"}`,
+      variant: "warning",
+      duration: 8000,
+    })
+  })
+
+  ;(sdk.event.on as any)("quota.exceeded", (evt: { properties: { providerID: string; status: { costUSD: number; warning?: string } } }) => {
+    toast.show({
+      message: `🛑 Quota exceeded on ${evt.properties.providerID}: $${evt.properties.status.costUSD.toFixed(2)} — requests may be blocked`,
+      variant: "error",
+      duration: 12000,
     })
   })
 

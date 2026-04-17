@@ -291,5 +291,80 @@ export const MetaRoutes = lazy(() =>
           modelPerf: Telemetry.modelPerf(),
         })
       },
+    )
+    .get(
+      "/quota",
+      describeRoute({
+        tags: ["meta"],
+        summary: "Get quota/cost status across all providers",
+        responses: {
+          200: {
+            description: "Quota status",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({
+                  totalCostUSD: z.number(),
+                  providers: z.array(z.object({
+                    providerID: z.string(),
+                    costUSD: z.number(),
+                    used: z.number(),
+                    exceeded: z.boolean(),
+                    warning: z.string().optional(),
+                  })),
+                })),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        const { QuotaTracker } = await import("../../telemetry/quota")
+        const statuses = QuotaTracker.getAllStatuses()
+        let totalCostUSD = 0
+        const providers: Array<{ providerID: string; costUSD: number; used: number; exceeded: boolean; warning?: string }> = []
+        for (const [, status] of statuses) {
+          totalCostUSD += status.costUSD
+          providers.push({
+            providerID: status.providerID,
+            costUSD: status.costUSD,
+            used: status.used,
+            exceeded: status.exceeded,
+            warning: status.warning,
+          })
+        }
+        return c.json({ totalCostUSD, providers })
+      },
+    )
+    .get(
+      "/quota/:sessionID",
+      describeRoute({
+        tags: ["meta"],
+        summary: "Get cost breakdown for a specific session",
+        responses: {
+          200: {
+            description: "Session cost",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({
+                  sessionID: z.string(),
+                  totalTokens: z.number(),
+                  totalCostUSD: z.number(),
+                  providers: z.array(z.object({
+                    providerID: z.string(),
+                    tokens: z.number(),
+                    costUSD: z.number(),
+                  })),
+                })),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        const { QuotaTracker } = await import("../../telemetry/quota")
+        const sessionID = c.req.param("sessionID")
+        const usage = QuotaTracker.getSessionUsage(sessionID)
+        return c.json({ sessionID, ...usage })
+      },
     ),
 )

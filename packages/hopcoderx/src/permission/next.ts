@@ -307,4 +307,38 @@ export namespace PermissionNext {
     const s = await state()
     return Object.values(s.pending).map((x) => x.info)
   }
+
+  /** Return all persisted "always" approval rules. */
+  export async function listApprovals(): Promise<Ruleset> {
+    const s = await state()
+    return [...s.approved]
+  }
+
+  /** Remove a specific persisted approval rule by index. */
+  export async function revokeApproval(index: number): Promise<boolean> {
+    const s = await state()
+    if (index < 0 || index >= s.approved.length) return false
+    s.approved.splice(index, 1)
+    Database.use((db) =>
+      db
+        .insert(PermissionTable)
+        .values({ project_id: Instance.project.id, data: s.approved })
+        .onConflictDoUpdate({ target: PermissionTable.project_id, set: { data: s.approved } })
+        .run(),
+    )
+    return true
+  }
+
+  /** Clear all persisted approval rules for this project. */
+  export async function clearApprovals(): Promise<void> {
+    const s = await state()
+    s.approved.length = 0
+    Database.use((db) =>
+      db
+        .insert(PermissionTable)
+        .values({ project_id: Instance.project.id, data: s.approved })
+        .onConflictDoUpdate({ target: PermissionTable.project_id, set: { data: s.approved } })
+        .run(),
+    )
+  }
 }

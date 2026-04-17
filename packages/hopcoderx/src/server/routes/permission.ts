@@ -64,5 +64,49 @@ export const PermissionRoutes = lazy(() =>
         const permissions = await PermissionNext.list()
         return c.json(permissions)
       },
+    )
+    .get(
+      "/approvals",
+      describeRoute({
+        summary: "List persisted approval rules",
+        description: "Get all 'always' approval rules for this project.",
+        operationId: "permission.listApprovals",
+        responses: {
+          200: {
+            description: "List of approval rules",
+            content: {
+              "application/json": {
+                schema: resolver(PermissionNext.Ruleset),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        const approvals = await PermissionNext.listApprovals()
+        return c.json(approvals)
+      },
+    )
+    .delete(
+      "/approvals",
+      describeRoute({
+        summary: "Clear all approval rules",
+        description: "Remove all persisted 'always' approval rules for this project.",
+        operationId: "permission.clearApprovals",
+        responses: {
+          200: {
+            description: "Approvals cleared",
+            content: {
+              "application/json": {
+                schema: resolver(z.boolean()),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        await PermissionNext.clearApprovals()
+        return c.json(true)
+      },
     ),
 )

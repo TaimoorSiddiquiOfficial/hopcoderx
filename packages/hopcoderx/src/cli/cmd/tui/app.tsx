@@ -617,6 +617,167 @@ function App() {
       },
     },
     {
+      title: "Cost breakdown",
+      value: "cost.show",
+      slash: {
+        name: "cost",
+      },
+      onSelect: async (dialog) => {
+        const sessionID = route.data.type === "session" ? route.data.sessionID : undefined
+        if (!sessionID) {
+          toast.show({ message: "No active session", variant: "error" })
+          dialog.clear()
+          return
+        }
+        try {
+          const res = await fetch(`${sdk.url}/quota/${sessionID}`)
+          const data = await res.json() as { totalTokens: number; totalCostUSD: number; providers: Array<{ providerID: string; tokens: number; costUSD: number }> }
+          if (!data || data.totalTokens === 0) {
+            toast.show({ message: "No cost data yet for this session", variant: "info" })
+            dialog.clear()
+            return
+          }
+          const lines = [
+            `💰 $${data.totalCostUSD.toFixed(4)} total (${formatTokens(data.totalTokens)} tokens)`,
+            ...data.providers.map(p =>
+              `  ${p.providerID}: $${p.costUSD.toFixed(4)} (${formatTokens(p.tokens)})`
+            ),
+          ]
+          toast.show({
+            message: lines.join("\n"),
+            variant: "info",
+            duration: 10000,
+          })
+        } catch {
+          toast.show({ message: "Failed to fetch cost data", variant: "error" })
+        }
+        dialog.clear()
+      },
+      category: "Session",
+    },
+    {
+      title: "Trust / approvals",
+      value: "trust.show",
+      slash: {
+        name: "trust",
+      },
+      onSelect: async (dialog) => {
+        try {
+          // Fetch permission route path — it's mounted under /permission
+          const res = await fetch(`${sdk.url}/permission/approvals`)
+          const rules = await res.json() as Array<{ permission: string; pattern: string; action: string }>
+          if (!rules || rules.length === 0) {
+            toast.show({ message: "No saved approval rules. Approve a tool with 'Always' to create rules.", variant: "info" })
+            dialog.clear()
+            return
+          }
+          const lines = [
+            `🔒 ${rules.length} saved approval rule${rules.length === 1 ? "" : "s"}:`,
+            ...rules.map((r, i) =>
+              `  ${i + 1}. ${r.permission} ${r.pattern === "*" ? "(all)" : r.pattern} → ${r.action}`
+            ),
+            "",
+            "Use /trust-clear to revoke all rules",
+          ]
+          toast.show({
+            message: lines.join("\n"),
+            variant: "info",
+            duration: 12000,
+          })
+        } catch {
+          toast.show({ message: "Failed to fetch approval rules", variant: "error" })
+        }
+        dialog.clear()
+      },
+      category: "System",
+    },
+    {
+      title: "Clear all trust rules",
+      value: "trust.clear",
+      slash: {
+        name: "trust-clear",
+      },
+      onSelect: async (dialog) => {
+        try {
+          await fetch(`${sdk.url}/permission/approvals`, { method: "DELETE" })
+          toast.show({ message: "All approval rules cleared — tools will ask for permission again", variant: "success" })
+        } catch {
+          toast.show({ message: "Failed to clear approval rules", variant: "error" })
+        }
+        dialog.clear()
+      },
+      category: "System",
+    },
+    {
+      title: "Bookmark last message",
+      value: "bookmark.add",
+      slash: {
+        name: "bookmark",
+      },
+      onSelect: async (dialog) => {
+        if (route.data.type !== "session") {
+          toast.show({ message: "Open a session first to bookmark messages", variant: "info" })
+          dialog.clear()
+          return
+        }
+        const sessionID = route.data.sessionID
+        const messages = sync.data.message[sessionID] ?? []
+        // Find the last assistant message
+        const lastAssistant = [...messages].reverse().find((m: any) => m.role === "assistant")
+        if (!lastAssistant) {
+          toast.show({ message: "No assistant message to bookmark yet", variant: "info" })
+          dialog.clear()
+          return
+        }
+        try {
+          await fetch(`${sdk.url}/session/${sessionID}/bookmarks`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messageID: lastAssistant.id }),
+          })
+          toast.show({ message: "📌 Last message bookmarked", variant: "success" })
+        } catch {
+          toast.show({ message: "Failed to bookmark message", variant: "error" })
+        }
+        dialog.clear()
+      },
+      category: "Session",
+    },
+    {
+      title: "List bookmarks",
+      value: "bookmark.list",
+      slash: {
+        name: "bookmarks",
+      },
+      onSelect: async (dialog) => {
+        if (route.data.type !== "session") {
+          toast.show({ message: "Open a session first", variant: "info" })
+          dialog.clear()
+          return
+        }
+        const sessionID = route.data.sessionID
+        try {
+          const res = await fetch(`${sdk.url}/session/${sessionID}/bookmarks`)
+          const bookmarks = await res.json() as Array<{ id: string; label: string | null; preview: string; timeCreated: number }>
+          if (!bookmarks || bookmarks.length === 0) {
+            toast.show({ message: "No bookmarks yet — use /bookmark to pin the last message", variant: "info" })
+          } else {
+            const lines = [
+              `📌 ${bookmarks.length} bookmark${bookmarks.length === 1 ? "" : "s"}:`,
+              ...bookmarks.map((b, i) =>
+                `  ${i + 1}. ${b.label ?? (b.preview || "(no preview)")}`
+              ),
+            ]
+            toast.show({ message: lines.join("\n"), variant: "info", duration: 12000 })
+          }
+        } catch {
+          toast.show({ message: "Failed to fetch bookmarks", variant: "error" })
+        }
+        dialog.clear()
+      },
+      category: "Session",
+    },
+    {
       title: "Switch theme",
       value: "theme.switch",
       keybind: "theme_list",
@@ -934,4 +1095,10 @@ function ErrorComponent(props: {
       <text fg={colors.text}>{props.error.message}</text>
     </box>
   )
+}
+
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M"
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K"
+  return String(n)
 }

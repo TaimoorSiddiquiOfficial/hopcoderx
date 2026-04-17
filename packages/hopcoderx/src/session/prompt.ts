@@ -719,6 +719,13 @@ export namespace SessionPrompt {
       // Build system prompt, adding structured output instruction if needed
       const system = [...(await SystemPrompt.environment(model)), ...(await InstructionPrompt.system())]
 
+      // Inject git working tree context so the LLM knows what branch/files are active
+      const { GitContext } = await import("./git-context")
+      const gitCtx = await GitContext.build()
+      if (gitCtx) {
+        system.push(`<git_context>\n${gitCtx}\n</git_context>`)
+      }
+
       // Auto-load relevant context files based on user query
       const config = await Config.get()
       if (config.context?.autoLoad !== false && lastUser) {
@@ -746,7 +753,9 @@ export namespace SessionPrompt {
         sessionID,
         system,
         messages: await (async () => {
-          const { messages: tiered, archivedCount } = ContextTiering.apply(msgs)
+          const { Bookmark } = await import("./bookmark")
+          const bookmarkedIDs = await Bookmark.messageIDs(sessionID)
+          const { messages: tiered, archivedCount } = ContextTiering.apply(msgs, undefined, undefined, bookmarkedIDs)
           if (archivedCount > 0) log.info("context.tiering", { archived: archivedCount, kept: tiered.length })
           return [
             ...(await MessageV2.toModelMessages(tiered, model)),
