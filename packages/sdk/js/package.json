@@ -38,6 +38,8 @@
   },
   "dependencies": {},
   "publishConfig": {
-    "directory": "dist"
+    "directory": "dist",
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
