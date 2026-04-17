@@ -385,10 +385,13 @@ export namespace SessionPrompt {
       }
 
       if (!lastUser) throw new Error("No user message found in stream. This should never happen.")
+      // Use parentID matching instead of ID ordering to avoid clock skew issues
+      // Exit loop when the last assistant message is a direct response to the last user message
+      // and the model finished naturally (not waiting for tool calls)
       if (
         lastAssistant?.info.finish &&
         !["tool-calls", "unknown"].includes(lastAssistant.info.finish) &&
-        lastUser.info.id < lastAssistant.info.id
+        lastAssistant.info.parentID === lastUser.info.id
       ) {
         log.info("exiting loop", { sessionID })
         break
@@ -696,18 +699,12 @@ export namespace SessionPrompt {
       }
 
       // Ephemerally wrap queued user messages with a reminder to stay on track
-      // Only add reminder if there are pending tasks or the session has actual work in progress
       if (step > 1 && lastFinished) {
-        const hasPendingWork = session.permission?.some((p: any) => p.permission === "doom_loop") ||
-                               msgs.some((m: any) => m.info.role === "assistant" && !m.info.time.completed)
         for (const msg of msgs) {
           if (msg.info.role !== "user" || msg.info.id <= lastFinished.info.id) continue
           for (const part of msg.parts) {
             if (part.type !== "text" || part.ignored || part.synthetic) continue
             if (!part.text.trim()) continue
-            // Skip reminder for simple conversational messages (greetings, thanks, etc.)
-            const isSimpleMessage = /^(hi|hello|hey|thanks|thank you|ok|okay|sure|yes|no|please|pls)/i.test(part.text.trim())
-            if (isSimpleMessage && !hasPendingWork) continue
             part.text = [
               "<system-reminder>",
               "The user sent the following message:",
