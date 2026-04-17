@@ -68,6 +68,18 @@ export namespace Provider {
     return keys.find((k) => !limits?.has(k))
   }
 
+  // ── Configurable discovery timeouts ────────────────────────────────────────
+  // Model-discovery requests use these timeouts when probing local or remote
+  // provider endpoints. Override with env vars for slow / high-latency networks.
+  function discoveryTimeout(): number {
+    const val = parseInt(Env.get("HOPCODERX_DISCOVERY_TIMEOUT_MS") ?? "", 10)
+    return isNaN(val) ? 2000 : val
+  }
+  function bdrTimeout(): number {
+    const val = parseInt(Env.get("HOPCODERX_BDR_TIMEOUT_MS") ?? "", 10)
+    return isNaN(val) ? 5000 : val
+  }
+
   // ── SSE stream read timeout ─────────────────────────────────────────────────
   function addStreamReadTimeout(body: ReadableStream<Uint8Array>, timeoutMs: number): ReadableStream<Uint8Array> {
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -530,7 +542,7 @@ export namespace Provider {
         Env.get("OLLAMA_HOST") ?? (await Config.get()).provider?.["ollama"]?.options?.baseURL ?? "http://127.0.0.1:11434"
       try {
         const res = await fetch(`${base}/api/tags`, {
-          signal: AbortSignal.timeout(2000),
+          signal: AbortSignal.timeout(discoveryTimeout()),
         })
         if (!res.ok) return { autoload: false }
         const body = (await res.json()) as { models?: Array<{ name: string; model: string }> }
@@ -577,7 +589,7 @@ export namespace Provider {
       if (!base) return { autoload: false } // has API key — use standard models.dev flow
       try {
         const res = await fetch(`${base}/models`, {
-          signal: AbortSignal.timeout(2000),
+          signal: AbortSignal.timeout(discoveryTimeout()),
         })
         if (!res.ok) return { autoload: false }
         const body = (await res.json()) as { data?: Array<{ id: string }> }
@@ -929,7 +941,7 @@ export namespace Provider {
       try {
         const res = await fetch(`${base}/models`, {
           headers: { Authorization: `Bearer ${apiKey}` },
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(bdrTimeout()),
         })
         if (res.ok) {
           const body = (await res.json()) as { data?: Array<Record<string, unknown>> }
@@ -994,7 +1006,7 @@ export namespace Provider {
       try {
         const res = await fetch(`${baseURL}/models`, {
           headers: { Authorization: `Bearer ${apiKey}` },
-          signal: AbortSignal.timeout(2000),
+          signal: AbortSignal.timeout(discoveryTimeout()),
         })
         if (res.ok) {
           const body = (await res.json()) as { data?: Array<{ id: string }> }
