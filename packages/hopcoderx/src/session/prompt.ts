@@ -696,12 +696,18 @@ export namespace SessionPrompt {
       }
 
       // Ephemerally wrap queued user messages with a reminder to stay on track
+      // Only add reminder if there are pending tasks or the session has actual work in progress
       if (step > 1 && lastFinished) {
+        const hasPendingWork = session.permission?.some((p: any) => p.permission === "doom_loop") ||
+                               msgs.some((m: any) => m.info.role === "assistant" && !m.info.time.completed)
         for (const msg of msgs) {
           if (msg.info.role !== "user" || msg.info.id <= lastFinished.info.id) continue
           for (const part of msg.parts) {
             if (part.type !== "text" || part.ignored || part.synthetic) continue
             if (!part.text.trim()) continue
+            // Skip reminder for simple conversational messages (greetings, thanks, etc.)
+            const isSimpleMessage = /^(hi|hello|hey|thanks|thank you|ok|okay|sure|yes|no|please|pls)/i.test(part.text.trim())
+            if (isSimpleMessage && !hasPendingWork) continue
             part.text = [
               "<system-reminder>",
               "The user sent the following message:",

@@ -73,18 +73,20 @@ export function Footer() {
     const timeouts: ReturnType<typeof setTimeout>[] = []
 
     function tick() {
-      if (connected()) return
+      // Only show welcome message when not connected
+      if (connected()) {
+        setStore("welcome", false)
+        return
+      }
       if (!store.welcome) {
         setStore("welcome", true)
         timeouts.push(setTimeout(() => tick(), 5000))
         return
       }
 
-      if (store.welcome) {
-        setStore("welcome", false)
-        timeouts.push(setTimeout(() => tick(), 10_000))
-        return
-      }
+      // Hide welcome after showing for 5 seconds, then check connection again
+      setStore("welcome", false)
+      timeouts.push(setTimeout(() => tick(), 5000))
     }
     timeouts.push(setTimeout(() => tick(), 10_000))
 

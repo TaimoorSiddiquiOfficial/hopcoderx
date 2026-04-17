@@ -496,6 +496,10 @@ export namespace SessionProcessor {
           if (needsCompaction) return "compact"
           if (blocked) return "stop"
           if (input.assistantMessage.error) return "stop"
+          // Stop loop when model finished naturally (not waiting for tool calls)
+          if (input.assistantMessage.finish && !["tool-calls", "unknown"].includes(input.assistantMessage.finish)) {
+            return "stop"
+          }
           return "continue"
         }
       },
