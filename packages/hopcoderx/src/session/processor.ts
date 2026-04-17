@@ -9,8 +9,9 @@ import { Bus } from "@/bus"
 import { SessionRetry } from "./retry"
 import { SessionStatus } from "./status"
 import { Plugin } from "@/plugin"
-import type { Provider } from "@/provider/provider"
+import { Provider } from "@/provider/provider"
 import { LLM } from "./llm"
+import { isRetryableError, getFailoverChain } from "@/provider/failover"
 import { Config } from "@/config/config"
 import { SessionCompaction } from "./compaction"
 import { PermissionNext } from "@/permission/next"
@@ -35,6 +36,8 @@ export namespace SessionProcessor {
     let blocked = false
     let attempt = 0
     let needsCompaction = false
+    let failoverChain: string[] | undefined
+    let failoverIndex = 0
 
     const result = {
       get message() {
@@ -391,6 +394,48 @@ export namespace SessionProcessor {
               await SessionRetry.sleep(delay, input.abort).catch(() => {})
               continue
             }
+
+            // Failover: if error is retryable by failover rules, try next provider
+            if (isRetryableError(e)) {
+              if (!failoverChain) {
+                failoverChain = await getFailoverChain(input.model.providerID)
+                failoverIndex = 0
+              }
+              if (failoverChain.length > 0 && failoverIndex < failoverChain.length) {
+                const nextProviderID = failoverChain[failoverIndex]!
+                failoverIndex++
+                try {
+                  // Try same model ID first, fallback to first available model
+                  let nextModel: Provider.Model
+                  try {
+                    nextModel = await Provider.getModel(nextProviderID, streamInput.model.id)
+                  } catch {
+                    const provider = await Provider.getProvider(nextProviderID)
+                    const firstModelID = Object.keys(provider?.models ?? {})[0]
+                    if (!firstModelID) throw e
+                    nextModel = await Provider.getModel(nextProviderID, firstModelID)
+                  }
+                  log.warn("failover: switching provider", {
+                    from: streamInput.model.providerID,
+                    to: nextProviderID,
+                    model: nextModel.id,
+                  })
+                  streamInput = { ...streamInput, model: nextModel }
+                  attempt = 0
+                  SessionStatus.set(input.sessionID, {
+                    type: "retry",
+                    attempt: 0,
+                    message: `Failing over to ${nextProviderID}`,
+                    next: Date.now() + 1000,
+                  })
+                  await SessionRetry.sleep(1000, input.abort).catch(() => {})
+                  continue
+                } catch {
+                  // Failover provider resolution failed, fall through to error
+                }
+              }
+            }
+
             input.assistantMessage.error = error
             Bus.publish(Session.Event.Error, {
               sessionID: input.assistantMessage.sessionID,

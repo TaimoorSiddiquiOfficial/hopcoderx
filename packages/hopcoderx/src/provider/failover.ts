@@ -20,14 +20,15 @@ import { Log } from "../util/log"
 const log = Log.create({ service: "provider/failover" })
 
 /** Error codes that signal we should try the next provider. */
-function isRetryableError(e: unknown): boolean {
+export function isRetryableError(e: unknown): boolean {
   if (!(e instanceof Error)) return false
   const msg = e.message.toLowerCase()
   // HTTP 429 rate limit or 503/502 service unavailable
   if (/429|rate.?limit|quota.?exceeded/.test(msg)) return true
   if (/503|502|service.?unavailable|overloaded/.test(msg)) return true
-  // Network timeouts
+  // Network timeouts and stream stalls
   if (/timeout|etimedout|econnreset|econnrefused/.test(msg)) return true
+  if (/stream read timeout/.test(msg)) return true
   return false
 }
 
