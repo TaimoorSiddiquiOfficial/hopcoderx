@@ -1,0 +1,15 @@
+{
+  "name": "hopcoderx-tmux",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Tmux integration plugin for HopCoderX – auto-spawn terminal panes for agent sessions",
+  "license": "MIT",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "keywords": ["hopcoderx", "tmux", "terminal", "session", "multiplexer"],
+  "peerDependencies": {
+    "@hopcoderx/plugin": "*"
+  }
+}

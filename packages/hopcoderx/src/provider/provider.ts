@@ -47,6 +47,53 @@ import { Installation } from "../installation"
 export namespace Provider {
   const log = Log.create({ service: "provider" })
 
+  // ── Multi-key rotation state ────────────────────────────────────────────────
+  // Persists across state() rebuilds (config reload) intentionally so that
+  // rate-limit windows don't reset when the provider list is refreshed.
+  const _keyRateLimits = new Map<string, Map<string, number>>() // providerID -> key -> retryAfterMs
+
+  function markKeyRateLimited(providerID: string, key: string, retryAfterMs: number) {
+    if (!_keyRateLimits.has(providerID)) _keyRateLimits.set(providerID, new Map())
+    _keyRateLimits.get(providerID)!.set(key, retryAfterMs)
+    log.info("api key rate-limited", { providerID, retryAfterMs: new Date(retryAfterMs).toISOString() })
+  }
+
+  function selectActiveKey(providerID: string, keys: string[]): string | undefined {
+    const limits = _keyRateLimits.get(providerID)
+    const now = Date.now()
+    // Purge expired entries
+    if (limits) {
+      for (const [k, until] of limits) if (now >= until) limits.delete(k)
+    }
+    return keys.find((k) => !limits?.has(k))
+  }
+
+  // ── SSE stream read timeout ─────────────────────────────────────────────────
+  function addStreamReadTimeout(body: ReadableStream<Uint8Array>, timeoutMs: number): ReadableStream<Uint8Array> {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    return body.pipeThrough(
+      new TransformStream<Uint8Array, Uint8Array>({
+        start(controller) {
+          timer = setTimeout(
+            () => controller.error(new Error(`Stream read timeout: no data received for ${timeoutMs}ms`)),
+            timeoutMs,
+          )
+        },
+        transform(chunk, controller) {
+          clearTimeout(timer)
+          controller.enqueue(chunk)
+          timer = setTimeout(
+            () => controller.error(new Error(`Stream read timeout: no data received for ${timeoutMs}ms`)),
+            timeoutMs,
+          )
+        },
+        flush() {
+          clearTimeout(timer)
+        },
+      }),
+    )
+  }
+
   function isGpt5OrLater(modelID: string): boolean {
     const match = /^gpt-(\d+)/.exec(modelID)
     if (!match) {
@@ -1099,6 +1146,7 @@ export namespace Provider {
       source: z.enum(["env", "config", "custom", "api"]),
       env: z.string().array(),
       key: z.string().optional(),
+      keys: z.string().array().optional().describe("Multiple API keys for automatic rotation when rate limited"),
       options: z.record(z.string(), z.any()),
       models: z.record(z.string(), Model),
     })
@@ -1598,6 +1646,7 @@ export namespace Provider {
       if (provider.env) partial.env = provider.env
       if (provider.name) partial.name = provider.name
       if (provider.options) partial.options = provider.options
+      if (provider.keys && provider.keys.length > 0) partial.keys = provider.keys
       mergeProvider(providerID, partial)
     }
 
@@ -1673,7 +1722,14 @@ export namespace Provider {
 
       const baseURL = loadBaseURL(model, options)
       if (baseURL !== undefined) options["baseURL"] = baseURL
-      if (options["apiKey"] === undefined && provider.key) options["apiKey"] = provider.key
+      // Multi-key rotation: prefer keys[] over single key; select first non-rate-limited key
+      if (options["apiKey"] === undefined) {
+        const activeKey =
+          provider.keys && provider.keys.length > 0
+            ? selectActiveKey(model.providerID, provider.keys)
+            : provider.key
+        if (activeKey) options["apiKey"] = activeKey
+      }
       if (model.headers)
         options["headers"] = {
           ...options["headers"],
@@ -1685,6 +1741,14 @@ export namespace Provider {
       if (existing) return existing
 
       const customFetch = options["fetch"]
+
+      // Compute stream-read timeout (default 60s; set streamTimeout:false to disable)
+      const streamTimeoutMs: number | null = (() => {
+        const st = options["streamTimeout"]
+        if (st === false) return null
+        if (typeof st === "number" && st > 0) return st
+        return 60_000
+      })()
 
       options["fetch"] = async (input: any, init?: BunFetchRequestInit) => {
         // Preserve custom fetch if it exists, wrap it with timeout logic
@@ -1719,11 +1783,58 @@ export namespace Provider {
           }
         }
 
-        return fetchFn(input, {
+        const rawResponse = await fetchFn(input, {
           ...opts,
           // @ts-ignore see here: https://github.com/oven-sh/bun/issues/16682
           timeout: false,
         })
+
+        // Multi-key rotation: on 429, mark current key rate-limited and retry with next key
+        if (rawResponse.status === 429 && provider.keys && provider.keys.length > 1) {
+          const headers = opts.headers as Record<string, string> | undefined
+          const authHeader =
+            headers?.["Authorization"] ??
+            headers?.["authorization"] ??
+            headers?.["x-api-key"] ??
+            headers?.["api-key"]
+          const usedKey = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : authHeader
+          if (usedKey && provider.keys.includes(usedKey)) {
+            const retryAfterSec = parseInt(rawResponse.headers.get("retry-after") || "60", 10)
+            markKeyRateLimited(model.providerID, usedKey, Date.now() + retryAfterSec * 1_000)
+            const nextKey = selectActiveKey(model.providerID, provider.keys)
+            if (nextKey && nextKey !== usedKey) {
+              log.info("rotating api key due to rate limit", { providerID: model.providerID })
+              const retryHeaders: Record<string, string> = { ...(headers ?? {}), Authorization: `Bearer ${nextKey}` }
+              // Remove alternate auth header names to avoid conflicts
+              ;["authorization", "x-api-key", "api-key"].forEach((h) => delete retryHeaders[h])
+              const retryResponse = await fetchFn(input, {
+                ...opts,
+                headers: retryHeaders,
+                // @ts-ignore
+                timeout: false,
+              })
+              if (streamTimeoutMs !== null && retryResponse.body) {
+                return new Response(addStreamReadTimeout(retryResponse.body, streamTimeoutMs), {
+                  status: retryResponse.status,
+                  statusText: retryResponse.statusText,
+                  headers: retryResponse.headers,
+                })
+              }
+              return retryResponse
+            }
+          }
+        }
+
+        // SSE stream read timeout: wrap body so stalled streams are detected
+        if (streamTimeoutMs !== null && rawResponse.body) {
+          return new Response(addStreamReadTimeout(rawResponse.body, streamTimeoutMs), {
+            status: rawResponse.status,
+            statusText: rawResponse.statusText,
+            headers: rawResponse.headers,
+          })
+        }
+
+        return rawResponse
       }
 
       const bundledFn = BUNDLED_PROVIDERS[model.api.npm]

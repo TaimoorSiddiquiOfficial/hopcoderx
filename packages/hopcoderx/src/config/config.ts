@@ -983,6 +983,12 @@ export namespace Config {
     .extend({
       whitelist: z.array(z.string()).optional(),
       blacklist: z.array(z.string()).optional(),
+      keys: z
+        .array(z.string())
+        .optional()
+        .describe(
+          "Multiple API keys for automatic rotation when rate limited (429). When set, overrides the single key from auth. Keys are tried in order; a rate-limited key is skipped until its retry-after window expires.",
+        ),
       models: z
         .record(
           z.string(),
@@ -1021,6 +1027,21 @@ export namespace Config {
             .optional()
             .describe(
               "Timeout in milliseconds for requests to this provider. Default is 300000 (5 minutes). Set to false to disable timeout.",
+            ),
+          streamTimeout: z
+            .union([
+              z
+                .number()
+                .int()
+                .positive()
+                .describe(
+                  "Milliseconds of silence on a streaming response before treating it as stalled and aborting. Default is 60000 (60 s).",
+                ),
+              z.literal(false).describe("Disable the SSE stream read timeout entirely."),
+            ])
+            .optional()
+            .describe(
+              "SSE stream read timeout. If no tokens are received for this many milliseconds the stream is aborted. Default is 60000 (60 s). Set to false to disable.",
             ),
         })
         .catchall(z.any())
