@@ -721,6 +721,11 @@ export namespace ProviderTransform {
       result["promptCacheKey"] = input.sessionID
     }
 
+    if (input.model.api.npm === "@ai-sdk/azure") {
+      result["store"] = true
+      result["promptCacheKey"] = input.sessionID
+    }
+
     if (input.model.api.npm === "@ai-sdk/google" || input.model.api.npm === "@ai-sdk/google-vertex") {
       result["thinkingConfig"] = {
         includeThoughts: true,

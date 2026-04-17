@@ -884,7 +884,11 @@ export namespace Config {
       input_delete_to_line_start: z.string().optional().default("ctrl+u").describe("Delete to start of line in input"),
       input_backspace: z.string().optional().default("backspace,shift+backspace").describe("Backspace in input"),
       input_delete: z.string().optional().default("ctrl+d,delete,shift+delete").describe("Delete character in input"),
-      input_undo: z.string().optional().default("ctrl+-,super+z").describe("Undo in input"),
+      input_undo: z
+        .string()
+        .optional()
+        .default(process.platform === "win32" ? "ctrl+z,ctrl+-,super+z" : "ctrl+-,super+z")
+        .describe("Undo in input"),
       input_redo: z.string().optional().default("ctrl+.,super+shift+z").describe("Redo in input"),
       input_word_forward: z
         .string()
@@ -921,7 +925,12 @@ export namespace Config {
       session_child_cycle: z.string().optional().default("<leader>right").describe("Next child session"),
       session_child_cycle_reverse: z.string().optional().default("<leader>left").describe("Previous child session"),
       session_parent: z.string().optional().default("<leader>up").describe("Go to parent session"),
-      terminal_suspend: z.string().optional().default("ctrl+z").describe("Suspend terminal"),
+      terminal_suspend: z
+        .string()
+        .optional()
+        .default("ctrl+z")
+        .transform((v) => (process.platform === "win32" ? "none" : v))
+        .describe("Suspend terminal"),
       terminal_title_toggle: z.string().optional().default("none").describe("Toggle terminal title"),
       tips_toggle: z.string().optional().default("<leader>h").describe("Toggle tips on home screen"),
       display_thinking: z.string().optional().default("none").describe("Toggle thinking blocks visibility"),
