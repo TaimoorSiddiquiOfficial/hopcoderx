@@ -38,7 +38,18 @@ export function DialogHub() {
   const [showDetail, setShowDetail] = createSignal(false)
 
   const installedMcpNames = createMemo(() => new Set(Object.keys(sync.data.mcp ?? {})))
-  const suggestions = createMemo(() => HubSuggest.suggest(Instance.directory))
+
+  // Capture directory at mount time (AsyncLocalStorage context is valid here but may not
+  // propagate into SolidJS reactive scheduler ticks — accessing Instance.directory inside
+  // a reactive computation can throw Context.NotFound, causing the memo to cache undefined).
+  const dir = Instance.directory
+  const suggestions = createMemo((): HubSuggest.Suggestion[] => {
+    try {
+      return HubSuggest.suggest(dir)
+    } catch {
+      return []
+    }
+  })
 
   const workflowOptions = createMemo<DialogSelectOption<string>[]>(() => {
     const installed = installedMcpNames()
